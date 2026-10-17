@@ -126,4 +126,8 @@ export const admin = {
       method: "POST",
       body: JSON.stringify({ action: "delete-store", storeId }),
     }),
+  export const admin = {
+  // ... (keep existing ones)
+  expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"),
+};
 };
