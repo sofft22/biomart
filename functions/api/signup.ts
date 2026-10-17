@@ -1,12 +1,6 @@
 export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
   try {
-    const body = await request.json() as {
-      storeName?: string;
-      whatsapp?: string;
-      email?: string;
-      password?: string;
-    };
-
+    const body = await request.json() as any;
     const storeName = (body.storeName || "").trim();
     const whatsapp = (body.whatsapp || "").trim();
     const email = (body.email || "").trim().toLowerCase();
@@ -28,14 +22,17 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
     const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
     const passwordHash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
 
+    // 1. Insert User (uses 'role', not 'plan')
     await env.DB.prepare(
-      "INSERT INTO users (id, email, password_hash, plan, created_at) VALUES (?, ?, ?, 'free', ?)"
+      "INSERT INTO users (id, email, password_hash, role, created_at) VALUES (?, ?, ?, 'owner', ?)"
     ).bind(userId, email, passwordHash, Date.now()).run();
 
+    // 2. Insert Store
     await env.DB.prepare(
       "INSERT INTO stores (id, user_id, name, slug, whatsapp, created_at) VALUES (?, ?, ?, ?, ?, ?)"
     ).bind(storeId, userId, storeName, slug, whatsapp, Date.now()).run();
 
+    // 3. Create Session
     const sid = crypto.randomUUID();
     const expires = Date.now() + 1000 * 60 * 60 * 24 * 30;
     await env.DB.prepare(
@@ -46,10 +43,7 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       { ok: true },
       { headers: { "Set-Cookie": `sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${60 * 60 * 24 * 30}` } }
     );
-  } catch (e) {
-    return Response.json(
-      { error: "Signup error: " + (e instanceof Error ? e.message : String(e)) },
-      { status: 500 }
-    );
+  } catch (e: any) {
+    return Response.json({ error: "Signup error: " + e.message }, { status: 500 });
   }
 };
