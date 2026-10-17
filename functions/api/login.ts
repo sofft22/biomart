@@ -16,8 +16,9 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       return Response.json({ error: "No account found with that email." }, { status: 401 });
     }
 
+    // Hash the input password with SHA-256
     const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(password));
-    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, "0")).join("");
+    const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
     if (hash !== user.password_hash) {
       return Response.json({ error: "Wrong password." }, { status: 401 });
