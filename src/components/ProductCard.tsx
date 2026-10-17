@@ -1,18 +1,18 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import type { Product } from '../types';
 import { naira } from '../lib/format';
 
 interface Props {
   product: Product;
   onClick: () => void;
-  onChat?: () => void;
   onAddToCart: () => void;
   priority?: boolean;
   showNew?: boolean;
   index?: number;
 }
 
-export function ProductCard({
+// 🟢 Optimization: Wrapped in memo() to stop unnecessary re-renders
+export const ProductCard = memo(function ProductCard({
   product,
   onClick,
   onAddToCart,
@@ -23,8 +23,7 @@ export function ProductCard({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const hasVariants =
-    !!product.variants && product.variants.suggested.length > 0;
+  const hasVariants = !!product.variants && product.variants.suggested.length > 0;
 
   const images = [product.image_url, ...(product.image_urls ?? [])].filter(
     (u): u is string => !!u
@@ -32,8 +31,6 @@ export function ProductCard({
 
   const hasSecondImage = images.length > 1;
   const altText = `${product.name} — biomart`;
-
-  // Works with either camelCase or snake_case from backend
   const inStock = (product as any).inStock ?? (product as any).in_stock ?? true;
 
   const handleQuickAction = (e: React.MouseEvent) => {
@@ -48,19 +45,11 @@ export function ProductCard({
     setActiveIdx(Math.round(el.scrollLeft / el.clientWidth));
   };
 
-  // Stagger entrance — 60ms per card, capped at 600ms
   const delay = Math.min(index * 0.06, 0.6);
 
   return (
-    <article
-      className="pc"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <button
-        onClick={onClick}
-        className="pc-media"
-        aria-label={`View ${product.name}`}
-      >
+    <article className="pc" style={{ animationDelay: `${delay}s` }}>
+      <button onClick={onClick} className="pc-media" aria-label={`View ${product.name}`}>
         {!imgLoaded && images.length > 0 && <div className="pc-skeleton" />}
 
         <div className="pc-desktop">
@@ -143,6 +132,6 @@ export function ProductCard({
       </button>
     </article>
   );
-}
+});
 
 export default ProductCard;
