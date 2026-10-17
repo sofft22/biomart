@@ -34,19 +34,19 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Get the photo limit based on the user's plan
   const photoLimit = limits?.images ?? 1;
 
+  // 🟢 Fix: Ensure first category is default
   useEffect(() => {
     if (!currentStore?.slug) return;
-    setCategories(getCategories(currentStore.slug));
-  }, [currentStore?.slug]);
-
-  useEffect(() => {
-    if (!product && !categoryId && categories.length > 0) {
-      setCategoryId(categories[0].id);
+    const cats = getCategories(currentStore.slug);
+    setCategories(cats);
+    
+    // If we are creating a NEW product, and a category exists, set it as default
+    if (!id && !categoryId && cats.length > 0) {
+      setCategoryId(cats[0].id);
     }
-  }, [categories, product, categoryId]);
+  }, [currentStore?.slug, id, categoryId]);
 
   useEffect(() => {
     if (!id || !currentStore?.slug) { setLoadingProduct(false); return; }
@@ -54,8 +54,7 @@ export default function ProductEdit() {
       setLoadingProduct(true);
       try {
         const data = await storeApi.public(currentStore.slug);
-        const found =
-          (data.products as Product[] | undefined)?.find((x) => x.id === id) ?? null;
+        const found = (data.products as Product[] | undefined)?.find((x) => x.id === id) ?? null;
         setProduct(found);
       } catch {
         setProduct(null);
@@ -78,7 +77,7 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
-  }, [product]);
+  }, [product, categories]);
 
   const handleImageUpload = async (file: File) => {
     if (images.length >= photoLimit) {
@@ -122,7 +121,12 @@ export default function ProductEdit() {
     if (!name.trim()) return setError("Add a name");
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
-    if (!categoryId) return setError("Pick a category");
+    
+    // 🟢 Fix: Strict Category Check
+    if (!categoryId || categoryId === "") {
+      return setError("You must select a category. Go to Settings to add one if you don't have any.");
+    }
+
     if (wasPrice && numericWas <= numericPrice) {
       return setError("Compare-at price must be higher than price");
     }
@@ -130,14 +134,13 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
+    // 🟢 Fix: Ensure we only send valid category IDs
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category_id: categoryId,
-      subcategory: null,
-      badge: null,
+      category_id: categoryId, // Sending the exact ID now
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
@@ -198,12 +201,7 @@ export default function ProductEdit() {
             {images.map((url, i) => (
               <div key={i} className={`pe-photo ${i === 0 ? "main" : ""}`}>
                 <img src={url} alt="" />
-                <button
-                  type="button"
-                  className="pe-photo-x"
-                  onClick={() => removeImage(i)}
-                  aria-label="Remove photo"
-                >
+                <button type="button" className="pe-photo-x" onClick={() => removeImage(i)} aria-label="Remove photo">
                   <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
                     <path d="M6 6l12 12M18 6L6 18" />
                   </svg>
@@ -211,18 +209,13 @@ export default function ProductEdit() {
                 {i === 0 ? (
                   <span className="pe-photo-tag">Main</span>
                 ) : (
-                  <button
-                    type="button"
-                    className="pe-photo-move"
-                    onClick={() => makeMain(i)}
-                  >
+                  <button type="button" className="pe-photo-move" onClick={() => makeMain(i)}>
                     Set main
                   </button>
                 )}
               </div>
             ))}
 
-            {/* Only show Add button if under limit */}
             {images.length < photoLimit ? (
               <label className="pe-photo pe-photo-add">
                 {uploading ? (
@@ -318,22 +311,25 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* CATEGORY */}
+        {/* 🟢 CATEGORY FIX */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
-          <select
-            id="pe-cat"
-            className="pe-input pe-select"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            {categories.length === 0 && (
-              <option value="">Add categories in Settings</option>
-            )}
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.label}</option>
-            ))}
-          </select>
+          {categories.length === 0 ? (
+            <div style={{ padding: "16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: "12px", fontSize: "14px" }}>
+              You don't have any categories yet. <Link to="/settings" style={{ fontWeight: "bold", textDecoration: "underline" }}>Go to Settings</Link> to create one first.
+            </div>
+          ) : (
+            <select
+              id="pe-cat"
+              className="pe-input pe-select"
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
+            >
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+          )}
         </section>
 
         {/* IN STOCK */}
@@ -420,7 +416,7 @@ export default function ProductEdit() {
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving || uploading}
+          disabled={saving || uploading || categories.length === 0}
           className="pe-save"
         >
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
