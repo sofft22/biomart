@@ -1,0 +1,23 @@
+/* ══════════════════════════════════════════════════
+   INDEX — router
+   @import first (CSS rule), @tailwind last
+   ══════════════════════════════════════════════════ */
+
+/* Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap");
+
+/* Core */
+@import "./styles/tokens.css";
+@import "./styles/primitives.css";
+
+/* Pages */
+@import "./styles/landing.css";
+@import "./styles/auth.css";
+@import "./styles/dashboard.css";
+@import "./styles/storefront.css";
+@import "./styles/admin.css";
+
+/* Tailwind — must be last */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
