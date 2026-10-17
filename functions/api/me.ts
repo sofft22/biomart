@@ -15,38 +15,62 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       return Response.json({ user: null, store: null, products: [] });
     }
 
+    // Get full user info including role
     const user = await env.DB.prepare(
-      "SELECT id, email, plan FROM users WHERE id = ?"
-    ).bind(session.user_id).first();
+      "SELECT id, email, plan, role FROM users WHERE id = ?"
+    ).bind(session.user_id).first<any>();
 
+    // Get the FULL store object so the frontend has the plan and paid_until
     const store = user ? await env.DB.prepare(
-      "SELECT id, slug, name, bio, whatsapp FROM stores WHERE user_id = ?"
-    ).bind((user as any).id).first() : null;
+      "SELECT * FROM stores WHERE user_id = ?"
+    ).bind(user.id).first<any>() : null;
 
-    let products: unknown[] = [];
+    let products: any[] = [];
     if (store) {
       const { results } = await env.DB.prepare(
-        "SELECT id, name, price, description, category, in_stock, images FROM products WHERE store_id = ? ORDER BY created_at DESC"
-      ).bind((store as any).id).all();
-      products = results.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        description: p.description,
-        category: p.category,
-        inStock: !!p.in_stock,
-        images: JSON.parse(p.images || "[]"),
-      }));
+        "SELECT * FROM products WHERE store_id = ? ORDER BY created_at DESC"
+      ).bind(store.id).all();
+      
+      products = results.map((p: any) => {
+        let imgs = [];
+        try { imgs = JSON.parse(p.images || "[]"); } catch {}
+        return {
+          id: p.id,
+          name: p.name,
+          price: p.price,
+          compare_at_price: p.compare_at_price,
+          description: p.description,
+          category: p.category,
+          category_id: p.category,
+          in_stock: !!p.in_stock,
+          inStock: !!p.in_stock,
+          images: imgs,
+          image_url: imgs[0] || null,
+          image_urls: imgs.slice(1),
+          variants: p.variants ? JSON.parse(p.variants) : null,
+          created_at: p.created_at,
+        };
+      });
     }
+
+    const planName = store?.plan || "free";
+    
+    // Match the limits from src/lib/plans.ts
+    const limits = {
+      free: { products: 5, images: 1 },
+      starter: { products: 20, images: 3 },
+      pro: { products: 100000, images: 5 },
+      lifetime: { products: 100000, images: 10 },
+    }[planName as string] || { products: 5, images: 1 };
 
     return Response.json({
       user,
       store,
       products,
       limits: {
-        planName: (user as any)?.plan || "free",
-        products: 5,
-        images: 3,
+        planName,
+        products: limits.products,
+        images: limits.images,
       },
       plans: {
         free: { name: "Free", price: 0, products: 5, images: 1 },
