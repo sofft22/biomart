@@ -10,8 +10,10 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     
     if (!session) return Response.json({ error: "Your session has expired. Please log in again." }, { status: 401 });
 
-    const store = await env.DB.prepare("SELECT * FROM stores WHERE user_id = ?")
-      .bind(session.user_id).first<any>();
+    // 🟢 Optimization: Fetch only the columns needed for the store settings
+    const store = await env.DB.prepare(
+      "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, plan, paid_until FROM stores WHERE user_id = ?"
+    ).bind(session.user_id).first<any>();
 
     return Response.json({ store });
   } catch (e: any) {
