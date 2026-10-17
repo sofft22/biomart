@@ -49,7 +49,12 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <article className="pc" style={{ animationDelay: `${delay}s` }}>
-      <button onClick={onClick} className="pc-media" aria-label={`View ${product.name}`}>
+      <button 
+        onClick={onClick} 
+        className="pc-media" 
+        style={{ backgroundColor: 'var(--bg)' }} // 🟢 Match store background
+        aria-label={`View ${product.name}`}
+      >
         {!imgLoaded && images.length > 0 && <div className="pc-skeleton" />}
 
         <div className="pc-desktop">
@@ -92,7 +97,9 @@ export const ProductCard = memo(function ProductCard({
               ))}
             </div>
           ) : (
-            <div className="pc-no-image">No image</div>
+            <div className="pc-no-image" style={{ backgroundColor: 'var(--bg)' }}>
+              No image
+            </div>
           )}
           {hasSecondImage && (
             <div className="pc-dots">
