@@ -27,14 +27,12 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     // Total product views
     const totalProductViews = await env.DB.prepare(`SELECT COUNT(*) AS c FROM product_views WHERE store_id = ?`).bind(store.id).first<{ c: number }>();
 
-    // Chart data — daily for last 7 and 30 days
+    // Chart data
     const daily7  = await getDailyBuckets(env.DB, store.id, 7);
     const daily30 = await getDailyBuckets(env.DB, store.id, 30);
-
-    // Today's hourly buckets
     const hourly24 = await getHourlyBuckets(env.DB, store.id, now);
 
-    // Top products by total views
+    // Top products
     const topRes = await env.DB.prepare(
       `SELECT p.id, p.name, p.price, p.images, p.category,
               COUNT(v.id) AS views
@@ -64,37 +62,24 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     return Response.json({
       visits: { today: visitsToday?.c || 0, week: visits7d?.c || 0, month: visits30d?.c || 0 },
       totalProductViews: totalProductViews?.c || 0,
-      chart: {
-        today: hourly24,
-        week: daily7,
-        month: daily30,
-      },
+      chart: { today: hourly24, week: daily7, month: daily30 },
       topProducts,
     });
   } catch (e) {
-    return Response.json(
-      { error: "Stats error: " + (e instanceof Error ? e.message : String(e)) },
-      { status: 500 }
-    );
+    return Response.json({ error: "Stats error: " + (e instanceof Error ? e.message : String(e)) }, { status: 500 });
   }
 };
 
 async function getDailyBuckets(db: D1Database, storeId: string, days: number) {
   const now = Date.now();
   const out: { date: string; count: number }[] = [];
-
   for (let i = days - 1; i >= 0; i--) {
-    const start = now - i * 86400000;
-    const startOfDay = new Date(start);
-    startOfDay.setHours(0, 0, 0, 0);
-    const startMs = startOfDay.getTime();
+    const start = new Date(now - i * 86400000);
+    start.setHours(0, 0, 0, 0);
+    const startMs = start.getTime();
     const endMs = startMs + 86400000;
-
-    const row = await db.prepare(
-      "SELECT COUNT(*) AS c FROM store_visits WHERE store_id = ? AND visited_at >= ? AND visited_at < ?"
-    ).bind(storeId, startMs, endMs).first<{ c: number }>();
-
-    const label = startOfDay.toLocaleDateString("en-NG", { weekday: "short" });
+    const row = await db.prepare("SELECT COUNT(*) AS c FROM store_visits WHERE store_id = ? AND visited_at >= ? AND visited_at < ?").bind(storeId, startMs, endMs).first<{ c: number }>();
+    const label = start.toLocaleDateString("en-NG", { weekday: "short" });
     out.push({ date: label, count: row?.c ?? 0 });
   }
   return out;
@@ -105,14 +90,10 @@ async function getHourlyBuckets(db: D1Database, storeId: string, nowMs: number) 
   const start = new Date(nowMs);
   start.setHours(0, 0, 0, 0);
   const startMs = start.getTime();
-
   for (let h = 0; h < 24; h++) {
     const a = startMs + h * 3600000;
     const b = a + 3600000;
-    const row = await db.prepare(
-      "SELECT COUNT(*) AS c FROM store_visits WHERE store_id = ? AND visited_at >= ? AND visited_at < ?"
-    ).bind(storeId, a, b).first<{ c: number }>();
-
+    const row = await db.prepare("SELECT COUNT(*) AS c FROM store_visits WHERE store_id = ? AND visited_at >= ? AND visited_at < ?").bind(storeId, a, b).first<{ c: number }>();
     out.push({ date: String(h).padStart(2, "0"), count: row?.c ?? 0 });
   }
   return out;
