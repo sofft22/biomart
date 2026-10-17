@@ -106,6 +106,8 @@ export const admin = {
   storeDetail: (id: string) => apiFetch<any>(`/api/admin/stores/${id}`),
   billing: () => apiFetch<any>("/api/admin/billing"),
   settings: () => apiFetch<any>("/api/admin/settings"),
+  expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"), // Added this cleanly here
+  
   recordPayment: (storeId: string, plan: string, amount: number, note: string) =>
     apiFetch<any>("/api/admin/stores", {
       method: "POST",
@@ -126,8 +128,4 @@ export const admin = {
       method: "POST",
       body: JSON.stringify({ action: "delete-store", storeId }),
     }),
-  export const admin = {
-  // ... (keep existing ones)
-  expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"),
 };
-
