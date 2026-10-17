@@ -50,8 +50,8 @@ export default function AdminOverview() {
   if (error) return <div className="admin-page admin-err">{error}</div>;
   if (!data) return null;
 
-  const mrrStr = `₦${data.mrr.toLocaleString()}`;
-  const revenueStr = `₦${data.totalRevenue.toLocaleString()}`;
+  const mrrStr = `₦${(data.mrr || 0).toLocaleString()}`;
+  const revenueStr = `₦${(data.totalRevenue || 0).toLocaleString()}`;
 
   const maxVisits = Math.max(1, ...days.map((d) => d.count));
 
@@ -67,7 +67,7 @@ export default function AdminOverview() {
         <p className="admin-hero-label">Monthly recurring revenue</p>
         <p className="admin-hero-value">{mrrStr}</p>
         <p className="admin-hero-hint">
-          From {data.payingStores}{" "}
+          From {data.payingStores || 0}{" "}
           {data.payingStores === 1 ? "paying store" : "paying stores"}
         </p>
       </div>
@@ -76,63 +76,43 @@ export default function AdminOverview() {
       <div className="admin-stats">
         <div className="admin-stat">
           <p className="admin-stat-label">Total revenue</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(revenueStr) }}
-          >
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(revenueStr) }}>
             {revenueStr}
           </p>
         </div>
 
         <div className="admin-stat">
           <p className="admin-stat-label">Total stores</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(String(data.totalStores)) }}
-          >
-            {data.totalStores}
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.totalStores || 0)) }}>
+            {data.totalStores || 0}
           </p>
         </div>
 
-        <div
-          className={`admin-stat ${data.payingStores > 0 ? "is-green" : ""}`}
-        >
+        <div className={`admin-stat ${data.payingStores > 0 ? "is-green" : ""}`}>
           <p className="admin-stat-label">Paying</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(String(data.payingStores)) }}
-          >
-            {data.payingStores}
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.payingStores || 0)) }}>
+            {data.payingStores || 0}
           </p>
         </div>
 
         <div className="admin-stat">
           <p className="admin-stat-label">Free</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(String(data.freeStores)) }}
-          >
-            {data.freeStores}
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.freeStores || 0)) }}>
+            {data.freeStores || 0}
           </p>
         </div>
 
         <div className="admin-stat">
           <p className="admin-stat-label">Store visits</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(String(data.totalVisits)) }}
-          >
-            {data.totalVisits.toLocaleString()}
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.totalVisits || 0)) }}>
+            {(data.totalVisits || 0).toLocaleString()}
           </p>
         </div>
 
         <div className="admin-stat">
           <p className="admin-stat-label">Products listed</p>
-          <p
-            className="admin-stat-value"
-            style={{ fontSize: sizeFor(String(data.totalProducts)) }}
-          >
-            {data.totalProducts.toLocaleString()}
+          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.totalProducts || 0)) }}>
+            {(data.totalProducts || 0).toLocaleString()}
           </p>
         </div>
       </div>
