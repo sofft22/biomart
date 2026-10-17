@@ -231,22 +231,23 @@
    SECTIONS
    ══════════════════════════════════════════════════ */
 .sf-section {
-  max-width: 1200px; margin: 0 auto;
-  padding: 72px 20px 8px;
+  max-width: 1200px; 
+  margin: 0 auto;
+  padding: 60px 16px 8px; /* 🟢 Reduced padding on mobile to give grid more room */
 }
 @media (min-width: 700px) { .sf-section { padding: 120px 32px 12px; } }
 .sf-section-wide { max-width: 1400px; }
 
 .sf-section-head {
   display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 16px; margin-bottom: 36px; flex-wrap: wrap;
+  gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @media (min-width: 700px) { .sf-section-head { margin-bottom: 56px; } }
 
 .sf-section-head-center {
   text-align: center;
-  margin-bottom: 44px;
+  margin-bottom: 32px;
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 @media (min-width: 700px) { .sf-section-head-center { margin-bottom: 68px; } }
@@ -294,7 +295,7 @@
 .sf-divider {
   max-width: 1200px;
   margin: 40px auto 0;
-  padding: 0 20px;
+  padding: 0 16px;
   display: flex; align-items: center; gap: 14px;
   animation: sf-fade 0.9s ease both;
 }
@@ -303,24 +304,24 @@
 .sf-divider-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--green); opacity: 0.5; flex: none; }
 
 /* ══════════════════════════════════════════════════
-   FILTERBAR — two dropdowns, side by side
+   FILTERBAR
    ══════════════════════════════════════════════════ */
 .sf-filterbar {
   display: flex;
-  flex-direction: row;         /* explicit — no wrapping parent rule wins */
+  flex-direction: row;
   align-items: center;
   gap: 12px;
-  margin: 0 0 36px;
+  margin: 0 0 32px;
   padding: 0 0 20px;
   border-bottom: 1px solid var(--line);
-  flex-wrap: nowrap;           /* never stack */
+  flex-wrap: nowrap;
 }
 
 .sf-sort {
   display: inline-flex;
   align-items: center;
-  flex: 1 1 0;                 /* each takes exactly half */
-  min-width: 0;                /* allows shrink below content size */
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .sf-sort-select {
@@ -346,37 +347,42 @@
   border-color: var(--green);
   box-shadow: 0 0 0 4px var(--green-soft);
 }
-.sf-sort-select:hover { border-color: var(--ink); }
-.sf-sort-select:focus { border-color: var(--green); }
 
 /* ══════════════════════════════════════════════════
-   CATEGORY GRID — bigger, square
+   CATEGORY GRID — The Mobile Fix
    ══════════════════════════════════════════════════ */
 .sf-cat-grid {
-  display: grid !important; /* 🟢 Forces grid display */
-  justify-content: center;
-  gap: 20px;
+  display: grid !important;
+  gap: 16px; /* Tighter gap on mobile */
   margin: 0 auto;
   width: 100%;
 }
-@media (min-width: 700px) { .sf-cat-grid { gap: 28px; } }
+@media (min-width: 700px) { .sf-cat-grid { gap: 28px; justify-content: center; } }
 
+/* 🟢 Force exactly 2 columns on mobile, regardless of count */
 .sf-cat-grid,
 .sf-cat-grid.sf-cat-count-1,
 .sf-cat-grid.sf-cat-count-2,
 .sf-cat-grid.sf-cat-count-3,
 .sf-cat-grid.sf-cat-count-4,
 .sf-cat-grid.sf-cat-count-5 {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 🟢 Forces 2 columns on mobile */
+  grid-template-columns: repeat(2, 1fr) !important; 
   max-width: 100%;
 }
 
+/* 🟢 If there is only 1 category, center it and make it wider on mobile */
+.sf-cat-grid.sf-cat-count-1 {
+  grid-template-columns: 1fr !important;
+  max-width: 280px;
+  margin: 0 auto;
+}
+
 @media (min-width: 700px) {
-  .sf-cat-grid.sf-cat-count-1 { grid-template-columns: minmax(0, 400px); justify-content: center; }
-  .sf-cat-grid.sf-cat-count-2 { grid-template-columns: repeat(2, minmax(0, 380px)); justify-content: center; }
-  .sf-cat-grid.sf-cat-count-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 1100px; }
+  .sf-cat-grid.sf-cat-count-1 { grid-template-columns: minmax(0, 400px) !important; justify-content: center; max-width: 100%; }
+  .sf-cat-grid.sf-cat-count-2 { grid-template-columns: repeat(2, minmax(0, 380px)) !important; justify-content: center; }
+  .sf-cat-grid.sf-cat-count-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; max-width: 1100px; }
   .sf-cat-grid.sf-cat-count-4,
-  .sf-cat-grid.sf-cat-count-5 { grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 1400px; }
+  .sf-cat-grid.sf-cat-count-5 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; max-width: 1400px; }
 }
 
 .sf-cat-tile {
@@ -389,7 +395,6 @@
   border: 0; padding: 0;
   display: block; 
   width: 100%;
-  min-height: 200px; /* 🟢 Forces height on mobile if aspect-ratio fails */
   transition: transform 0.4s var(--spring);
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -399,6 +404,7 @@
 .sf-cat-grid > .sf-cat-tile:nth-child(4) { animation-delay: 0.35s; }
 .sf-cat-grid > .sf-cat-tile:nth-child(5) { animation-delay: 0.45s; }
 .sf-cat-tile:hover { transform: translateY(-3px); }
+
 .sf-cat-tile img {
   position: absolute; inset: 0;
   width: 100%; height: 100%; object-fit: cover;
@@ -420,7 +426,7 @@
 }
 .sf-cat-tile-content {
   position: absolute;
-  left: 20px; right: 20px; bottom: 20px;
+  left: 16px; right: 16px; bottom: 16px;
   text-align: left; color: #fff;
 }
 @media (min-width: 700px) {
@@ -428,7 +434,7 @@
 }
 .sf-cat-tile-name {
   font-family: var(--serif);
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 1.1;
@@ -437,7 +443,6 @@
   .sf-cat-tile-name { font-size: 30px; }
 }
 .sf-cat-tile.on { outline: 2px solid var(--green); outline-offset: 2px; }
-
 /* ══════════════════════════════════════════════════
    PRODUCT GRIDS
    ══════════════════════════════════════════════════ */
