@@ -1,42 +1,64 @@
-export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
+export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) => {
   try {
-    const cookie = request.headers.get("Cookie") || "";
-    const sid = cookie.match(/sid=([^;]+)/)?.[1];
-    if (!sid) return Response.json({ error: "Not logged in" }, { status: 401 });
+    const stores = await env.DB.prepare(
+      `SELECT stores.id, stores.name, stores.slug, stores.whatsapp,
+              stores.created_at, users.email, users.id as user_id
+         FROM stores LEFT JOIN users ON users.id = stores.user_id
+        ORDER BY stores.created_at DESC`
+    ).all();
+    
+    return Response.json({ stores: stores.results || [] });
+  } catch (e: any) {
+    return Response.json({ stores: [], error: e.message }, { status: 200 });
+  }
+};
 
-    const session = await env.DB.prepare(
-      "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
-    ).bind(sid, Date.now()).first<{ user_id: string }>();
-    if (!session) return Response.json({ error: "Session expired" }, { status: 401 });
-
-    const store = await env.DB.prepare("SELECT id FROM stores WHERE user_id = ?")
-      .bind(session.user_id)
-      .first<{ id: string }>();
-    if (!store) return Response.json({ error: "No store" }, { status: 404 });
-
+export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
+  try {
     const body = await request.json() as any;
+    
+    if (body.action === "record-payment") {
+      const { storeId, plan, amount, note } = body;
+      const id = crypto.randomUUID();
+      const paidAt = Date.now();
+      const paidUntil = plan === "lifetime" ? null : Date.now() + 30 * 24 * 60 * 60 * 1000;
 
-    const updates: string[] = [];
-    const values: any[] = [];
+      await env.DB.batch([
+        env.DB.prepare(
+          "INSERT INTO payments (id, store_id, amount, plan, note, paid_at) VALUES (?, ?, ?, ?, ?, ?)"
+        ).bind(id, storeId, amount, plan, note || "", paidAt),
+        env.DB.prepare(
+          "UPDATE stores SET plan = ?, paid_until = ?, subscription_status = 'active' WHERE id = ?"
+        ).bind(plan, paidUntil, storeId)
+      ]);
+      
+      return Response.json({ ok: true });
+    }
 
-    if ("name" in body) { updates.push("name = ?"); values.push((body.name ?? "").trim()); }
-    if ("bio" in body) { updates.push("bio = ?"); values.push(body.bio ?? null); }
-    if ("tagline" in body) { updates.push("tagline = ?"); values.push(body.tagline ?? null); }
-    if ("address" in body) { updates.push("address = ?"); values.push(body.address ?? null); }
-    if ("whatsapp" in body) { updates.push("whatsapp = ?"); values.push((body.whatsapp ?? "").trim()); }
-    if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram ?? null); }
-    if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok ?? null); }
-    if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url ?? null); }
+    if (body.action === "reset-password") {
+      const { storeId, newPassword } = body;
+      const hashBuffer = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(newPassword));
+      const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      const store = await env.DB.prepare("SELECT user_id FROM stores WHERE id = ?").bind(storeId).first();
+      if (!store) return Response.json({ error: "Store not found" }, { status: 404 });
 
-    if (updates.length === 0) return Response.json({ ok: true });
+      await env.DB.prepare("UPDATE users SET password_hash = ? WHERE id = ?").bind(hash, store.user_id).run();
+      return Response.json({ ok: true });
+    }
 
-    values.push(store.id);
+    if (body.action === "delete-store") {
+      const { storeId } = body;
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM products WHERE store_id = ?").bind(storeId),
+        env.DB.prepare("DELETE FROM payments WHERE store_id = ?").bind(storeId),
+        env.DB.prepare("DELETE FROM store_visits WHERE store_id = ?").bind(storeId),
+        env.DB.prepare("DELETE FROM stores WHERE id = ?").bind(storeId)
+      ]);
+      return Response.json({ ok: true });
+    }
 
-    await env.DB.prepare(`UPDATE stores SET ${updates.join(", ")} WHERE id = ?`)
-      .bind(...values)
-      .run();
-
-    return Response.json({ ok: true });
+    return Response.json({ error: "Invalid action" }, { status: 400 });
   } catch (e: any) {
     return Response.json({ error: e.message }, { status: 500 });
   }
