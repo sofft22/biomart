@@ -13,33 +13,34 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       .bind(session.user_id).first<{ id: string }>();
     if (!store) return Response.json({ error: "No store" }, { status: 404 });
 
+    // 🟢 Optimization: Only fetch 100 products max to save rows read
     const { results } = await env.DB.prepare(
-      "SELECT * FROM products WHERE store_id = ? ORDER BY created_at DESC"
+      "SELECT id, name, price, compare_at_price, description, category, in_stock, images, variants, created_at FROM products WHERE store_id = ? ORDER BY created_at DESC LIMIT 100"
     ).bind(store.id).all();
 
-    return Response.json(
-      results.map((p: any) => {
-        let parsedImages = [];
-        try { parsedImages = JSON.parse(p.images || "[]"); } catch {}
-        return {
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          compare_at_price: p.compare_at_price ?? null,
-          description: p.description || "",
-          category: p.category || "",
-          category_id: p.category || "",
-          inStock: !!p.in_stock,
-          in_stock: !!p.in_stock,
-          images: parsedImages,
-          image_url: parsedImages[0] ?? null,
-          image_urls: parsedImages.slice(1),
-          variants: p.variants ? JSON.parse(p.variants) : null,
-          created_at: p.created_at,
-          views: 0
-        };
-      })
-    );
+    const products = (results || []).map((p: any) => {
+      let parsedImages = [];
+      try { parsedImages = JSON.parse(p.images || "[]"); } catch {}
+      return {
+        id: p.id,
+        name: p.name,
+        price: p.price,
+        compare_at_price: p.compare_at_price ?? null,
+        description: p.description || "",
+        category: p.category || "",
+        category_id: p.category || "",
+        inStock: !!p.in_stock,
+        in_stock: !!p.in_stock,
+        images: parsedImages,
+        image_url: parsedImages[0] ?? null,
+        image_urls: parsedImages.slice(1),
+        variants: p.variants ? JSON.parse(p.variants) : null,
+        created_at: p.created_at,
+        views: 0
+      };
+    });
+
+    return Response.json(products);
   } catch (e: any) {
     return Response.json({ error: e.message }, { status: 500 });
   }
