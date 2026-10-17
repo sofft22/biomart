@@ -10,20 +10,32 @@ export class ApiError extends Error {
 }
 
 async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(path, {
-    credentials: "include",
-    ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init.headers || {}),
-    },
-  });
-  const data = await res.json().catch(() => null);
-  if (!res.ok) {
-    const msg = (data as any)?.error || `Request failed (${res.status})`;
-    throw new ApiError(msg, res.status);
+  try {
+    const res = await fetch(path, {
+      credentials: "include",
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        ...(init.headers || {}),
+      },
+    });
+
+    // Try to parse JSON safely
+    const data = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      // Grab the clean English message from the backend
+      const errorMessage =
+        (data as any)?.error || `Request failed with status ${res.status}`;
+      throw new ApiError(errorMessage, res.status);
+    }
+
+    return data as T;
+  } catch (err: any) {
+    if (err instanceof ApiError) throw err;
+    // Network error (offline, DNS fail, etc)
+    throw new ApiError("Network error. Please check your internet connection.", 0);
   }
-  return data as T;
 }
 
 /* ── Auth ── */
@@ -65,7 +77,7 @@ export async function uploadImage(file: File | Blob): Promise<string> {
     body: form,
   });
   const data = await res.json().catch(() => null);
-  if (!res.ok) throw new ApiError((data as any)?.error || "Upload failed", res.status);
+  if (!res.ok) throw new ApiError((data as any)?.error || "Image upload failed. Please try again.", res.status);
   return (data as any).url as string;
 }
 
@@ -106,8 +118,8 @@ export const admin = {
   storeDetail: (id: string) => apiFetch<any>(`/api/admin/stores/${id}`),
   billing: () => apiFetch<any>("/api/admin/billing"),
   settings: () => apiFetch<any>("/api/admin/settings"),
-  expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"), // Added this cleanly here
-  
+  expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"),
+
   recordPayment: (storeId: string, plan: string, amount: number, note: string) =>
     apiFetch<any>("/api/admin/stores", {
       method: "POST",
