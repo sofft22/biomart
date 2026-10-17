@@ -353,7 +353,7 @@
    CATEGORY GRID — bigger, square
    ══════════════════════════════════════════════════ */
 .sf-cat-grid {
-  display: grid;
+  display: grid !important; /* 🟢 Forces grid display */
   justify-content: center;
   gap: 20px;
   margin: 0 auto;
@@ -367,7 +367,7 @@
 .sf-cat-grid.sf-cat-count-3,
 .sf-cat-grid.sf-cat-count-4,
 .sf-cat-grid.sf-cat-count-5 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important; /* 🟢 Forces 2 columns on mobile */
   max-width: 100%;
 }
 
@@ -387,7 +387,9 @@
   background: var(--mat);
   cursor: pointer;
   border: 0; padding: 0;
-  display: block; width: 100%;
+  display: block; 
+  width: 100%;
+  min-height: 200px; /* 🟢 Forces height on mobile if aspect-ratio fails */
   transition: transform 0.4s var(--spring);
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
