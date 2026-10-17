@@ -15,12 +15,10 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       return Response.json({ user: null, store: null, products: [] });
     }
 
-    // Get full user info including role
     const user = await env.DB.prepare(
-      "SELECT id, email, plan, role FROM users WHERE id = ?"
+      "SELECT id, email, role FROM users WHERE id = ?"
     ).bind(session.user_id).first<any>();
 
-    // Get the FULL store object so the frontend has the plan and paid_until
     const store = user ? await env.DB.prepare(
       "SELECT * FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
@@ -54,14 +52,12 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     }
 
     const planName = store?.plan || "free";
-    
-    // Match the limits from src/lib/plans.ts
     const limits = {
       free: { products: 5, images: 1 },
       starter: { products: 20, images: 3 },
       pro: { products: 100000, images: 5 },
       lifetime: { products: 100000, images: 10 },
-    }[planName as string] || { products: 5, images: 1 };
+    }[planName] || { products: 5, images: 1 };
 
     return Response.json({
       user,
@@ -78,10 +74,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
         pro: { name: "Pro", price: 6000, products: 100000, images: 5 },
       },
     });
-  } catch (e) {
-    return Response.json(
-      { error: "Me error: " + (e instanceof Error ? e.message : String(e)) },
-      { status: 500 }
-    );
+  } catch (e: any) {
+    return Response.json({ error: "Me error: " + e.message }, { status: 500 });
   }
 };
