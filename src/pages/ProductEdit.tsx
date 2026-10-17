@@ -15,7 +15,7 @@ interface Variant {
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { store: currentStore, limits } = useAuth();
+  const { store: currentStore, limits, refresh } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(!!id);
@@ -36,17 +36,20 @@ export default function ProductEdit() {
 
   const photoLimit = limits?.images ?? 1;
 
-  // 🟢 Fix: Ensure first category is default
+  // 🟢 FIX 1: Load categories and set the default correctly
   useEffect(() => {
     if (!currentStore?.slug) return;
     const cats = getCategories(currentStore.slug);
     setCategories(cats);
     
-    // If we are creating a NEW product, and a category exists, set it as default
-    if (!id && !categoryId && cats.length > 0) {
-      setCategoryId(cats[0].id);
+    // If editing an existing product, use its category. 
+    // If creating a new one, default to the LAST created category (which is the newest).
+    if (product) {
+      setCategoryId(product.category_id || (cats[cats.length - 1]?.id ?? ""));
+    } else if (cats.length > 0 && !categoryId) {
+      setCategoryId(cats[cats.length - 1].id);
     }
-  }, [currentStore?.slug, id, categoryId]);
+  }, [currentStore?.slug, product]); // 🟢 Added 'product' so it waits for the product to load
 
   useEffect(() => {
     if (!id || !currentStore?.slug) { setLoadingProduct(false); return; }
@@ -73,11 +76,12 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    setCategoryId(product.category_id || (categories[0]?.id ?? ""));
+    // Don't overwrite the categoryId if it's already set by the previous effect
+    if (product.category_id) setCategoryId(product.category_id);
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
-  }, [product, categories]);
+  }, [product]);
 
   const handleImageUpload = async (file: File) => {
     if (images.length >= photoLimit) {
@@ -122,7 +126,6 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
     
-    // 🟢 Fix: Strict Category Check
     if (!categoryId || categoryId === "") {
       return setError("You must select a category. Go to Settings to add one if you don't have any.");
     }
@@ -134,13 +137,12 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
-    // 🟢 Fix: Ensure we only send valid category IDs
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category_id: categoryId, // Sending the exact ID now
+      category_id: categoryId,
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
@@ -151,6 +153,8 @@ export default function ProductEdit() {
     try {
       if (product) await productsApi.update(product.id, payload);
       else await productsApi.create(payload);
+      
+      await refresh(true); // 🟢 Force refresh the cache
       nav("/dashboard/products");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -163,6 +167,7 @@ export default function ProductEdit() {
     if (!confirm(`Delete "${product.name}"?`)) return;
     try {
       await productsApi.remove(product.id);
+      await refresh(true); // 🟢 Force refresh the cache
       nav("/dashboard/products");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete");
@@ -311,7 +316,7 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* 🟢 CATEGORY FIX */}
+        {/* 🟢 FIX 2: Fully controlled Dropdown */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
           {categories.length === 0 ? (
@@ -322,8 +327,8 @@ export default function ProductEdit() {
             <select
               id="pe-cat"
               className="pe-input pe-select"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              value={categoryId} // 🟢 Tied to state
+              onChange={(e) => setCategoryId(e.target.value)} // 🟢 Updates state
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
