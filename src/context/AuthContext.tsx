@@ -46,11 +46,15 @@ interface AuthState {
   products: Product[];
   limits: MeResponse["limits"] | null;
   plans: PlansMap | null;
-  refresh: () => Promise<void>;
+  refresh: (force?: boolean) => Promise<void>;
   setProducts: (p: Product[]) => void;
 }
 
 const Ctx = createContext<AuthState | null>(null);
+
+// 🟢 Global cache timestamp
+let lastFetchedAt = 0;
+const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
@@ -60,7 +64,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [limits, setLimits] = useState<MeResponse["limits"] | null>(null);
   const [plans, setPlans] = useState<PlansMap | null>(null);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (force = false) => {
+    const now = Date.now();
+    // 🟢 If we have cached data and the user isn't forcing a refresh, skip the DB call
+    if (!force && now - lastFetchedAt < CACHE_TTL && store !== null) {
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = await auth.me();
       setUser(data.user);
@@ -68,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProducts(data.products);
       setLimits(data.limits);
       setPlans(data.plans);
+      lastFetchedAt = Date.now(); // Update cache time
     } catch {
       // ══════════════════════════════════════════════
       // MOCK FALLBACK — REMOVE WHEN D1 CONNECTED
@@ -81,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [store]);
 
   useEffect(() => {
     refresh();
