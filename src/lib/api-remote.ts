@@ -130,4 +130,4 @@ export const admin = {
   // ... (keep existing ones)
   expiringStores: () => apiFetch<any>("/api/admin/expiring-stores"),
 };
-};
+
