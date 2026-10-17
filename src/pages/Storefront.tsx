@@ -414,15 +414,26 @@ export default function Storefront() {
         <div className="sf-divider" data-reveal aria-hidden="true" />
       )}
 
-      {/* ═══ CATEGORIES ═══ */}
+            {/* ═══ CATEGORIES ═══ */}
       {usedCategories.length > 0 && (
-        <section className="sf-section sf-section-wide" id="categories">
+        <section className="sf-section sf-section-wide" id="categories" style={{ display: "block", minHeight: "300px" }}>
           <div className="sf-section-head-center">
             <span className="sf-section-eyebrow" data-reveal>Explore</span>
             <h2 className="sf-section-title-center" data-reveal>Shop by category</h2>
           </div>
 
-          <div className={`sf-cat-grid sf-cat-count-${catCount}`}>
+          {/* 🟢 FORCE GRID DISPLAY */}
+          <div 
+            className={`sf-cat-grid sf-cat-count-${catCount}`}
+            style={{ 
+              display: "grid", 
+              gridTemplateColumns: "repeat(2, 1fr)", 
+              gap: "16px",
+              width: "100%",
+              visibility: "visible",
+              opacity: 1
+            }}
+          >
             {usedCategories.map((c, i) => {
               const img = categoryImages[c.id];
               const active = activeCategory === c.id;
@@ -430,7 +441,12 @@ export default function Storefront() {
                 <button
                   key={c.id}
                   data-reveal
-                  style={{ transitionDelay: `${i * 90}ms` }}
+                  style={{ 
+                    transitionDelay: `${i * 90}ms`,
+                    display: "block", // 🟢 Force button display
+                    width: "100%",
+                    minHeight: "200px" // 🟢 Force height
+                  }}
                   onClick={() => {
                     setActiveCategory(active ? "all" : c.id);
                     scrollTo("shop-all");
@@ -438,7 +454,7 @@ export default function Storefront() {
                   className={`sf-cat-tile ${active ? "on" : ""}`}
                 >
                   {img ? (
-                    <img src={img} alt={c.label} loading="lazy" />
+                    <img src={img} alt={c.label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <div className="sf-cat-tile-placeholder">
                       {c.label.charAt(0).toUpperCase()}
@@ -453,10 +469,6 @@ export default function Storefront() {
             })}
           </div>
         </section>
-      )}
-
-      {usedCategories.length > 0 && (
-        <div className="sf-divider" data-reveal aria-hidden="true" />
       )}
 
       {/* ═══ SHOP ALL ═══ */}
