@@ -381,7 +381,7 @@
 
 .sf-cat-tile {
   position: relative;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 4 / 4.5;
   border-radius: 0;
   overflow: hidden;
   background: var(--mat);
