@@ -3,7 +3,7 @@
 //  true  = Bolt preview  (sql.js, browser only)
 //  false = Cloudflare    (real D1 backend via functions/)
 // ═══════════════════════════════════════════════════════════
-export const USE_WASM = true;
+export const USE_WASM = false;
 
 import * as local from "./api-local";
 import * as remote from "./api-remote";
