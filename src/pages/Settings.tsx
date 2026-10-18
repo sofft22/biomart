@@ -28,14 +28,16 @@ export default function Settings() {
   const [tiktok, setTiktok] = useState(store?.tiktok ?? "");
   const [saving, setSaving] = useState(false);
 
-  // 🟢 4 IMAGE GALLERY STATE
-  const [gallery, setGallery] = useState<string[]>([]);
-  const [uploadingSlot, setUploadingSlot] = useState<number | null>(null);
+  // Single Banner
+  const [bannerUrl, setBannerUrl] = useState<string>((store as any)?.cover_url ?? "");
+  const [uploadingBanner, setUploadingBanner] = useState(false);
 
+  // Categories
   const [categories, setCategories] = useState<CatWithImg[]>([]);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [newCatName, setNewCatName] = useState("");
-  const [editingCatId, setEditingCatId] = useState<string | null>(null);
-  const [editingCatName, setEditingCatName] = useState("");
+  const [newCatImage, setNewCatImage] = useState<File | null>(null);
+  const [isSavingCat, setIsSavingCat] = useState(false);
 
   const refreshCategories = () => {
     if (!store?.slug) return;
@@ -54,11 +56,7 @@ export default function Settings() {
     setWhatsapp(store.whatsapp ?? "");
     setInstagram(store.instagram ?? "");
     setTiktok(store.tiktok ?? "");
-    
-    // Load gallery
-    let loadedGallery = [];
-    try { loadedGallery = JSON.parse((store as any).gallery_urls || "[]"); } catch {}
-    setGallery(loadedGallery);
+    setBannerUrl((store as any).cover_url ?? "");
   }, [store]);
 
   if (!store) return null;
@@ -84,42 +82,24 @@ export default function Settings() {
     setSaving(false);
   };
 
-  const handleUploadGalleryImage = async (file: File, index: number) => {
-    setUploadingSlot(index);
+  const handleUploadBanner = async (file: File) => {
+    setUploadingBanner(true);
     try {
       const url = await uploadImage(file);
-      
-      const newGallery = [...gallery];
-      newGallery[index] = url;
-      
-      // 🟢 Direct Database Save
-      const res = await fetch("/api/store", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ gallery_urls: newGallery.filter(Boolean) }),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to save to database");
-      }
-      
+      setBannerUrl(url);
+      await storeApi.update({ cover_url: url } as any);
       await refresh(true);
-      toast.show("Banner saved");
+      toast.show("Banner updated");
     } catch (err) {
-      console.error(err);
       toast.show(err instanceof Error ? err.message : "Upload failed");
     }
-    setUploadingSlot(null);
+    setUploadingBanner(false);
   };
 
-  const handleRemoveGalleryImage = async (index: number) => {
-    const newGallery = [...gallery];
-    newGallery.splice(index, 1);
-    setGallery(newGallery);
+  const handleRemoveBanner = async () => {
+    setBannerUrl("");
     try {
-      await storeApi.update({ gallery_urls: newGallery } as any);
+      await storeApi.update({ cover_url: null } as any);
       await refresh(true);
       toast.show("Banner removed");
     } catch (err) {
@@ -127,20 +107,27 @@ export default function Settings() {
     }
   };
 
-  const handleAddCategory = async () => {
-    const result = addCategory(store.slug, newCatName);
-    if (!result.ok) return toast.show(result.error);
-    setNewCatName("");
-    refreshCategories();
-    toast.show("Category added");
-  };
-
-  const handleRenameCategory = (id: string) => {
-    const result = updateCategory(store.slug, id, editingCatName);
-    if (!result.ok) return toast.show(result.error);
-    setEditingCatId(null);
-    refreshCategories();
-    toast.show("Renamed");
+  const handleAddCategorySubmit = async () => {
+    if (!newCatName.trim()) return toast.show("Name is required");
+    setIsSavingCat(true);
+    try {
+      const result = addCategory(store.slug, newCatName);
+      if (!result.ok) throw new Error(result.error);
+      
+      if (newCatImage && result.category) {
+        const url = await uploadImage(newCatImage);
+        setCategoryImage(store.slug, result.category.id, url);
+      }
+      
+      setNewCatName("");
+      setNewCatImage(null);
+      setIsCatModalOpen(false);
+      refreshCategories();
+      toast.show("Category added");
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : "Failed to add");
+    }
+    setIsSavingCat(false);
   };
 
   const handleDeleteCategory = (id: string, label: string) => {
@@ -150,8 +137,7 @@ export default function Settings() {
     toast.show("Category deleted");
   };
 
-  // Upload image for a specific category
-  const handleCategoryImageUpload = async (id: string, file: File) => {
+  const handleCatImageUpload = async (id: string, file: File) => {
     try {
       const url = await uploadImage(file);
       setCategoryImage(store.slug, id, url);
@@ -176,191 +162,118 @@ export default function Settings() {
         )}
       </div>
 
-      {/* ═══════ STORE INFO ═══════ */}
+      {/* STORE INFO (Read Only / Edit) */}
       <section className="set-section" style={{ paddingTop: 0 }}>
         {!isEditing ? (
           <div style={{ display: "grid", gap: "24px", marginTop: "24px" }}>
-            <div>
-              <span className="set-label">Store Name</span>
-              <p style={{ fontSize: "18px", fontWeight: 600, margin: "8px 0 0" }}>{name || "—"}</p>
-            </div>
-            <div>
-              <span className="set-label">Tagline</span>
-              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{tagline || "—"}</p>
-            </div>
-            <div>
-              <span className="set-label">Address</span>
-              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{address || "—"}</p>
-            </div>
-            <div>
-              <span className="set-label">WhatsApp</span>
-              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{whatsapp || "—"}</p>
-            </div>
-            <div>
-              <span className="set-label">Instagram</span>
-              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{instagram ? `@${instagram}` : "—"}</p>
-            </div>
-            <div>
-              <span className="set-label">TikTok</span>
-              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{tiktok ? `@${tiktok}` : "—"}</p>
-            </div>
+            <div><span className="set-label">Store Name</span><p style={{ fontSize: "18px", fontWeight: 600, margin: "8px 0 0" }}>{name || "—"}</p></div>
+            <div><span className="set-label">Tagline</span><p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{tagline || "—"}</p></div>
+            <div><span className="set-label">Address</span><p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{address || "—"}</p></div>
+            <div><span className="set-label">WhatsApp</span><p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{whatsapp || "—"}</p></div>
           </div>
         ) : (
           <>
             <div className="set-fields">
-              <div className="set-field">
-                <label className="set-label">Store name</label>
-                <input className="set-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze's Closet" maxLength={60} />
-              </div>
-              <div className="set-field">
-                <label className="set-label">Tagline</label>
-                <input className="set-input" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Where Lagos style meets everyday luxury" maxLength={100} />
-              </div>
-              <div className="set-field">
-                <label className="set-label">Address</label>
-                <input className="set-input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="12 Admiralty Way, Lekki, Lagos" />
-              </div>
-              <div className="set-field">
-                <label className="set-label">WhatsApp</label>
-                <input className="set-input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08012345678" inputMode="tel" />
-              </div>
-              <div className="set-field">
-                <label className="set-label">Instagram</label>
-                <div className="set-input-prefixed">
-                  <span className="set-prefix">@</span>
-                  <input className="set-input" value={instagram} onChange={(e) => setInstagram(e.target.value.replace(/^@/, ""))} placeholder="adaezescloset" />
-                </div>
-              </div>
-              <div className="set-field">
-                <label className="set-label">TikTok</label>
-                <div className="set-input-prefixed">
-                  <span className="set-prefix">@</span>
-                  <input className="set-input" value={tiktok} onChange={(e) => setTiktok(e.target.value.replace(/^@/, ""))} placeholder="adaezescloset" />
-                </div>
-              </div>
+              <div className="set-field"><label className="set-label">Store name</label><input className="set-input" value={name} onChange={(e) => setName(e.target.value)} /></div>
+              <div className="set-field"><label className="set-label">Tagline</label><input className="set-input" value={tagline} onChange={(e) => setTagline(e.target.value)} /></div>
+              <div className="set-field"><label className="set-label">Address</label><input className="set-input" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
+              <div className="set-field"><label className="set-label">WhatsApp</label><input className="set-input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} /></div>
             </div>
             <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-              <button onClick={handleSaveStore} disabled={saving} className="dash-btn dash-btn-dark">
-                {saving ? "Saving…" : "Save Changes"}
-              </button>
-              <button onClick={() => setIsEditing(false)} className="dash-btn dash-btn-line">
-                Cancel
-              </button>
+              <button onClick={handleSaveStore} disabled={saving} className="dash-btn dash-btn-dark">{saving ? "Saving…" : "Save Changes"}</button>
+              <button onClick={() => setIsEditing(false)} className="dash-btn dash-btn-line">Cancel</button>
             </div>
           </>
         )}
       </section>
 
-      {/* ═══════ SLIDER BANNERS ═══════ */}
+      {/* SINGLE BANNER */}
       <section className="set-section">
-        <h2 className="set-title">Slider Banners</h2>
-        <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "16px" }}>Upload up to 4 images. If you upload 1, it stays static.</p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
-          {[0, 1, 2, 3].map((index) => {
-            const img = gallery[index];
-            const isUploading = uploadingSlot === index;
-            return (
-              <div key={index} style={{ position: "relative", aspectRatio: "4/3", background: "var(--soft)", borderRadius: "12px", overflow: "hidden", border: "1px dashed var(--line)", display: "grid", placeItems: "center" }}>
-                {img ? (
-                  <>
-                    <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    <button type="button" onClick={() => handleRemoveGalleryImage(index)} style={{ position: "absolute", top: 8, right: 8, background: "rgba(255,255,255,0.9)", border: 0, width: 24, height: 24, borderRadius: "50%", cursor: "pointer", display: "grid", placeItems: "center" }}>
-                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="red" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                    </button>
-                  </>
-                ) : (
-                  <label style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", cursor: "pointer", color: "var(--faint)" }}>
-                    {isUploading ? <div className="dash-spinner" /> : <span>+ Add Image</span>}
-                    <input type="file" accept="image/*" hidden disabled={isUploading} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadGalleryImage(f, index); e.target.value = ""; }} />
-                  </label>
-                )}
-              </div>
-            );
-          })}
+        <h2 className="set-title">Store Banner</h2>
+        <div className="set-banner" style={{ maxHeight: "240px" }}>
+          {bannerUrl ? (
+            <img src={bannerUrl} alt="Store banner" style={{ objectFit: "cover", width: "100%", height: "100%", borderRadius: "12px" }} />
+          ) : (
+            <div style={{ width: "100%", height: "200px", background: "var(--soft)", borderRadius: "12px", display: "grid", placeItems: "center", color: "var(--muted)" }}>No banner uploaded</div>
+          )}
+          <div className="set-banner-actions">
+            <label className="set-banner-btn">
+              {uploadingBanner ? <div className="dash-spinner dash-spinner-sm" /> : "Change"}
+              <input type="file" accept="image/*" hidden disabled={uploadingBanner} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadBanner(f); e.target.value = ""; }} />
+            </label>
+            {bannerUrl && <button type="button" onClick={handleRemoveBanner} className="set-banner-btn danger">Remove</button>}
+          </div>
         </div>
       </section>
 
-      {/* ═══════ CATEGORIES (Image Cards) ═══════ */}
+      {/* CATEGORIES */}
       <section className="set-section">
         <h2 className="set-title">Categories</h2>
         
+        {/* Simple Add Row */}
         <div className="set-cat-add">
-          <input className="set-cat-add-input" placeholder="New category" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }} maxLength={30} />
-          <button className="set-cat-add-btn" type="button" disabled={!newCatName.trim()} onClick={handleAddCategory}>Add</button>
+          <input className="set-cat-add-input" placeholder="New category" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} />
+          <button className="set-cat-add-btn" type="button" onClick={() => {
+            if (!newCatName.trim()) return;
+            setIsCatModalOpen(true);
+          }}>+ Add</button>
         </div>
 
+        {/* Category Grid */}
         {categories.length === 0 ? (
           <p className="set-empty">No categories yet.</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", marginTop: "24px" }}>
-            {categories.map((c) => {
-              const isEditing = editingCatId === c.id;
-              
-              return (
-                <div key={c.id} style={{ position: "relative", aspectRatio: "4/5", background: "var(--bg)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--line)" }}>
-                  
-                  {/* Image Background */}
-                  {c.image ? (
-                    <img src={c.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ position: "absolute", inset: 0, background: "var(--mat)", display: "grid", placeItems: "center", color: "var(--faint)", fontSize: "12px" }}>No Image</div>
-                  )}
-
-                  {/* Dark Gradient Overlay for readability */}
-                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)", pointerEvents: "none" }} />
-
-                  {/* Top Right Actions (Upload / Delete) */}
-                  <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: "8px", zIndex: 10 }}>
-                    <label style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0 }}>
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-                      <input type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCategoryImageUpload(c.id, f); e.target.value = ""; }} />
-                    </label>
-                    <button onClick={() => handleDeleteCategory(c.id, c.label)} style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0, color: "var(--danger)" }}>
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
-                    </button>
-                  </div>
-
-                  {/* Bottom Text (Editable) */}
-                  <div style={{ position: "absolute", left: 16, right: 16, bottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
-                    {isEditing ? (
-                      <input 
-                        autoFocus
-                        value={editingCatName} 
-                        onChange={(e) => setEditingCatName(e.target.value)} 
-                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameCategory(c.id); if (e.key === "Escape") setEditingCatId(null); }}
-                        onBlur={() => handleRenameCategory(c.id)}
-                        style={{ background: "rgba(0,0,0,0.5)", border: "1px solid #fff", color: "#fff", padding: "4px 8px", borderRadius: "4px", fontSize: "16px", width: "100%" }}
-                      />
-                    ) : (
-                      <span 
-                        onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }}
-                        style={{ fontFamily: "var(--serif)", fontSize: "24px", color: "#fff", cursor: "pointer" }}
-                      >
-                        {c.label}
-                      </span>
-                    )}
-                    <span style={{ color: "#fff", fontSize: "16px" }}>→</span>
-                  </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginTop: "24px" }}>
+            {categories.map((c) => (
+              <div key={c.id} style={{ position: "relative", aspectRatio: "4/3", background: "var(--bg)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--line)" }}>
+                {c.image ? (
+                  <img src={c.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                ) : (
+                  <div style={{ position: "absolute", inset: 0, background: "var(--mat)", display: "grid", placeItems: "center", color: "var(--faint)", fontSize: "12px" }}>No Image</div>
+                )}
+                
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)", pointerEvents: "none" }} />
+                
+                <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: "8px", zIndex: 10 }}>
+                  <label style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0 }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                    <input type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCatImageUpload(c.id, f); e.target.value = ""; }} />
+                  </label>
+                  <button onClick={() => handleDeleteCategory(c.id, c.label)} style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0, color: "var(--danger)" }}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
+                  </button>
                 </div>
-              );
-            })}
+
+                <div style={{ position: "absolute", left: 12, right: 12, bottom: 12, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+                  <span style={{ fontFamily: "var(--serif)", fontSize: "18px", color: "#fff" }}>{c.label}</span>
+                  <span style={{ color: "#fff", fontSize: "14px" }}>→</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </section>
 
-      {/* ═══════ DANGER ZONE ═══════ */}
-      <section className="set-section">
-        <h2 className="set-title">Danger zone</h2>
-        <div className="set-danger-row">
-          <div>
-            <p className="set-danger-title">Delete store</p>
-            <p className="set-danger-sub">Removes every product and cancels your plan.</p>
+      {/* CATEGORY MODAL */}
+      {isCatModalOpen && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--card)", borderRadius: "16px", padding: "24px", width: "100%", maxWidth: "400px" }}>
+            <h3 style={{ margin: "0 0 16px", fontSize: "18px" }}>Add "{newCatName}"</h3>
+            <label style={{ display: "block", width: "100%", height: "120px", border: "1px dashed var(--line)", borderRadius: "12px", background: "var(--bg)", display: "grid", placeItems: "center", cursor: "pointer", marginBottom: "16px", overflow: "hidden" }}>
+              {newCatImage ? (
+                <img src={URL.createObjectURL(newCatImage)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <span style={{ color: "var(--faint)" }}>Click to upload image</span>
+              )}
+              <input type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) setNewCatImage(f); e.target.value = ""; }} />
+            </label>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button onClick={() => setIsCatModalOpen(false)} className="dash-btn dash-btn-line">Cancel</button>
+              <button onClick={handleAddCategorySubmit} disabled={isSavingCat} className="dash-btn dash-btn-dark">{isSavingCat ? "Saving..." : "Save"}</button>
+            </div>
           </div>
-          <button type="button" className="set-danger-btn" onClick={() => toast.show("Contact support to delete")}>
-            Delete
-          </button>
         </div>
-      </section>
+      )}
 
     </DashboardLayout>
   );
