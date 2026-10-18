@@ -32,11 +32,8 @@ export const ProductCard = memo(function ProductCard({
   const altText = `${product.name} — biomart`;
   const inStock = (product as any).inStock ?? (product as any).in_stock ?? true;
 
-  // 🟢 Calculate Discount
+  // Check for discount
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
-  const discountPercent = hasDiscount
-    ? Math.round(((product.compare_at_price! - product.price) / product.compare_at_price!) * 100)
-    : 0;
 
   const handleQuickAction = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -108,13 +105,10 @@ export const ProductCard = memo(function ProductCard({
           )}
         </div>
 
-        {/* 🟢 Badges Section: Shows New OR Discount (and hides if Sold Out) */}
-        {inStock && (
+        {/* Only showing New badge now if applicable */}
+        {inStock && showNew && (
           <div className="pc-badges">
-            {showNew && <span className="pc-badge">New</span>}
-            {hasDiscount && (
-              <span className="pc-badge pc-badge-discount">-{discountPercent}%</span>
-            )}
+            <span className="pc-badge">New</span>
           </div>
         )}
 
@@ -134,12 +128,11 @@ export const ProductCard = memo(function ProductCard({
       </button>
 
       <button onClick={onClick} className="pc-meta" style={{ marginTop: 8 }}>
-        {/* 🟢 Capitalized Name */}
         <p className="pc-name" style={{ textTransform: 'capitalize' }}>
           {product.name}
         </p>
         <div className="pc-price-row" style={{ marginTop: 2 }}>
-          {/* 🟢 Show Old Price crossed out if there's a discount */}
+          {/* 🟢 Real (Old) Price FIRST, then the new discounted price */}
           {hasDiscount && (
             <span className="pc-price-old">{naira(product.compare_at_price!)}</span>
           )}
