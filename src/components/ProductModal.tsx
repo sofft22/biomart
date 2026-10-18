@@ -123,19 +123,27 @@ export function ProductModal({
     setTimeout(() => setAddedFlash(false), 1400);
   };
 
-  // 🟢 2. ORDER: Opens WhatsApp immediately with the item.
+  // 🟢 2. ORDER: Opens WhatsApp immediately with the new spaced format.
   const handleOrder = () => {
     if (!canAdd) return;
     
-    // Add to cart silently first (so it reflects in the cart if they don't checkout)
+    // Add to cart silently first
     onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
     
     const phone = store.whatsapp.replace(/\D/g, "");
     const formattedPrice = naira(displayPrice * qty);
     const variantText = selectedVariantLabel ? ` (${selectedVariantLabel})` : '';
     
-    // Create the pre-filled message
-    const text = `Hi ${store.name}, I'd like to order:\n\n${qty}x ${product.name}${variantText}\nTotal: ${formattedPrice}\n\nPlease let me know how to proceed with payment and delivery.`;
+    // 🟢 NEW VOCABULARY AND SPACING
+    const text = `Hello ${store.name},
+    
+    I want to order:
+    
+    ${qty} x ${product.name}${variantText}
+    
+    Total: ${formattedPrice}
+    
+    How do I proceed with the payment and delivery process?`;
     
     // Open WhatsApp directly
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
