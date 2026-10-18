@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 import DashboardLayout from "../components/DashboardLayout";
-import { store as storeApi, uploadImage } from "../lib/api";
+import { store as storeApi, uploadImage, products as productsApi } from "../lib/api";
 import {
   getCategoriesWithImages,
   addCategory,
@@ -15,7 +15,7 @@ import type { Category } from "../types";
 type CatWithImg = Category & { image?: string };
 
 export default function Settings() {
-  const { store, refresh } = useAuth();
+  const { store, refresh, products = [] } = useAuth();
   const toast = useToast();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -42,6 +42,11 @@ export default function Settings() {
   const [uploadingCatId, setUploadingCatId] = useState<string | null>(null);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editingCatName, setEditingCatName] = useState("");
+
+  // 🟢 Delete Category Modal State
+  const [catToDelete, setCatToDelete] = useState<{ id: string; label: string; productCount: number } | null>(null);
+  const [moveToCatId, setMoveToCatId] = useState<string>("");
+  const [deletingCat, setDeletingCat] = useState(false);
 
   const refreshCategories = () => {
     if (!store?.slug) return;
@@ -116,7 +121,6 @@ export default function Settings() {
     setUploadingNewCat(true);
     
     try {
-      // 1. Add category first
       const result = addCategory(store.slug, newCatName);
       if (!result.ok) {
         toast.show(result.error);
@@ -124,10 +128,6 @@ export default function Settings() {
         return;
       }
 
-      // 2. If there's an image, we need to find the new category ID to attach it.
-      // Since addCategory returns the new state, we can get the latest category.
-      // Note: This assumes addCategory returns the new category or updates the state.
-      // If addCategory doesn't return the ID, we might need to fetch the latest list.
       const updatedCategories = getCategoriesWithImages(store.slug);
       const newCategory = updatedCategories.find(c => c.label === newCatName.trim());
       
@@ -136,7 +136,6 @@ export default function Settings() {
         setCategoryImage(store.slug, newCategory.id, imageUrl);
       }
 
-      // 3. Reset and refresh
       setNewCatName("");
       setNewCatImage(null);
       setIsAddingCat(false);
@@ -158,10 +157,36 @@ export default function Settings() {
   };
 
   const handleDeleteCategory = (id: string, label: string) => {
-    if (!confirm(`Delete "${label}"?`)) return;
-    removeCategory(store.slug, id);
-    refreshCategories();
-    toast.show("Category deleted");
+    const count = products.filter((p) => p.category_id === id).length;
+    if (count === 0) {
+      if (!confirm(`Delete "${label}"?`)) return;
+      removeCategory(store.slug, id);
+      refreshCategories();
+      toast.show("Category deleted");
+    } else {
+      setCatToDelete({ id, label, productCount: count });
+      const fallbackCat = categories.find((c) => c.id !== id);
+      setMoveToCatId(fallbackCat?.id || "");
+    }
+  };
+
+  const confirmDeleteWithMove = async () => {
+    if (!catToDelete || !moveToCatId) return;
+    setDeletingCat(true);
+    try {
+      const productsToMove = products.filter((p) => p.category_id === catToDelete.id);
+      await Promise.all(
+        productsToMove.map((p) => productsApi.update(p.id, { category_id: moveToCatId }))
+      );
+      removeCategory(store.slug, catToDelete.id);
+      refreshCategories();
+      if (typeof refresh === "function") await refresh(true);
+      toast.show("Category deleted and products moved");
+      setCatToDelete(null);
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : "Could not delete category");
+    }
+    setDeletingCat(false);
   };
 
   const handleCatImageUpload = async (id: string, file: File) => {
@@ -346,7 +371,7 @@ export default function Settings() {
                       style={{ background: "rgba(0,0,0,0.5)", border: "1px solid #fff", color: "#fff", padding: "4px", borderRadius: "4px", fontSize: "14px", width: "100%" }} 
                     />
                   ) : (
-                    <span onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ fontFamily: "var(--serif)", fontSize: "16px", color: "#fff", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</span>
+                    <span onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ fontFamily: "var(--serif)", fontSize: "16px", color: "#fff", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textTransform: "capitalize" }}>{c.label}</span>
                   )}
                   <span style={{ color: "#fff", fontSize: "14px" }}>→</span>
                 </div>
@@ -369,6 +394,50 @@ export default function Settings() {
           </button>
         </div>
       </section>
+
+      {/* ═══════ DELETE CATEGORY MODAL ═══════ */}
+      {catToDelete && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", padding: "24px" }}>
+          <div style={{ background: "var(--bg)", width: "100%", maxWidth: "400px", borderRadius: "16px", padding: "24px", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.3)" }}>
+            <h3 style={{ fontFamily: "var(--serif)", fontSize: "22px", margin: "0 0 8px" }}>
+              Delete "{catToDelete.label}"?
+            </h3>
+            <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 24px" }}>
+              You have <strong>{catToDelete.productCount} product(s)</strong> in this category. Where would you like to move them?
+            </p>
+
+            <label className="set-label" style={{ display: "block", marginBottom: "8px" }}>Move products to:</label>
+            <select 
+              className="set-input" 
+              value={moveToCatId} 
+              onChange={(e) => setMoveToCatId(e.target.value)}
+              style={{ width: "100%", marginBottom: "24px" }}
+            >
+              {categories.filter((c) => c.id !== catToDelete.id).map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+
+            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+              <button 
+                onClick={() => setCatToDelete(null)} 
+                className="dash-btn dash-btn-line"
+                disabled={deletingCat}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDeleteWithMove} 
+                className="dash-btn" 
+                style={{ background: "#B3261E", color: "#fff" }}
+                disabled={deletingCat || !moveToCatId}
+              >
+                {deletingCat ? "Moving & Deleting..." : "Move & Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </DashboardLayout>
   );
