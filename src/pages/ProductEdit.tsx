@@ -36,21 +36,25 @@ export default function ProductEdit() {
 
   const photoLimit = limits?.images ?? 1;
 
+  // 🟢 1. Load categories and set default category for NEW products
   useEffect(() => {
     if (!currentStore?.slug) return;
     const cats = getCategories(currentStore.slug);
     setCategories(cats);
     
-    // 🟢 Auto-select newest category if creating new
-    if (product) {
-      setCategoryId(product.category_id || (cats[cats.length - 1]?.id ?? ""));
-    } else if (cats.length > 0 && !categoryId) {
-      setCategoryId(cats[cats.length - 1].id);
+    // If creating a new product, default to the FIRST category automatically
+    if (!id && cats.length > 0) {
+      setCategoryId(cats[0].id);
     }
-  }, [currentStore?.slug, product]);
+  }, [currentStore?.slug, id]);
 
+  // 🟢 2. Fetch product data if editing
   useEffect(() => {
-    if (!id || !currentStore?.slug) { setLoadingProduct(false); return; }
+    if (!id || !currentStore?.slug) { 
+      setLoadingProduct(false); 
+      return; 
+    }
+    
     (async () => {
       setLoadingProduct(true);
       try {
@@ -64,6 +68,7 @@ export default function ProductEdit() {
     })();
   }, [id, currentStore?.slug]);
 
+  // 🟢 3. Populate form when editing an existing product
   useEffect(() => {
     if (!product) return;
     setName(product.name);
@@ -74,7 +79,9 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    if (product.category_id) setCategoryId(product.category_id);
+    if (product.category_id) {
+      setCategoryId(product.category_id);
+    }
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
@@ -123,6 +130,7 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
     
+    // 🟢 Strict Category Validation
     if (!categoryId || categoryId === "") {
       return setError("You must select a category. Go to Settings to add one if you don't have any.");
     }
@@ -313,7 +321,7 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* 🟢 CATEGORY */}
+        {/* CATEGORY */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
           {categories.length === 0 ? (
