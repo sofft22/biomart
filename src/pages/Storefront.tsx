@@ -144,18 +144,27 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query]);
 
-  // 🟢 FIXED: Always filter categories based on products attached to them
+  // 🟢 HARD FALLBACK LOGIC: Always show categories based on products
   const usedCategories = useMemo(() => {
-    if (categories.length === 0) return [];
-    if (products.length === 0) return categories;
-
-    const usedIds = new Set<string>();
+    const uniqueCats = new Map<string, Category>();
+    
     for (const p of products) {
       const cid = (p as any).category_id || (p as any).category;
-      if (cid) usedIds.add(cid);
+      if (cid && !uniqueCats.has(cid)) {
+        const existingCat = categories.find((c) => c.id === cid);
+        uniqueCats.set(cid, {
+          id: cid,
+          label: existingCat?.label || cid, 
+          sort_order: 0
+        });
+      }
     }
-
-    return categories.filter((c) => usedIds.has(c.id));
+    
+    if (uniqueCats.size === 0 && categories.length > 0) {
+      return categories;
+    }
+    
+    return Array.from(uniqueCats.values());
   }, [categories, products]);
 
   const newArrivals = useMemo(() => {
@@ -268,7 +277,6 @@ export default function Storefront() {
   const catCount = Math.min(usedCategories.length, 5);
   const showFilters = usedCategories.length > 0;
 
-  // 🟢 FEATURED LOGIC
   const featuredProduct = products[0];
 
   return (
@@ -419,7 +427,7 @@ export default function Storefront() {
 
       {/* ═══ CATEGORIES ═══ */}
       {usedCategories.length > 0 && (
-        <section className="sf-section sf-section-wide" id="categories">
+        <section className="sf-section sf-section-wide" id="categories" style={{ display: "block", minHeight: "300px" }}>
           <div className="sf-section-head-center">
             <span className="sf-section-eyebrow" data-reveal>Explore</span>
             <h2 className="sf-section-title-center" data-reveal>Shop by category</h2>
@@ -433,7 +441,7 @@ export default function Storefront() {
                 <button
                   key={c.id}
                   data-reveal
-                  style={{ transitionDelay: `${i * 90}ms` }}
+                  style={{ transitionDelay: `${i * 90}ms`, display: "block", minHeight: "160px" }}
                   onClick={() => {
                     setActiveCategory(active ? "all" : c.id);
                     scrollTo("shop-all");
@@ -441,7 +449,7 @@ export default function Storefront() {
                   className={`sf-cat-tile ${active ? "on" : ""}`}
                 >
                   {img ? (
-                    <img src={img} alt={c.label} loading="lazy" />
+                    <img src={img} alt={c.label} loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <div className="sf-cat-tile-placeholder">
                       {c.label.charAt(0).toUpperCase()}
