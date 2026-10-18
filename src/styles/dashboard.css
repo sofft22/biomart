@@ -879,56 +879,30 @@ select.pe-select {
 .set-linkrow-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ══════════════════════════════════════════════════
-   CATEGORY ADD SECTION (Clean Row)
+   SETTINGS - CATEGORY ADD (Clean Input + Square Button)
    ══════════════════════════════════════════════════ */
 .set-cat-add {
   display: flex;
   gap: 12px;
   align-items: center;
   margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.set-cat-add-photo {
-  width: 54px; 
-  height: 54px;
-  flex: none;
-  border: 1.5px dashed var(--line);
-  border-radius: 12px;
-  background: var(--card);
-  cursor: pointer;
-  display: grid; 
-  place-items: center;
-  color: var(--faint);
-  overflow: hidden;
-  position: relative;
-  transition: all var(--dur) var(--ease);
-}
-.set-cat-add-photo:hover { border-color: var(--ink); color: var(--ink); }
-.set-cat-add-photo img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
 }
 
 .set-cat-add-input {
-  flex: 1; 
-  min-width: 150px;
+  flex: 1;
   padding: 16px 20px;
-  font: 500 15.5px/1 var(--font);
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 12px;
+  font: 500 15px/1 var(--font);
   color: var(--ink);
   outline: none;
   transition: border-color 0.2s ease;
 }
 .set-cat-add-input:focus { border-color: var(--ink); }
-.set-cat-add-input::placeholder { color: var(--faint); }
 
-/* Square Add Button */
 .set-cat-add-btn {
-  width: 54px; 
+  width: 54px;
   height: 54px;
   border-radius: 12px;
   background: var(--ink);
@@ -937,13 +911,11 @@ select.pe-select {
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: all var(--dur) var(--spring);
+  transition: transform 0.2s ease;
   flex: none;
 }
 .set-cat-add-btn:hover:not(:disabled) { transform: scale(1.05); }
 .set-cat-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-/* The + icon inside the button */
 .set-cat-add-btn::before {
   content: "+";
   font-size: 24px;
@@ -952,11 +924,11 @@ select.pe-select {
 }
 
 /* ══════════════════════════════════════════════════
-   CATEGORY LIST (Pills)
+   SETTINGS - CATEGORY GRID (Short Cards)
    ══════════════════════════════════════════════════ */
 .set-cat-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   padding: 0;
   margin: 0;
@@ -964,35 +936,27 @@ select.pe-select {
 }
 
 .set-cat-row {
-  display: flex;
-  align-items: center;
+  position: relative;
+  aspect-ratio: 4 / 3; /* 🟢 Shorter height */
   background: var(--card);
+  border-radius: 12px;
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 99px;
-  padding: 6px 12px 6px 6px;
-  gap: 10px;
   cursor: default;
-  transition: all var(--dur-fast) var(--ease);
 }
 
-/* Category Image in Pill */
+/* The Image */
 .set-cat-row-img {
-  position: relative;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--soft);
-  flex: none;
-  border: 1px dashed var(--line);
-  display: grid;
-  place-items: center;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--mat);
 }
 .set-cat-row-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
 }
 .set-cat-row-img-add {
   width: 100%;
@@ -1001,85 +965,74 @@ select.pe-select {
   place-items: center;
   cursor: pointer;
   color: var(--faint);
-  transition: all var(--dur) var(--ease);
+  background: var(--mat);
 }
-.set-cat-row-img-add:hover { color: var(--ink); }
 .set-cat-row-img-x {
   position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 18px;
-  height: 18px;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: #fff;
-  color: var(--danger);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+  border: 0;
   display: grid;
   place-items: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10;
 }
 
-/* Category Name */
-.set-cat-row-name { min-width: 0; }
+/* The Text Overlay */
+.set-cat-row-name {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
 .set-cat-row-label {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
+  font-family: var(--serif);
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 .set-cat-row-input {
-  width: 100px;
-  padding: 4px 8px;
-  font: 600 14px/1 var(--font);
-  background: var(--bg);
-  border: 1px solid var(--line);
+  width: 100%;
+  padding: 8px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid #fff;
   border-radius: 6px;
-  color: var(--ink);
+  color: #fff;
+  font-family: var(--font);
+  font-size: 14px;
   outline: none;
 }
 
-/* Actions */
+/* Actions (Edit/Delete) */
 .set-cat-row-actions {
+  position: absolute;
+  top: 8px;
+  left: 8px;
   display: flex;
-  gap: 4px;
-  flex-shrink: 0;
-  align-items: center;
-  margin-left: 4px;
+  gap: 6px;
+  z-index: 10;
 }
-
 .set-cat-row-actions .set-cat-act {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   width: 28px;
   height: 28px;
-  padding: 0;
   border-radius: 50%;
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all var(--dur-fast) var(--ease);
-}
-
-.set-cat-row-actions .set-cat-act svg {
-  width: 14px;
-  height: 14px;
-  flex: none;
-}
-
-.set-cat-row-actions .set-cat-act:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.9);
   color: var(--ink);
-  background: var(--soft);
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
 }
-
-.set-cat-row-actions .set-cat-act.danger:hover:not(:disabled) {
-  color: var(--danger);
-  background: var(--danger-soft);
-}
-
+.set-cat-row-actions .set-cat-act.danger { color: var(--danger); }
 /* danger (Delete) */
 .set-cat-row-actions .set-cat-act.danger {
   color: var(--danger);
