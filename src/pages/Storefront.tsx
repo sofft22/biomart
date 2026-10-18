@@ -224,7 +224,7 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* ═══ HEADER (No Green) ═══ */}
+      {/* ═══ HEADER ═══ */}
       <header className={headerClasses}>
         <div className="sf-head-inner">
           {!searchOpen && (
@@ -303,7 +303,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* ═══ SHOP ALL (With 5-row pagination) ═══ */}
+      {/* ═══ SHOP ALL ═══ */}
       <section className="sf-section" id="shop-all">
         <div className="sf-section-head">
           <div>
@@ -321,7 +321,6 @@ export default function Storefront() {
               ))}
             </div>
             
-            {/* 🟢 PAGINATION CONTROLS (No Green) */}
             {totalPages > 1 && (
               <div className="sf-pagination">
                 <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
@@ -333,7 +332,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* ═══ FOOTER (Monochrome, Bio, WhatsApp CTA) ═══ */}
+      {/* ═══ FOOTER (Charcoal, Icons, Tagline) ═══ */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           <div className="sf-footer-top">
@@ -345,6 +344,7 @@ export default function Storefront() {
               </div>
               <p className="sf-footer-bio">{tagline || "Curated essentials for the modern wardrobe."}</p>
             </div>
+
             <div className="sf-footer-col">
               <h4 className="sf-footer-h">Shop</h4>
               <ul>
@@ -352,14 +352,42 @@ export default function Storefront() {
                 <li><button onClick={() => scrollTo("shop-all")}>Shop all</button></li>
               </ul>
             </div>
+
             <div className="sf-footer-col">
               <h4 className="sf-footer-h">Contact</h4>
-              <button onClick={() => window.open(`https://wa.me/${store.whatsapp}?text=Hi, I'm interested in your products.`, '_blank')} className="sf-wa-button">
-                Chat on WhatsApp
-              </button>
-              {address && <p style={{ marginTop: '16px', fontSize: '13px', color: 'var(--muted)' }}>{address}</p>}
+              <div className="sf-footer-icons">
+                {store.whatsapp && (
+                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366">
+                      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" />
+                    </svg>
+                  </a>
+                )}
+                {store.instagram && (
+                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="3" width="18" height="18" rx="5" />
+                      <circle cx="12" cy="12" r="4" />
+                      <circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none" />
+                    </svg>
+                  </a>
+                )}
+                {store.tiktok && (
+                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="TikTok">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff">
+                      <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" />
+                    </svg>
+                  </a>
+                )}
+              </div>
+              {address && (
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" className="sf-contact-address">
+                  {address}
+                </a>
+              )}
             </div>
           </div>
+
           <div className="sf-footer-bot">
             <span className="sf-footer-copyright">© 2026 {titleCase(store.name)}</span>
             <a href="https://biomart.com" target="_blank" rel="noopener" className="sf-footer-pow">
