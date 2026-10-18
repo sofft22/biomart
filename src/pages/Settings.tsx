@@ -43,7 +43,7 @@ export default function Settings() {
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editingCatName, setEditingCatName] = useState("");
 
-  // 🟢 Delete Category Modal State
+  // 🟢 DELETE & MOVE MODAL STATE
   const [catToDelete, setCatToDelete] = useState<{ id: string; label: string; productCount: number } | null>(null);
   const [moveToCatId, setMoveToCatId] = useState<string>("");
   const [deletingCat, setDeletingCat] = useState(false);
@@ -149,11 +149,15 @@ export default function Settings() {
   };
 
   const handleRenameCategory = (id: string) => {
+    if (!editingCatName.trim()) {
+      setEditingCatId(null);
+      return;
+    }
     const result = updateCategory(store.slug, id, editingCatName);
     if (!result.ok) return toast.show(result.error);
     setEditingCatId(null);
     refreshCategories();
-    toast.show("Renamed");
+    toast.show("Category renamed");
   };
 
   const handleDeleteCategory = (id: string, label: string) => {
@@ -164,6 +168,7 @@ export default function Settings() {
       refreshCategories();
       toast.show("Category deleted");
     } else {
+      // 🟢 Open the Move & Delete Modal
       setCatToDelete({ id, label, productCount: count });
       const fallbackCat = categories.find((c) => c.id !== id);
       setMoveToCatId(fallbackCat?.id || "");
@@ -175,12 +180,19 @@ export default function Settings() {
     setDeletingCat(true);
     try {
       const productsToMove = products.filter((p) => p.category_id === catToDelete.id);
+      
+      // Update all products in this category to the new category
       await Promise.all(
         productsToMove.map((p) => productsApi.update(p.id, { category_id: moveToCatId }))
       );
+      
+      // Delete the category
       removeCategory(store.slug, catToDelete.id);
+      
+      // Refresh everything
       refreshCategories();
       if (typeof refresh === "function") await refresh(true);
+      
       toast.show("Category deleted and products moved");
       setCatToDelete(null);
     } catch (err) {
@@ -395,7 +407,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ═══════ DELETE CATEGORY MODAL ═══════ */}
+      {/* 🟢 DELETE CATEGORY MODAL */}
       {catToDelete && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", padding: "24px" }}>
           <div style={{ background: "var(--bg)", width: "100%", maxWidth: "400px", borderRadius: "16px", padding: "24px", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.3)" }}>
