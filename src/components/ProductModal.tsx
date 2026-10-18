@@ -115,7 +115,6 @@ export function ProductModal({
     touchStartY.current = null;
   };
 
-  // 🟢 1. ADD TO BAG: Silent add, no drawer opens.
   const handleAdd = () => {
     if (!canAdd) return;
     onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
@@ -123,7 +122,7 @@ export function ProductModal({
     setTimeout(() => setAddedFlash(false), 1400);
   };
 
-  // 🟢 2. ORDER: Opens WhatsApp immediately with the new spaced format.
+  // 🟢 ORDER: Opens WhatsApp immediately with the exact requested format
   const handleOrder = () => {
     if (!canAdd) return;
     
@@ -131,19 +130,19 @@ export function ProductModal({
     onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
     
     const phone = store.whatsapp.replace(/\D/g, "");
-    const formattedPrice = naira(displayPrice * qty);
-    const variantText = selectedVariantLabel ? ` (${selectedVariantLabel})` : '';
+    const lineTotal = displayPrice * qty;
+    const formattedLineTotal = naira(lineTotal);
     
-    // 🟢 NEW VOCABULARY AND SPACING
+    // 🟢 EXACT FORMAT: No leading spaces, spaced lines, Product x Qty = Amount, Total at bottom
     const text = `Hello ${store.name},
     
-    I want to order:
+I want to order:
     
-    ${qty} x ${product.name}${variantText}
+${product.name} x ${qty} = ${formattedLineTotal}
     
-    Total: ${formattedPrice}
+Total: ${formattedLineTotal}
     
-    How do I proceed with the payment and delivery process?`;
+How do I proceed with the payment and delivery process?`;
     
     // Open WhatsApp directly
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
@@ -285,7 +284,7 @@ export function ProductModal({
             
             <h2
               className="text-[22px] leading-[1.25] tracking-[-0.01em] sm:text-[28px]"
-              style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'uppercase' }}
+              style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
             >
               {product.name}
             </h2>
@@ -331,12 +330,12 @@ export function ProductModal({
                       <button
                         key={v.label}
                         onClick={() => setSelectedVariantLabel(v.label)}
-                        className="rounded-[8px] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-300"
+                        className="rounded-[8px] px-5 py-2.5 text-[11px] font-bold tracking-[0.14em] transition-colors duration-300"
                         style={{
                           border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
                           backgroundColor: active ? CHARCOAL : 'transparent',
                           color: active ? 'var(--bg)' : CHARCOAL,
-                          textTransform: 'uppercase'
+                          textTransform: 'capitalize'
                         }}
                       >
                         {v.label}
@@ -411,7 +410,6 @@ export function ProductModal({
                   </div>
                 </div>
 
-                {/* 🟢 TWO BUTTONS: ADD TO BAG (Silent) and ORDER (WhatsApp) */}
                 <div className="mt-8 grid grid-cols-2 gap-3">
                   <button
                     onClick={handleAdd}
@@ -552,7 +550,7 @@ export function ProductModal({
           >
             <h3
               className="text-[22px] leading-tight tracking-[-0.01em] sm:text-[28px]"
-              style={{ color: CHARCOAL, fontWeight: 400, fontFamily: 'var(--serif)', textTransform: 'uppercase' }}
+              style={{ color: CHARCOAL, fontWeight: 400, fontFamily: 'var(--serif)', textTransform: 'capitalize' }}
             >
               Complete the look
             </h3>
@@ -585,7 +583,7 @@ export function ProductModal({
                   </div>
                   <p
                     className="mt-3 line-clamp-1 text-[13px] leading-[1.35] tracking-[-0.005em]"
-                    style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'uppercase' }}
+                    style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
                   >
                     {p.name}
                   </p>
