@@ -7,7 +7,6 @@ import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
 import { getCategoryLabel } from "../lib/categories";
-import { getCategories, getCategoryImages } from "../lib/storeData";
 import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
@@ -83,6 +82,30 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // 🟢 FETCH CATEGORIES DIRECTLY FROM API (NO LOCAL STORAGE)
+  useEffect(() => {
+    if (!slug) return;
+    
+    // We fetch fresh data from the API to get the real categories
+    fetch(`/api/store/${slug}`)
+      .then(res => res.json())
+      .then(data => {
+        // Your API returns { store: { ..., categories: [] } }
+        if (data.store && data.store.categories && Array.isArray(data.store.categories)) {
+          setCategories(data.store.categories);
+          
+          // Build the images map from the API data
+          const imgMap: Record<string, string> = {};
+          data.store.categories.forEach((c: any) => {
+            if (c.image) imgMap[c.id] = c.image;
+            if (c.image_url) imgMap[c.id] = c.image_url;
+          });
+          setCategoryImages(imgMap);
+        }
+      })
+      .catch(console.error);
+  }, [slug, categoryTick]);
+
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setItemsPerPage(20);
@@ -101,23 +124,6 @@ export default function Storefront() {
     sessionStorage.setItem(key, "1");
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
-
-  // 🟢 AUTO-HEALING CACHE WIPER (Fixes mobile fake categories)
-  useEffect(() => {
-    if (!slug) return;
-
-    const cacheKey = `biomart:categories:${slug}`;
-    const cached = localStorage.getItem(cacheKey);
-    
-    // Force wipe old broken cache (Bag, Clothing, etc)
-    if (cached && (cached.includes('"Bag"') || cached.includes('"Clothing"'))) {
-      localStorage.removeItem(cacheKey);
-      localStorage.removeItem(`biomart:categoryImages:${slug}`);
-    }
-
-    setCategories(getCategories(slug));
-    setCategoryImages(getCategoryImages(slug));
-  }, [slug, categoryTick]);
 
   useEffect(() => {
     const onFocus = () => setCategoryTick((t) => t + 1);
@@ -161,7 +167,7 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 ONLY USE STRICT SETTINGS CATEGORIES
+  // 🟢 USE STRICTLY THE API CATEGORIES
   const usedCategories = categories;
 
   const filtered = useMemo(() => {
@@ -191,9 +197,10 @@ export default function Storefront() {
 
   const handleOpenProduct = (p: Product) => setOpenProduct(p);
   
-  // 🟢 ADDS SILENTLY. NO DRAWER, NO WHATSAPP.
+  // 🟢 FIXED: SILENT ADD. DOES NOT OPEN THE DRAWER.
   const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
     cart.add(product, qty, variant, unitPrice);
+    // We do NOT call setCartOpen(true) here.
   };
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -261,7 +268,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 CATEGORIES (Strictly from Settings) */}
+      {/* 🟢 CATEGORIES (Strictly from API) */}
       {usedCategories.length > 0 && (
         <section className="sf-section" id="categories">
           <div className="sf-section-head-center">
@@ -270,7 +277,7 @@ export default function Storefront() {
           </div>
           <div className="sf-cat-grid">
             {usedCategories.map((c, i) => {
-              const img = categoryImages[c.id];
+              const img = categoryImages[c.id] || (c as any).image_url || (c as any).image;
               const active = activeCategory === c.id;
               return (
                 <button key={c.id} onClick={() => { setActiveCategory(active ? "all" : c.id); setCurrentPage(1); scrollTo("shop-all"); }} className={`sf-cat-tile ${active ? "on" : ""}`}>
