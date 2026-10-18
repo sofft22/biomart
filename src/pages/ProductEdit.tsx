@@ -3,9 +3,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { products as productsApi, uploadImage, store as storeApi } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { getCategories, addCategory } from "../lib/storeData";
 import { naira } from "../lib/format";
-import type { Category, Product } from "../types";
+import type { Product } from "../types";
 
 interface Variant {
   label: string;
@@ -19,17 +18,12 @@ export default function ProductEdit() {
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(!!id);
-  const [categories, setCategories] = useState<Category[]>([]);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [wasPrice, setWasPrice] = useState("");
-  const [categoryId, setCategoryId] = useState("");
   
-  const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-
   const [inStock, setInStock] = useState(true);
   const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -39,21 +33,6 @@ export default function ProductEdit() {
   const [error, setError] = useState("");
 
   const photoLimit = limits?.images ?? 1;
-
-  // 🟢 SORT CATEGORIES ALPHABETICALLY
-  const sortedCategories = [...categories].sort((a, b) => a.label.localeCompare(b.label));
-
-  // Load categories and default selection
-  useEffect(() => {
-    if (!currentStore?.slug) return;
-    const cats = getCategories(currentStore.slug);
-    setCategories(cats);
-    
-    // If creating a new product, default to the first sorted category
-    if (!id && sortedCategories.length > 0) {
-      setCategoryId(sortedCategories[0].id);
-    }
-  }, [currentStore?.slug, id, sortedCategories.length]); 
 
   // Fetch product data if editing
   useEffect(() => {
@@ -86,7 +65,6 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    if (product.category_id) setCategoryId(product.category_id);
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
@@ -142,40 +120,12 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
-    let finalCategoryId = categoryId;
-
-    // 🟢 If they created a new category inline, create it now
-    if (isCreatingNewCategory && newCategoryName.trim()) {
-      const result = addCategory(currentStore!.slug, newCategoryName.trim());
-      if (!result.ok) {
-        setError(result.error);
-        setSaving(false);
-        return;
-      }
-      const updatedCats = getCategories(currentStore!.slug);
-      const newCat = updatedCats.find(c => c.label.toLowerCase() === newCategoryName.trim().toLowerCase());
-      if (newCat) {
-        finalCategoryId = newCat.id;
-      }
-    }
-
-    // 🟢 FIX: Fallback to first category if none selected
-    if (!finalCategoryId && sortedCategories.length > 0) {
-      finalCategoryId = sortedCategories[0].id;
-    }
-
-    if (!finalCategoryId) {
-      setError("Please select or create a category.");
-      setSaving(false);
-      return;
-    }
-
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category_id: finalCategoryId,
+      category_id: "", // 🟢 Hardcoded to empty since categories are gone
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
@@ -346,53 +296,6 @@ export default function ProductEdit() {
               <span className="pe-price-new">{naira(numericPrice)}</span>
               <span className="pe-price-pill">{discountPercent}% off</span>
             </div>
-          )}
-        </section>
-
-        {/* 🟢 CATEGORY WITH INLINE CREATION & SORTING */}
-        <section className="pe-section">
-          <label className="pe-label" htmlFor="pe-cat">Category</label>
-          {sortedCategories.length === 0 && !isCreatingNewCategory ? (
-            <div style={{ padding: "16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: "12px", fontSize: "14px" }}>
-              You don't have any categories yet. <button type="button" onClick={() => setIsCreatingNewCategory(true)} style={{ fontWeight: "bold", textDecoration: "underline", background: "none", border: 0, cursor: "pointer", color: "inherit" }}>Create one now</button>.
-            </div>
-          ) : isCreatingNewCategory ? (
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <input
-                className="pe-input"
-                placeholder="Type new category name..."
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                autoFocus
-              />
-              <button 
-                type="button" 
-                onClick={() => { setIsCreatingNewCategory(false); setNewCategoryName(""); }}
-                className="pe-input"
-                style={{ width: "auto", padding: "0 16px", cursor: "pointer", background: "var(--soft)" }}
-              >
-                Cancel
-              </button>
-            </div>
-          ) : (
-            <select
-              id="pe-cat"
-              className="pe-input pe-select"
-              value={categoryId}
-              onChange={(e) => {
-                if (e.target.value === "__new__") {
-                  setIsCreatingNewCategory(true);
-                  setCategoryId("");
-                } else {
-                  setCategoryId(e.target.value);
-                }
-              }}
-            >
-              {sortedCategories.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
-              <option value="__new__">+ Create new category</option>
-            </select>
           )}
         </section>
 
