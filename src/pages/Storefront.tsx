@@ -432,8 +432,9 @@ export default function Storefront() {
           </div>
 
           <div className={`sf-cat-grid sf-cat-count-${catCount}`}>
-            {usedCategories.map((c, i) => {
-              const img = categoryImages[c.id];
+                        {usedCategories.map((c, i) => {
+              // 🟢 Try to get the image from LocalStorage first, then fallback to the database product image
+              const img = categoryImages[c.id] || (products.find(p => (p.category_id || p.category) === c.id) as any)?.image_url;
               const active = activeCategory === c.id;
               return (
                                 <button
