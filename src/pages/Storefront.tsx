@@ -80,15 +80,14 @@ export default function Storefront() {
   const [categoryTick, setCategoryTick] = useState(0);
   const lastYRef = useRef(0);
 
-  // 🟢 PAGINATION STATE (10/15/20)
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) setItemsPerPage(20); // Desktop
-      else if (window.innerWidth >= 768) setItemsPerPage(15); // Tablet
-      else setItemsPerPage(10); // Mobile
+      if (window.innerWidth >= 1024) setItemsPerPage(20);
+      else if (window.innerWidth >= 768) setItemsPerPage(15);
+      else setItemsPerPage(10);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -103,14 +102,23 @@ export default function Storefront() {
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
 
-  // 🟢 STRICT LOAD: Only uses exactly what is saved in Settings.
+  // 🟢 AUTO-HEALING CACHE WIPER (Fixes mobile fake categories)
   useEffect(() => {
     if (!slug) return;
+
+    const cacheKey = `biomart:categories:${slug}`;
+    const cached = localStorage.getItem(cacheKey);
+    
+    // Force wipe old broken cache (Bag, Clothing, etc)
+    if (cached && (cached.includes('"Bag"') || cached.includes('"Clothing"'))) {
+      localStorage.removeItem(cacheKey);
+      localStorage.removeItem(`biomart:categoryImages:${slug}`);
+    }
+
     setCategories(getCategories(slug));
     setCategoryImages(getCategoryImages(slug));
   }, [slug, categoryTick]);
 
-  // 🟢 LIVE UPDATE ON FOCUS (If user changes settings in another tab)
   useEffect(() => {
     const onFocus = () => setCategoryTick((t) => t + 1);
     const onVisible = () => {
@@ -153,7 +161,7 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 STRICT FIX: Only show categories from Settings. No fake fallbacks.
+  // 🟢 ONLY USE STRICT SETTINGS CATEGORIES
   const usedCategories = categories;
 
   const filtered = useMemo(() => {
@@ -183,10 +191,9 @@ export default function Storefront() {
 
   const handleOpenProduct = (p: Product) => setOpenProduct(p);
   
-  // 🟢 FIXED: Only adds to cart and opens drawer. NO WHATSAPP.
+  // 🟢 ADDS SILENTLY. NO DRAWER, NO WHATSAPP.
   const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
     cart.add(product, qty, variant, unitPrice);
-    setCartOpen(true);
   };
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
