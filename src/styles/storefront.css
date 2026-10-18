@@ -408,17 +408,25 @@
    ══════════════════════════════════════════════════ */
 .sf-grid-4 {
   display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 16px 8px; /* 🟢 Tighter mobile gap */
+  gap: 32px 16px; /* 🟢 Nice spacing between rows and columns */
 }
-@media (min-width: 640px) { .sf-grid-4 { grid-template-columns: repeat(3, 1fr); gap: 32px 16px; } }
-@media (min-width: 900px) { .sf-grid-4 { grid-template-columns: repeat(4, 1fr); gap: 40px 20px; } }
+@media (min-width: 640px) { 
+  .sf-grid-4 { grid-template-columns: repeat(3, 1fr); gap: 48px 24px; } 
+}
+@media (min-width: 900px) { 
+  .sf-grid-4 { grid-template-columns: repeat(4, 1fr); gap: 56px 28px; } 
+}
 
 .sf-grid-all {
   display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 24px 8px;
+  gap: 40px 16px;
 }
-@media (min-width: 700px) { .sf-grid-all { grid-template-columns: repeat(3, 1fr); gap: 40px 16px; } }
-@media (min-width: 1000px) { .sf-grid-all { grid-template-columns: repeat(4, 1fr); gap: 48px 20px; } }
+@media (min-width: 700px) { 
+  .sf-grid-all { grid-template-columns: repeat(3, 1fr); gap: 56px 24px; } 
+}
+@media (min-width: 1000px) { 
+  .sf-grid-all { grid-template-columns: repeat(4, 1fr); gap: 64px 28px; } 
+}
 
 .sf-empty { padding: 88px 20px; text-align: center; }
 .sf-empty-title { font-family: var(--serif); font-size: 20px; font-weight: 400; margin: 0 0 8px; color: var(--ink); }
