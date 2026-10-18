@@ -46,6 +46,7 @@ export default function Settings() {
   // 🟢 DELETE & MOVE MODAL STATE
   const [catToDelete, setCatToDelete] = useState<{ id: string; label: string; productCount: number } | null>(null);
   const [moveToCatId, setMoveToCatId] = useState<string>("");
+  const [newMoveCategoryName, setNewMoveCategoryName] = useState(""); 
   const [deletingCat, setDeletingCat] = useState(false);
 
   const refreshCategories = () => {
@@ -168,28 +169,52 @@ export default function Settings() {
       refreshCategories();
       toast.show("Category deleted");
     } else {
-      // 🟢 Open the Move & Delete Modal
       setCatToDelete({ id, label, productCount: count });
-      const fallbackCat = categories.find((c) => c.id !== id);
-      setMoveToCatId(fallbackCat?.id || "");
+      
+      const otherCats = categories.filter((c) => c.id !== id);
+      if (otherCats.length > 0) {
+        setMoveToCatId(otherCats[0].id);
+      } else {
+        setMoveToCatId("new");
+      }
+      setNewMoveCategoryName("");
     }
   };
 
   const confirmDeleteWithMove = async () => {
-    if (!catToDelete || !moveToCatId) return;
+    if (!catToDelete) return;
     setDeletingCat(true);
+    
     try {
+      let finalMoveToId = moveToCatId;
+
+      // 🟢 Handle creating a NEW category if the input field was used
+      if (newMoveCategoryName.trim().length > 0) {
+        const newCatResult = addCategory(store.slug, newMoveCategoryName);
+        if (!newCatResult.ok) {
+          toast.show(newCatResult.error);
+          setDeletingCat(false);
+          return;
+        }
+        const updatedCats = getCategoriesWithImages(store.slug);
+        const createdCat = updatedCats.find(c => c.label.toLowerCase() === newMoveCategoryName.trim().toLowerCase());
+        if (!createdCat) {
+          toast.show("Could not create new category");
+          setDeletingCat(false);
+          return;
+        }
+        finalMoveToId = createdCat.id;
+      }
+
+      // Move all products
       const productsToMove = products.filter((p) => p.category_id === catToDelete.id);
-      
-      // Update all products in this category to the new category
       await Promise.all(
-        productsToMove.map((p) => productsApi.update(p.id, { category_id: moveToCatId }))
+        productsToMove.map((p) => productsApi.update(p.id, { category_id: finalMoveToId }))
       );
       
-      // Delete the category
+      // Delete old category
       removeCategory(store.slug, catToDelete.id);
       
-      // Refresh everything
       refreshCategories();
       if (typeof refresh === "function") await refresh(true);
       
@@ -407,44 +432,89 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* 🟢 DELETE CATEGORY MODAL */}
+      {/* ═══════ DELETE CATEGORY MODAL ═══════ */}
       {catToDelete && (
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", padding: "24px" }}>
-          <div style={{ background: "var(--bg)", width: "100%", maxWidth: "400px", borderRadius: "16px", padding: "24px", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.3)" }}>
+          <div style={{ background: "var(--bg)", width: "100%", maxWidth: "420px", borderRadius: "16px", padding: "24px", boxShadow: "0 20px 60px -20px rgba(0,0,0,0.3)" }}>
             <h3 style={{ fontFamily: "var(--serif)", fontSize: "22px", margin: "0 0 8px" }}>
               Delete "{catToDelete.label}"?
             </h3>
-            <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 24px" }}>
+            <p style={{ fontSize: "14px", color: "var(--muted)", margin: "0 0 20px", lineHeight: 1.5 }}>
               You have <strong>{catToDelete.productCount} product(s)</strong> in this category. Where would you like to move them?
             </p>
 
-            <label className="set-label" style={{ display: "block", marginBottom: "8px" }}>Move products to:</label>
-            <select 
-              className="set-input" 
-              value={moveToCatId} 
-              onChange={(e) => setMoveToCatId(e.target.value)}
-              style={{ width: "100%", marginBottom: "24px" }}
-            >
-              {categories.filter((c) => c.id !== catToDelete.id).map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
-              ))}
-            </select>
+            {/* OPTION 1: Dropdown (Only shows if there are other categories) */}
+            {categories.filter((c) => c.id !== catToDelete.id).length > 0 && (
+              <div style={{ marginBottom: "20px" }}>
+                <label className="set-label" style={{ display: "block", marginBottom: "8px", fontWeight: 600 }}>Move to existing category:</label>
+                <select 
+                  className="set-input" 
+                  value={moveToCatId} 
+                  onChange={(e) => {
+                    setMoveToCatId(e.target.value);
+                    setNewMoveCategoryName(""); // Clear input if they pick from dropdown
+                  }}
+                  style={{ 
+                    width: "100%", 
+                    height: "48px", // 🟢 Force height so it doesn't clip
+                    padding: "0 16px", 
+                    borderRadius: "8px",
+                    border: "1px solid var(--line)",
+                    background: "var(--bg)",
+                    fontSize: "14px"
+                  }}
+                >
+                  {categories.filter((c) => c.id !== catToDelete.id).map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* OPTION 2: Create New (Always visible) */}
+            <div style={{ marginBottom: "24px" }}>
+              <label className="set-label" style={{ display: "block", marginBottom: "8px", fontWeight: 600 }}>Or create a new category:</label>
+              <input 
+                className="set-input" 
+                placeholder="Type new category name here..." 
+                value={newMoveCategoryName}
+                onChange={(e) => {
+                  setNewMoveCategoryName(e.target.value);
+                  if (e.target.value.trim().length > 0) {
+                    setMoveToCatId("new"); // Override dropdown selection if they type
+                  } else if (categories.filter((c) => c.id !== catToDelete.id).length > 0) {
+                    // If they clear the input, revert to the first dropdown option
+                    setMoveToCatId(categories.filter((c) => c.id !== catToDelete.id)[0].id);
+                  }
+                }}
+                style={{ 
+                  width: "100%", 
+                  height: "48px", // 🟢 Force height
+                  padding: "0 16px", 
+                  borderRadius: "8px",
+                  border: "1px solid var(--line)",
+                  background: "var(--bg)",
+                  fontSize: "14px"
+                }}
+              />
+            </div>
 
             <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
               <button 
                 onClick={() => setCatToDelete(null)} 
                 className="dash-btn dash-btn-line"
                 disabled={deletingCat}
+                style={{ padding: "10px 20px", borderRadius: "8px" }}
               >
                 Cancel
               </button>
               <button 
                 onClick={confirmDeleteWithMove} 
                 className="dash-btn" 
-                style={{ background: "#B3261E", color: "#fff" }}
-                disabled={deletingCat || !moveToCatId}
+                style={{ background: "#B3261E", color: "#fff", padding: "10px 20px", borderRadius: "8px" }}
+                disabled={deletingCat || (moveToCatId === "new" && !newMoveCategoryName.trim())}
               >
-                {deletingCat ? "Moving & Deleting..." : "Move & Delete"}
+                {deletingCat ? "Moving..." : "Move & Delete"}
               </button>
             </div>
           </div>
