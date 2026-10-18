@@ -9,7 +9,6 @@ import {
   updateCategory,
   removeCategory,
   setCategoryImage,
-  removeCategoryImage,
 } from "../lib/storeData";
 import type { Category } from "../types";
 
@@ -37,7 +36,6 @@ export default function Settings() {
   const [newCatName, setNewCatName] = useState("");
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editingCatName, setEditingCatName] = useState("");
-  const [uploadingCatId, setUploadingCatId] = useState<string | null>(null);
 
   const refreshCategories = () => {
     if (!store?.slug) return;
@@ -79,7 +77,7 @@ export default function Settings() {
       } as any);
       await refresh(true);
       setIsEditing(false);
-      toast.show("Saved");
+      toast.show("Store info saved");
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Could not save");
     }
@@ -90,13 +88,27 @@ export default function Settings() {
     setUploadingSlot(index);
     try {
       const url = await uploadImage(file);
+      
       const newGallery = [...gallery];
       newGallery[index] = url;
-      setGallery(newGallery);
-      await storeApi.update({ gallery_urls: newGallery } as any);
+      
+      // 🟢 Direct Database Save
+      const res = await fetch("/api/store", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gallery_urls: newGallery.filter(Boolean) }),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save to database");
+      }
+      
       await refresh(true);
-      toast.show("Banner updated");
+      toast.show("Banner saved");
     } catch (err) {
+      console.error(err);
       toast.show(err instanceof Error ? err.message : "Upload failed");
     }
     setUploadingSlot(null);
@@ -138,17 +150,16 @@ export default function Settings() {
     toast.show("Category deleted");
   };
 
-  const handleCatImage = async (id: string, file: File) => {
-    setUploadingCatId(id);
+  // Upload image for a specific category
+  const handleCategoryImageUpload = async (id: string, file: File) => {
     try {
       const url = await uploadImage(file);
       setCategoryImage(store.slug, id, url);
       refreshCategories();
-      toast.show("Image saved");
+      toast.show("Category image saved");
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Upload failed");
     }
-    setUploadingCatId(null);
   };
 
   return (
@@ -240,10 +251,10 @@ export default function Settings() {
         )}
       </section>
 
-      {/* ═══════ SLIDER BANNERS (4 Boxes) ═══════ */}
+      {/* ═══════ SLIDER BANNERS ═══════ */}
       <section className="set-section">
         <h2 className="set-title">Slider Banners</h2>
-        <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "16px" }}>Upload up to 4 images. If you only upload 1, it won't slide.</p>
+        <p style={{ fontSize: "13px", color: "var(--muted)", marginBottom: "16px" }}>Upload up to 4 images. If you upload 1, it stays static.</p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px" }}>
           {[0, 1, 2, 3].map((index) => {
             const img = gallery[index];
@@ -269,7 +280,7 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ═══════ CATEGORIES ═══════ */}
+      {/* ═══════ CATEGORIES (Image Cards) ═══════ */}
       <section className="set-section">
         <h2 className="set-title">Categories</h2>
         
@@ -281,47 +292,54 @@ export default function Settings() {
         {categories.length === 0 ? (
           <p className="set-empty">No categories yet.</p>
         ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "16px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px", marginTop: "24px" }}>
             {categories.map((c) => {
               const isEditing = editingCatId === c.id;
-              const busy = uploadingCatId === c.id;
               
               return (
-                <div key={c.id} style={{ display: "flex", alignItems: "center", background: "var(--card)", border: "1px solid var(--line)", padding: "6px 12px 6px 6px", borderRadius: "99px", gap: "10px" }}>
+                <div key={c.id} style={{ position: "relative", aspectRatio: "4/5", background: "var(--bg)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--line)" }}>
                   
-                  {/* Small Circular Image Upload */}
-                  <label style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", background: "var(--soft)", display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0, position: "relative", border: "1px dashed var(--line)" }}>
-                    {c.image ? (
-                      <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    ) : (
-                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 5v14M5 12h14" /></svg>
-                    )}
-                    {busy && <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.7)", display: "grid", placeItems: "center" }}><div className="dash-spinner dash-spinner-sm" /></div>}
-                    <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCatImage(c.id, f); e.target.value = ""; }} />
-                  </label>
-
-                  {/* Editable Text */}
-                  {isEditing ? (
-                    <input 
-                      autoFocus
-                      value={editingCatName} 
-                      onChange={(e) => setEditingCatName(e.target.value)} 
-                      onKeyDown={(e) => { if (e.key === "Enter") handleRenameCategory(c.id); if (e.key === "Escape") setEditingCatId(null); }}
-                      onBlur={() => handleRenameCategory(c.id)}
-                      style={{ background: "transparent", border: "none", outline: "none", fontSize: "14px", fontWeight: 600, width: "80px" }}
-                    />
+                  {/* Image Background */}
+                  {c.image ? (
+                    <img src={c.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
-                    <span style={{ fontSize: "14px", fontWeight: 600 }}>{c.label}</span>
+                    <div style={{ position: "absolute", inset: 0, background: "var(--mat)", display: "grid", placeItems: "center", color: "var(--faint)", fontSize: "12px" }}>No Image</div>
                   )}
 
-                  {/* Actions */}
-                  <div style={{ display: "flex", gap: "4px" }}>
-                    <button onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px" }}>
+                  {/* Dark Gradient Overlay for readability */}
+                  <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)", pointerEvents: "none" }} />
+
+                  {/* Top Right Actions (Upload / Delete) */}
+                  <div style={{ position: "absolute", top: 8, right: 8, display: "flex", gap: "8px", zIndex: 10 }}>
+                    <label style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0 }}>
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
-                    </button>
-                    <button onClick={() => handleDeleteCategory(c.id, c.label)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--danger)", padding: "4px" }}>
+                      <input type="file" accept="image/*" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCategoryImageUpload(c.id, f); e.target.value = ""; }} />
+                    </label>
+                    <button onClick={() => handleDeleteCategory(c.id, c.label)} style={{ background: "rgba(255,255,255,0.9)", borderRadius: "50%", width: 28, height: 28, display: "grid", placeItems: "center", cursor: "pointer", border: 0, color: "var(--danger)" }}>
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
                     </button>
+                  </div>
+
+                  {/* Bottom Text (Editable) */}
+                  <div style={{ position: "absolute", left: 16, right: 16, bottom: 16, display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10 }}>
+                    {isEditing ? (
+                      <input 
+                        autoFocus
+                        value={editingCatName} 
+                        onChange={(e) => setEditingCatName(e.target.value)} 
+                        onKeyDown={(e) => { if (e.key === "Enter") handleRenameCategory(c.id); if (e.key === "Escape") setEditingCatId(null); }}
+                        onBlur={() => handleRenameCategory(c.id)}
+                        style={{ background: "rgba(0,0,0,0.5)", border: "1px solid #fff", color: "#fff", padding: "4px 8px", borderRadius: "4px", fontSize: "16px", width: "100%" }}
+                      />
+                    ) : (
+                      <span 
+                        onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }}
+                        style={{ fontFamily: "var(--serif)", fontSize: "24px", color: "#fff", cursor: "pointer" }}
+                      >
+                        {c.label}
+                      </span>
+                    )}
+                    <span style={{ color: "#fff", fontSize: "16px" }}>→</span>
                   </div>
                 </div>
               );
