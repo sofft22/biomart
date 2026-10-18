@@ -1,8 +1,6 @@
 import { useState, useRef, useMemo } from 'react';
 import { naira } from '../lib/format';
 import type { Product, Store } from '../types';
-// 🟢 Ensure this import matches your WhatsApp helper
-import { buildCheckoutOrderLink } from '../lib/whatsapp'; 
 
 interface Props {
   product: Product;
@@ -129,15 +127,18 @@ export function ProductModal({
   const handleOrder = () => {
     if (!canAdd) return;
     
-    // Add to cart silently first
+    // Add to cart silently first (so it reflects in the cart if they don't checkout)
     onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
     
-    const price = product.price + priceDelta;
-    // Call the WhatsApp helper function
-    const link = buildCheckoutOrderLink(store, product, qty, selectedVariantLabel, price);
+    const phone = store.whatsapp.replace(/\D/g, "");
+    const formattedPrice = naira(displayPrice * qty);
+    const variantText = selectedVariantLabel ? ` (${selectedVariantLabel})` : '';
     
-    // Open WhatsApp in a new tab
-    window.open(link, "_blank");
+    // Create the pre-filled message
+    const text = `Hi ${store.name}, I'd like to order:\n\n${qty}x ${product.name}${variantText}\nTotal: ${formattedPrice}\n\nPlease let me know how to proceed with payment and delivery.`;
+    
+    // Open WhatsApp directly
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
     
     // Close the modal
     onClose();
@@ -169,7 +170,6 @@ export function ProductModal({
         onClick={(e) => e.stopPropagation()}
         className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
         style={{ 
-          // 🟢 BRAND BACKGROUND
           backgroundColor: 'var(--bg)', 
           color: 'var(--ink)' 
         }}
@@ -275,7 +275,6 @@ export function ProductModal({
           {/* ═══ CONTENT COLUMN ═══ */}
           <div className="p-6 sm:p-12" style={{ backgroundColor: 'var(--bg)' }}>
             
-            {/* 🟢 UPPERCASE PRODUCT NAME */}
             <h2
               className="text-[22px] leading-[1.25] tracking-[-0.01em] sm:text-[28px]"
               style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'uppercase' }}
