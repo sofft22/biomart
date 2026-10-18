@@ -436,7 +436,7 @@ export default function Storefront() {
               const img = categoryImages[c.id];
               const active = activeCategory === c.id;
               return (
-                <button
+                                <button
                   key={c.id}
                   data-reveal
                   style={{ transitionDelay: `${i * 90}ms` }}
@@ -447,7 +447,8 @@ export default function Storefront() {
                   className={`sf-cat-tile ${active ? "on" : ""}`}
                 >
                   {img ? (
-                    <img src={img} alt={c.label} loading="lazy" />
+                    // 🟢 Added style directly to the image to force it to fill the space
+                    <img src={img} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
                     <div className="sf-cat-tile-placeholder">
                       {c.label.charAt(0).toUpperCase()}
