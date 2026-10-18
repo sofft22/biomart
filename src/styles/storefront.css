@@ -60,8 +60,8 @@
 .sf-head-searchbar input::placeholder { color: currentColor; opacity: 0.5; }
 
 /* ─── BANNER ─── */
-.sf-banner { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; background: var(--mat); }
-@media (min-width: 640px) { .sf-banner { aspect-ratio: 16 / 9; max-height: 600px; } }
+.sf-banner { position: relative; width: 100%; aspect-ratio: 4 / 5; min-height: 60vh; overflow: hidden; background: var(--mat); }
+@media (min-width: 640px) { .sf-banner { aspect-ratio: 16 / 9; max-height: 600px; min-height: auto; } }
 @media (min-width: 1024px) { .sf-banner { aspect-ratio: 21 / 9; max-height: 680px; } }
 .sf-banner > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: sf-kenburns 14s ease-in-out infinite alternate, sf-fade 1s ease both; }
 .sf-banner-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.75) 100%); }
@@ -69,22 +69,76 @@
 @media (min-width: 700px) { .sf-banner-text { padding: 0 32px 80px; } }
 .sf-banner-tagline { font-family: var(--serif); font-size: clamp(34px, 7vw, 70px); font-weight: 400; font-style: italic; letter-spacing: -0.02em; line-height: 1.1; margin: 0 auto 24px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); max-width: 16em; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
 
-/* Base button styles (Desktop/Tablet) */
 .sf-banner-cta { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: #fff; color: var(--ink); border: 0; border-radius: 8px; font: 700 12px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45); transition: transform 0.25s var(--spring), box-shadow 0.3s ease; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
 .sf-banner-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.55); }
 .sf-banner-cta svg { width: 14px; height: 14px; }
 
-/* NEW: Mobile adjustments for the button (screens smaller than 640px) */
 @media (max-width: 639px) {
   .sf-banner-cta {
-    padding: 12px 24px; /* Reduces the size of the button */
-    font-size: 10px; /* Makes the text smaller */
+    padding: 12px 24px;
+    font-size: 10px;
   }
   .sf-banner-cta svg {
-    width: 12px; /* Makes the arrow smaller */
+    width: 12px;
     height: 12px;
   }
 }
+
+/* ─── SECTIONS (Restored properly!) ─── */
+.sf-section { max-width: 1400px; margin: 0 auto; padding: 80px 16px; }
+@media (min-width: 700px) { .sf-section { padding: 120px 32px; } }
+
+.sf-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 700px) { .sf-section-head { margin-bottom: 56px; } }
+
+.sf-section-head-center { text-align: center; margin-bottom: 40px; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 700px) { .sf-section-head-center { margin-bottom: 64px; } }
+
+.sf-section-eyebrow { display: block; font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); text-align: center; margin: 0 0 16px; }
+.sf-section-head .sf-section-eyebrow { text-align: left; }
+
+.sf-section-title { font-family: var(--serif); font-size: clamp(32px, 5vw, 48px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); }
+.sf-section-title-center { font-family: var(--serif); font-size: clamp(36px, 6vw, 56px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); text-align: center; }
+
+/* ─── FILTER & SORT BAR (New) ─── */
+.sf-filter-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 24px;
+}
+@media (max-width: 700px) {
+  .sf-filter-bar { justify-content: flex-start; width: 100%; }
+}
+.sf-filter-group {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+@media (max-width: 700px) {
+  .sf-filter-group { flex-direction: column; gap: 8px; }
+}
+.sf-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--bg, #fff);
+  border: 1px solid var(--line, #e5e5e5);
+  border-radius: 8px;
+  padding: 12px 40px 12px 16px;
+  font-family: var(--font, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink, #000);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 14px;
+}
+.sf-select:hover { border-color: var(--ink, #000); }
+.sf-select:focus { border-color: var(--ink, #000); box-shadow: 0 0 0 1px var(--ink, #000); }
+@media (max-width: 700px) { .sf-select { width: 100%; } }
 
 /* ─── CATEGORIES (2 per row on mobile) ─── */
 .sf-cat-grid {
@@ -92,7 +146,7 @@
   gap: 12px; 
   margin: 0 auto;
   width: 100%;
-  grid-template-columns: repeat(2, 1fr) !important; /* 🟢 2 columns on mobile */
+  grid-template-columns: repeat(2, 1fr) !important;
 }
 @media (min-width: 700px) {
   .sf-cat-grid { gap: 24px; grid-template-columns: repeat(4, 1fr) !important; }
@@ -187,7 +241,7 @@
 .pc-price-old { font-family: var(--font); font-size: 12px; font-weight: 400; color: var(--muted); opacity: 0.6; text-decoration: line-through; margin: 0; }
 
 /* ─── FOOTER ─── */
-.sf-footer { background: var(--panel); color: #fff; padding: 80px 0 100px; /* 🟢 100px bottom padding so WhatsApp doesn't cover */ margin-top: 80px; }
+.sf-footer { background: var(--panel); color: #fff; padding: 80px 0 100px; margin-top: 80px; }
 @media (min-width: 700px) { .sf-footer { padding: 120px 0 120px; margin-top: 120px; } }
 .sf-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
 @media (min-width: 700px) { .sf-footer-inner { padding: 0 32px; } }
@@ -217,7 +271,6 @@
 .sf-footer-bot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 32px; color: rgba(255,255,255,0.4); font-size: 13px; }
 .sf-footer-copyright { font-family: var(--font); font-weight: 400; }
 
-/* 🟢 POWERED BY BIOMART (Bigger + Green Bag Icon) */
 .sf-footer-pow { display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.6); font-weight: 500; font-size: 14px; text-decoration: none; transition: color 0.2s ease; }
 .sf-footer-pow:hover { color: #fff; }
 .sf-footer-pow svg { width: 18px; height: 20px; stroke: var(--green-lite); fill: none; }
