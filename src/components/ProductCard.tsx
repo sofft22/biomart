@@ -105,7 +105,6 @@ export const ProductCard = memo(function ProductCard({
           )}
         </div>
 
-        {/* Only showing New badge now if applicable */}
         {inStock && showNew && (
           <div className="pc-badges">
             <span className="pc-badge">New</span>
@@ -132,11 +131,15 @@ export const ProductCard = memo(function ProductCard({
           {product.name}
         </p>
         <div className="pc-price-row" style={{ marginTop: 2 }}>
-          {/* 🟢 Real (Old) Price FIRST, then the new discounted price */}
+          
+          {/* 🟢 Discounted Price FIRST (Front) */}
+          <span className="pc-price">{naira(product.price)}</span>
+          
+          {/* 🟢 Old (Real) Price SECOND (Back, Crossed out) */}
           {hasDiscount && (
             <span className="pc-price-old">{naira(product.compare_at_price!)}</span>
           )}
-          <span className="pc-price">{naira(product.price)}</span>
+          
         </div>
       </button>
     </article>
