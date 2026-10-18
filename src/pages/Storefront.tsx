@@ -69,12 +69,10 @@ export default function Storefront() {
   const [openProduct, setOpenProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState("all");
-  
-  // 🟢 ADDED SORT STATE
   const [sort, setSort] = useState<SortKey>("new");
-  
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [headerHidden, setHeaderHidden] = useState(false);
@@ -105,13 +103,14 @@ export default function Storefront() {
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
 
-  // 🟢 FIXED: Strictly uses your saved categories and images
+  // 🟢 STRICT LOAD: Only uses exactly what is saved in Settings.
   useEffect(() => {
     if (!slug) return;
     setCategories(getCategories(slug));
     setCategoryImages(getCategoryImages(slug));
   }, [slug, categoryTick]);
 
+  // 🟢 LIVE UPDATE ON FOCUS (If user changes settings in another tab)
   useEffect(() => {
     const onFocus = () => setCategoryTick((t) => t + 1);
     const onVisible = () => {
@@ -154,21 +153,14 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 FIXED: Only uses categories that actually have products OR are in your saved list.
+  // 🟢 STRICT CATEGORIES: Only shows categories that actually exist in the settings list.
   const usedCategories = useMemo(() => {
-    const uniqueCats = new Map<string, Category>();
-    for (const p of products) {
-      const cid = (p as any).category_id || (p as any).category;
-      if (cid && !uniqueCats.has(cid)) {
-        const existingCat = categories.find((c) => c.id === cid);
-        uniqueCats.set(cid, { id: cid, label: existingCat?.label || cid, sort_order: 0 });
-      }
-    }
-    if (uniqueCats.size === 0 && categories.length > 0) return categories;
-    return Array.from(uniqueCats.values());
+    // Only return categories that have at least 1 product in the current products list
+    return categories.filter(cat => 
+      products.some(p => ((p as any).category_id || (p as any).category) === cat.id)
+    );
   }, [categories, products]);
 
-  // 🟢 FILTER & SORT LOGIC
   const filtered = useMemo(() => {
     let list = products;
     if (activeCategory !== "all") {
@@ -251,7 +243,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 SINGLE BANNER (No default images) */}
+      {/* 🟢 SINGLE BANNER */}
       {store?.cover_url && (
         <section className="sf-banner">
           <img src={store.cover_url} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
@@ -274,7 +266,7 @@ export default function Storefront() {
           </div>
           <div className="sf-cat-grid">
             {usedCategories.map((c, i) => {
-              // 🟢 STRICT FIX: Only uses the saved category image. No product fallbacks.
+              // 🟢 STRICT: Only uses the image saved in settings. No fallbacks.
               const img = categoryImages[c.id];
               const active = activeCategory === c.id;
               return (
@@ -300,7 +292,7 @@ export default function Storefront() {
           </div>
         </div>
 
-        {/* 🟢 FILTER & SORT DROPDOWNS (Side by side) */}
+        {/* 🟢 FILTER & SORT DROPDOWNS */}
         <div className="sf-filter-bar">
           <div className="sf-filter-group">
             <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
@@ -313,7 +305,7 @@ export default function Storefront() {
             <select className="sf-select" value={activeCategory} onChange={(e) => { setActiveCategory(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Categories</option>
               {categories.map((c) => (
-                <option key={c.id} value={c.id}>{c.label}</option>
+                <option key={c.id} value={c.id}>{titleCase(c.label)}</option>
               ))}
             </select>
           </div>
@@ -340,7 +332,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 FOOTER (Charcoal, Icons, Tagline, Green Bag) */}
+      {/* 🟢 FOOTER */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           <div className="sf-footer-top">
