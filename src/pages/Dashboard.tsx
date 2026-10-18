@@ -1,12 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
-import { store as storeApi, products as productsApi } from "../lib/api";
+import { store as storeApi } from "../lib/api";
 import { getCategories } from "../lib/storeData";
 import type { Category, Product } from "../types";
 
-const LONG_PRESS_MS = 500;
 type SortKey = "manual" | "newest" | "name" | "price";
 
 function formatPrice(n: number): string {
@@ -22,18 +21,24 @@ export default function Dashboard() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<SortKey>("manual");
+  const [loading, setLoading] = useState(false);
 
-  // 🟢 Use cached products if available, otherwise fetch
+  // 🟢 Load products: use cache if available, else fetch fresh
   useEffect(() => {
-    if (cachedProducts.length > 0) {
+    if (cachedProducts && cachedProducts.length > 0) {
       setProducts(cachedProducts);
     } else if (currentStore?.slug) {
-      storeApi.public(currentStore.slug).then((data) => {
-        setProducts((data as any).products ?? []);
-      }).catch(() => setProducts([]));
+      setLoading(true);
+      storeApi.public(currentStore.slug)
+        .then((data) => {
+          setProducts((data as any).products ?? []);
+        })
+        .catch(() => setProducts([]))
+        .finally(() => setLoading(false));
     }
   }, [currentStore?.slug, cachedProducts]);
 
+  // 🟢 Load categories
   useEffect(() => {
     if (!currentStore?.slug) return;
     setCategories(getCategories(currentStore.slug));
@@ -41,13 +46,20 @@ export default function Dashboard() {
 
   const filtered = useMemo(() => {
     let list = [...products];
-    if (category !== "all") list = list.filter((p) => p.category_id === category);
+    
+    if (category !== "all") {
+      list = list.filter((p) => p.category_id === category);
+    }
+    
     if (query) {
       const q = query.toLowerCase();
       list = list.filter(
-        (p) => p.name.toLowerCase().includes(q) || (p.category_id || "").toLowerCase().includes(q)
+        (p) => 
+          p.name.toLowerCase().includes(q) || 
+          (p.category_id || "").toLowerCase().includes(q)
       );
     }
+    
     switch (sort) {
       case "manual":
         list.sort((a, b) => {
@@ -57,12 +69,17 @@ export default function Dashboard() {
           return new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime();
         });
         break;
-      case "name": list.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case "price": list.sort((a, b) => b.price - a.price); break;
+      case "name": 
+        list.sort((a, b) => a.name.localeCompare(b.name)); 
+        break;
+      case "price": 
+        list.sort((a, b) => b.price - a.price); 
+        break;
       case "newest":
         list.sort((a, b) => new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime());
         break;
     }
+    
     return list;
   }, [products, category, query, sort]);
 
@@ -141,7 +158,12 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {loading ? (
+        <div className="dash-empty">
+          <div className="dash-spinner" style={{ margin: "0 auto 16px" }} />
+          <p className="dash-empty-sub">Loading products...</p>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="dash-empty">
           <div className="dash-empty-icon">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -164,7 +186,9 @@ export default function Dashboard() {
       ) : (
         <div className="pr-list">
           {filtered.map((p) => {
-            const catLabel = categories.find((c) => c.id === p.category_id)?.label ?? p.category_id;
+            // 🟢 Find category label safely
+            const catLabel = categories.find((c) => c.id === p.category_id)?.label || "Uncategorised";
+            
             return (
               <div key={p.id} className="pr-item">
                 <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body">
@@ -178,7 +202,7 @@ export default function Dashboard() {
                   <div className="pr-item-info">
                     <p className="pr-item-name">{p.name}</p>
                     <p className="pr-item-meta">
-                      {catLabel || "Uncategorised"} · {formatPrice(p.price)}
+                      {catLabel} · {formatPrice(p.price)}
                       {typeof (p as any).views === "number" && (
                         <> · {(p as any).views} {(p as any).views === 1 ? "view" : "views"}</>
                       )}
