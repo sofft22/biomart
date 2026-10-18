@@ -8,7 +8,6 @@ import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
 import { getCategoryLabel } from "../lib/categories";
 import { getCategories, getCategoryImages } from "../lib/storeData";
-import { naira } from "../lib/format";
 import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
@@ -225,7 +224,7 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* ═══ HEADER ═══ */}
+      {/* ═══ HEADER (No Green) ═══ */}
       <header className={headerClasses}>
         <div className="sf-head-inner">
           {!searchOpen && (
@@ -267,7 +266,7 @@ export default function Storefront() {
       {/* ═══ AUTO-SLIDER BANNER ═══ */}
       <section className="sf-banner">
         {bannerImages.map((img, i) => (
-          <img key={i} src={img} alt="Banner" style={{ opacity: i === currentSlide ? 1 : 0, transition: 'opacity 0.8s ease' }} />
+          <img key={i} src={img} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: i === currentSlide ? 1 : 0, transition: 'opacity 0.8s ease' }} />
         ))}
         <div className="sf-banner-overlay" />
         <div className="sf-banner-text">
@@ -322,7 +321,7 @@ export default function Storefront() {
               ))}
             </div>
             
-            {/* 🟢 PAGINATION CONTROLS */}
+            {/* 🟢 PAGINATION CONTROLS (No Green) */}
             {totalPages > 1 && (
               <div className="sf-pagination">
                 <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
@@ -334,7 +333,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* ═══ FOOTER ═══ */}
+      {/* ═══ FOOTER (Monochrome, Bio, WhatsApp CTA) ═══ */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           <div className="sf-footer-top">
