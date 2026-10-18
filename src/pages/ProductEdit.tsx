@@ -27,7 +27,6 @@ export default function ProductEdit() {
   const [wasPrice, setWasPrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
   
-  // 🟢 State for the new inline category creation
   const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
@@ -41,17 +40,20 @@ export default function ProductEdit() {
 
   const photoLimit = limits?.images ?? 1;
 
+  // 🟢 SORT CATEGORIES ALPHABETICALLY
+  const sortedCategories = [...categories].sort((a, b) => a.label.localeCompare(b.label));
+
   // Load categories and default selection
   useEffect(() => {
     if (!currentStore?.slug) return;
     const cats = getCategories(currentStore.slug);
     setCategories(cats);
     
-    // If creating a new product, default to the first category
-    if (!id && cats.length > 0) {
-      setCategoryId(cats[0].id);
+    // If creating a new product, default to the first sorted category
+    if (!id && sortedCategories.length > 0) {
+      setCategoryId(sortedCategories[0].id);
     }
-  }, [currentStore?.slug, id]);
+  }, [currentStore?.slug, id, sortedCategories.length]); 
 
   // Fetch product data if editing
   useEffect(() => {
@@ -150,12 +152,16 @@ export default function ProductEdit() {
         setSaving(false);
         return;
       }
-      // Find the newly created category ID
       const updatedCats = getCategories(currentStore!.slug);
       const newCat = updatedCats.find(c => c.label.toLowerCase() === newCategoryName.trim().toLowerCase());
       if (newCat) {
         finalCategoryId = newCat.id;
       }
+    }
+
+    // 🟢 FIX: Fallback to first category if none selected
+    if (!finalCategoryId && sortedCategories.length > 0) {
+      finalCategoryId = sortedCategories[0].id;
     }
 
     if (!finalCategoryId) {
@@ -343,10 +349,10 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* 🟢 CATEGORY WITH INLINE CREATION */}
+        {/* 🟢 CATEGORY WITH INLINE CREATION & SORTING */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
-          {categories.length === 0 && !isCreatingNewCategory ? (
+          {sortedCategories.length === 0 && !isCreatingNewCategory ? (
             <div style={{ padding: "16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: "12px", fontSize: "14px" }}>
               You don't have any categories yet. <button type="button" onClick={() => setIsCreatingNewCategory(true)} style={{ fontWeight: "bold", textDecoration: "underline", background: "none", border: 0, cursor: "pointer", color: "inherit" }}>Create one now</button>.
             </div>
@@ -382,7 +388,7 @@ export default function ProductEdit() {
                 }
               }}
             >
-              {categories.map((c) => (
+              {sortedCategories.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
               ))}
               <option value="__new__">+ Create new category</option>
