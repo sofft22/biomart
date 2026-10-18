@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { adminApi } from "../../lib/adminApi";
+import { adminApi } from "../lib/adminApi";
 
 function sizeFor(value: string): number {
   const len = value.length;
