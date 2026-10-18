@@ -1,6 +1,6 @@
 export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) => {
   try {
-    // 1. Get all stores (we only need the plan to calculate MRR and counts)
+    // 1. Get all stores
     const storesRes = await env.DB.prepare("SELECT plan FROM stores").all<{ plan: string }>();
     const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, lifetime: 0 };
     let totalStores = 0;
@@ -19,15 +19,15 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
       0
     );
 
-    // 3. Get Total Revenue
+    // 3. Total Revenue
     const revenueRes = await env.DB.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments").first<{ total: number }>();
     const totalRevenue = revenueRes?.total || 0;
 
-    // 4. Get total product count
+    // 4. Total Products
     const productsRes = await env.DB.prepare("SELECT COUNT(*) as count FROM products").first<{ count: number }>();
     const totalProducts = productsRes?.count || 0;
 
-    // 5. Build the 7-Day Revenue Chart Data
+    // 5. Build the 7-Day Revenue Chart Data (Replaces Visits)
     const chart = [];
     const now = Date.now();
     for (let i = 6; i >= 0; i--) {
@@ -35,7 +35,6 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
       start.setHours(0, 0, 0, 0);
       const end = start.getTime() + 86400000;
       
-      // Sum payments for this specific day
       const dayRev = await env.DB.prepare(
         "SELECT COALESCE(SUM(amount), 0) as total FROM payments WHERE paid_at >= ? AND paid_at < ?"
       ).bind(start.getTime(), end).first<{ total: number }>();
@@ -43,11 +42,10 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
       chart.push({
         label: start.toLocaleDateString("en-NG", { weekday: "short" }),
         amount: dayRev?.total || 0,
-        date: start.toISOString().slice(0, 10)
       });
     }
 
-    // 6. Get Top 3 Paying Stores
+    // 6. Top 3 Paying Stores (Replaces Top Visited)
     const topStoresRes = await env.DB.prepare(
       `SELECT stores.name, stores.slug, SUM(payments.amount) as totalPaid
        FROM payments 
