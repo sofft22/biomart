@@ -8,6 +8,7 @@ import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
 import { getCategoryLabel } from "../lib/categories";
 import { getCategories, getCategoryImages } from "../lib/storeData";
+import { naira } from "../lib/format";
 import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
@@ -22,7 +23,6 @@ function splitBrandName(name: string): { first: string; second: string } {
   return { first: parts[0], second: parts.slice(1).join(" ") };
 }
 
-/* ═══ Scroll reveal ═══ */
 function useReveal(deps: unknown[] = []) {
   useEffect(() => {
     let mounted = true;
@@ -144,7 +144,7 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query]);
 
-  // 🟢 FIX: Build categories directly from the products in the database
+  // 🟢 Category images now fallback to product image
   const usedCategories = useMemo(() => {
     const uniqueCats = new Map<string, Category>();
     
@@ -276,6 +276,8 @@ export default function Storefront() {
 
   const catCount = Math.min(usedCategories.length, 5);
   const showFilters = usedCategories.length > 0;
+
+  const featuredProduct = products[0];
 
   return (
     <div className="sf-shell">
@@ -425,19 +427,19 @@ export default function Storefront() {
 
       {/* ═══ CATEGORIES ═══ */}
       {usedCategories.length > 0 && (
-        <section className="sf-section sf-section-wide" id="categories" style={{ display: "block" }}>
+        <section className="sf-section sf-section-wide" id="categories">
           <div className="sf-section-head-center">
             <span className="sf-section-eyebrow" data-reveal>Explore</span>
             <h2 className="sf-section-title-center" data-reveal>Shop by category</h2>
           </div>
 
           <div className={`sf-cat-grid sf-cat-count-${catCount}`}>
-                        {usedCategories.map((c, i) => {
-              // 🟢 Try to get the image from LocalStorage first, then fallback to the database product image
-              const img = categoryImages[c.id] || (products.find(p => (p.category_id || p.category) === c.id) as any)?.image_url;
+            {usedCategories.map((c, i) => {
+              // 🟢 FALLBACK LOGIC: Image from settings OR fallback to first product image
+              const img = categoryImages[c.id] || products.find(p => (p.category_id || p.category) === c.id)?.image_url;
               const active = activeCategory === c.id;
               return (
-                                <button
+                <button
                   key={c.id}
                   data-reveal
                   style={{ transitionDelay: `${i * 90}ms` }}
@@ -448,8 +450,7 @@ export default function Storefront() {
                   className={`sf-cat-tile ${active ? "on" : ""}`}
                 >
                   {img ? (
-                    // 🟢 Added style directly to the image to force it to fill the space
-                    <img src={img} alt={c.label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={img} alt={c.label} loading="lazy" />
                   ) : (
                     <div className="sf-cat-tile-placeholder">
                       {c.label.charAt(0).toUpperCase()}
@@ -464,6 +465,41 @@ export default function Storefront() {
             })}
           </div>
         </section>
+      )}
+
+      {/* ═══ FEATURED PRODUCT ═══ */}
+      {featuredProduct && (
+        <>
+          <div className="sf-divider" data-reveal aria-hidden="true" />
+          <section className="sf-section" id="featured">
+            <div className="sf-featured-card" data-reveal>
+              <button 
+                className="sf-featured-media" 
+                onClick={() => handleOpenProduct(featuredProduct)}
+              >
+                <img 
+                  src={featuredProduct.image_url || ""} 
+                  alt={featuredProduct.name} 
+                  loading="lazy" 
+                />
+              </button>
+              <div className="sf-featured-content">
+                <p className="sf-featured-eyebrow">Featured Item</p>
+                <h2 className="sf-featured-name">{featuredProduct.name}</h2>
+                <p className="sf-featured-desc">
+                  {featuredProduct.description || "A must-have addition to your collection."}
+                </p>
+                <p className="sf-featured-price">{naira(featuredProduct.price)}</p>
+                <button 
+                  onClick={() => handleOpenProduct(featuredProduct)}
+                  className="sf-featured-btn"
+                >
+                  Shop this item
+                </button>
+              </div>
+            </div>
+          </section>
+        </>
       )}
 
       {usedCategories.length > 0 && (
