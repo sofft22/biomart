@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { products as productsApi, uploadImage, store as storeApi } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { getCategories } from "../lib/storeData";
+import { getCategories, addCategory } from "../lib/storeData";
 import { naira } from "../lib/format";
 import type { Category, Product } from "../types";
 
@@ -26,6 +26,11 @@ export default function ProductEdit() {
   const [price, setPrice] = useState("");
   const [wasPrice, setWasPrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  
+  // 🟢 State for the new inline category creation
+  const [isCreatingNewCategory, setIsCreatingNewCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
   const [inStock, setInStock] = useState(true);
   const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -36,19 +41,19 @@ export default function ProductEdit() {
 
   const photoLimit = limits?.images ?? 1;
 
-  // 🟢 1. Load categories and set default category for NEW products
+  // Load categories and default selection
   useEffect(() => {
     if (!currentStore?.slug) return;
     const cats = getCategories(currentStore.slug);
     setCategories(cats);
     
-    // If creating a new product, default to the FIRST category automatically
+    // If creating a new product, default to the first category
     if (!id && cats.length > 0) {
       setCategoryId(cats[0].id);
     }
   }, [currentStore?.slug, id]);
 
-  // 🟢 2. Fetch product data if editing
+  // Fetch product data if editing
   useEffect(() => {
     if (!id || !currentStore?.slug) { 
       setLoadingProduct(false); 
@@ -68,7 +73,7 @@ export default function ProductEdit() {
     })();
   }, [id, currentStore?.slug]);
 
-  // 🟢 3. Populate form when editing an existing product
+  // Populate form
   useEffect(() => {
     if (!product) return;
     setName(product.name);
@@ -79,9 +84,7 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    if (product.category_id) {
-      setCategoryId(product.category_id);
-    }
+    if (product.category_id) setCategoryId(product.category_id);
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
@@ -130,11 +133,6 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
     
-    // 🟢 Strict Category Validation
-    if (!categoryId || categoryId === "") {
-      return setError("You must select a category. Go to Settings to add one if you don't have any.");
-    }
-
     if (wasPrice && numericWas <= numericPrice) {
       return setError("Compare-at price must be higher than price");
     }
@@ -142,12 +140,36 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
+    let finalCategoryId = categoryId;
+
+    // 🟢 If they created a new category inline, create it now
+    if (isCreatingNewCategory && newCategoryName.trim()) {
+      const result = addCategory(currentStore!.slug, newCategoryName.trim());
+      if (!result.ok) {
+        setError(result.error);
+        setSaving(false);
+        return;
+      }
+      // Find the newly created category ID
+      const updatedCats = getCategories(currentStore!.slug);
+      const newCat = updatedCats.find(c => c.label.toLowerCase() === newCategoryName.trim().toLowerCase());
+      if (newCat) {
+        finalCategoryId = newCat.id;
+      }
+    }
+
+    if (!finalCategoryId) {
+      setError("Please select or create a category.");
+      setSaving(false);
+      return;
+    }
+
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category_id: categoryId,
+      category_id: finalCategoryId,
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
@@ -321,23 +343,49 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* CATEGORY */}
+        {/* 🟢 CATEGORY WITH INLINE CREATION */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
-          {categories.length === 0 ? (
+          {categories.length === 0 && !isCreatingNewCategory ? (
             <div style={{ padding: "16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: "12px", fontSize: "14px" }}>
-              You don't have any categories yet. <Link to="/settings" style={{ fontWeight: "bold", textDecoration: "underline" }}>Go to Settings</Link> to create one first.
+              You don't have any categories yet. <button type="button" onClick={() => setIsCreatingNewCategory(true)} style={{ fontWeight: "bold", textDecoration: "underline", background: "none", border: 0, cursor: "pointer", color: "inherit" }}>Create one now</button>.
+            </div>
+          ) : isCreatingNewCategory ? (
+            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+              <input
+                className="pe-input"
+                placeholder="Type new category name..."
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                autoFocus
+              />
+              <button 
+                type="button" 
+                onClick={() => { setIsCreatingNewCategory(false); setNewCategoryName(""); }}
+                className="pe-input"
+                style={{ width: "auto", padding: "0 16px", cursor: "pointer", background: "var(--soft)" }}
+              >
+                Cancel
+              </button>
             </div>
           ) : (
             <select
               id="pe-cat"
               className="pe-input pe-select"
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              onChange={(e) => {
+                if (e.target.value === "__new__") {
+                  setIsCreatingNewCategory(true);
+                  setCategoryId("");
+                } else {
+                  setCategoryId(e.target.value);
+                }
+              }}
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
               ))}
+              <option value="__new__">+ Create new category</option>
             </select>
           )}
         </section>
@@ -426,7 +474,7 @@ export default function ProductEdit() {
         <button
           type="button"
           onClick={handleSave}
-          disabled={saving || uploading || categories.length === 0}
+          disabled={saving || uploading}
           className="pe-save"
         >
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
