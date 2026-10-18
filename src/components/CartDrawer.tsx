@@ -13,11 +13,16 @@ export default function CartDrawer({ open, onClose }: Props) {
   const { store } = useStoreContext();
 
   const sendOrder = () => {
-    if (!store || !items.length) return;
-    // 🟢 This opens the WhatsApp message directly with the cart items
-    const url = buildCartOrderLink(store, items);
-    window.open(url, "_blank");
+    if (!store || !items || items.length === 0) return;
+    try {
+      const url = buildCartOrderLink(store, items);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error building WhatsApp link:", error);
+    }
   };
+
+  if (!store) return null;
 
   return (
     <>
@@ -36,8 +41,8 @@ export default function CartDrawer({ open, onClose }: Props) {
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={{
-          backgroundColor: "var(--bg)", // 🟢 Uses storefront background
-          color: "var(--ink)", // 🟢 Uses storefront text color
+          backgroundColor: "var(--bg)",
+          color: "var(--ink)",
           paddingTop: "env(safe-area-inset-top, 0px)",
           boxShadow: "-20px 0 60px -20px rgba(0,0,0,0.3)",
           transitionTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
@@ -50,7 +55,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             height: 64,
             paddingLeft: 24,
             paddingRight: 20,
-            borderBottom: "1px solid var(--line)", // 🟢 Uses storefront border
+            borderBottom: "1px solid var(--line)",
           }}
         >
           <h2 style={{ fontSize: 18, fontWeight: 600, letterSpacing: "-0.01em", margin: 0 }}>
@@ -83,7 +88,7 @@ export default function CartDrawer({ open, onClose }: Props) {
                   width: 64,
                   height: 64,
                   borderRadius: "50%",
-                  background: "var(--mat)", // 🟢 Soft background for empty state icon
+                  background: "var(--mat)",
                   marginBottom: 20,
                   color: "var(--muted)",
                 }}
@@ -122,7 +127,7 @@ export default function CartDrawer({ open, onClose }: Props) {
             <div>
               {items.map((it, i) => (
                 <div
-                  key={it.key}
+                  key={it.key || i}
                   style={{
                     display: "grid",
                     gridTemplateColumns: "80px 1fr",
@@ -350,7 +355,6 @@ export default function CartDrawer({ open, onClose }: Props) {
               </span>
             </div>
 
-            {/* 🟢 Button matches ProductModal exactly */}
             <button
               onClick={sendOrder}
               style={{
@@ -384,4 +388,4 @@ export default function CartDrawer({ open, onClose }: Props) {
       </aside>
     </>
   );
-}s
+}
