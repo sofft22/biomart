@@ -15,19 +15,25 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       return Response.json({ user: null, store: null, products: [] });
     }
 
-    // 🟢 Optimization: Only select what we need for the user
     const user = await env.DB.prepare(
       "SELECT id, email, role FROM users WHERE id = ?"
     ).bind(session.user_id).first<any>();
 
-    // 🟢 Optimization: Only select what the frontend needs for the store
+    // 🟢 Added 'categories' to the store fetch
     const store = user ? await env.DB.prepare(
-      "SELECT id, user_id, name, slug, whatsapp, tagline, address, instagram, tiktok, cover_url, plan, paid_until, subscription_status FROM stores WHERE user_id = ?"
+      "SELECT id, user_id, name, slug, whatsapp, tagline, address, instagram, tiktok, cover_url, plan, paid_until, subscription_status, categories FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
+
+    if (store && store.categories) {
+      try {
+        store.categories = typeof store.categories === 'string' ? JSON.parse(store.categories) : store.categories;
+      } catch (e) {
+        store.categories = [];
+      }
+    }
 
     let products: any[] = [];
     if (store) {
-      // 🟢 Optimization: Only select what the frontend needs for products (keeps image JSON)
       const { results } = await env.DB.prepare(
         "SELECT id, name, price, compare_at_price, description, category, in_stock, images, variants, created_at FROM products WHERE store_id = ? ORDER BY created_at DESC"
       ).bind(store.id).all();
