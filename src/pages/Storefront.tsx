@@ -153,13 +153,8 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 STRICT CATEGORIES: Only shows categories that actually exist in the settings list.
-  const usedCategories = useMemo(() => {
-    // Only return categories that have at least 1 product in the current products list
-    return categories.filter(cat => 
-      products.some(p => ((p as any).category_id || (p as any).category) === cat.id)
-    );
-  }, [categories, products]);
+  // 🟢 FIXED: Simply show all categories from Settings. No missing mobile sections.
+  const usedCategories = categories;
 
   const filtered = useMemo(() => {
     let list = products;
