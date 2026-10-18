@@ -35,6 +35,10 @@ export default function Settings() {
   // Categories
   const [categories, setCategories] = useState<CatWithImg[]>([]);
   const [newCatName, setNewCatName] = useState("");
+  const [newCatImage, setNewCatImage] = useState<File | null>(null);
+  const [isAddingCat, setIsAddingCat] = useState(false);
+  const [uploadingNewCat, setUploadingNewCat] = useState(false);
+  
   const [uploadingCatId, setUploadingCatId] = useState<string | null>(null);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editingCatName, setEditingCatName] = useState("");
@@ -109,11 +113,40 @@ export default function Settings() {
 
   const handleAddCategory = async () => {
     if (!newCatName.trim()) return;
-    const result = addCategory(store.slug, newCatName);
-    if (!result.ok) return toast.show(result.error);
-    setNewCatName("");
-    refreshCategories();
-    toast.show("Category added");
+    setUploadingNewCat(true);
+    
+    try {
+      // 1. Add category first
+      const result = addCategory(store.slug, newCatName);
+      if (!result.ok) {
+        toast.show(result.error);
+        setUploadingNewCat(false);
+        return;
+      }
+
+      // 2. If there's an image, we need to find the new category ID to attach it.
+      // Since addCategory returns the new state, we can get the latest category.
+      // Note: This assumes addCategory returns the new category or updates the state.
+      // If addCategory doesn't return the ID, we might need to fetch the latest list.
+      const updatedCategories = getCategoriesWithImages(store.slug);
+      const newCategory = updatedCategories.find(c => c.label === newCatName.trim());
+      
+      if (newCategory && newCatImage) {
+        const imageUrl = await uploadImage(newCatImage);
+        setCategoryImage(store.slug, newCategory.id, imageUrl);
+      }
+
+      // 3. Reset and refresh
+      setNewCatName("");
+      setNewCatImage(null);
+      setIsAddingCat(false);
+      refreshCategories();
+      toast.show("Category added");
+    } catch (err) {
+      toast.show(err instanceof Error ? err.message : "Could not add category");
+    } finally {
+      setUploadingNewCat(false);
+    }
   };
 
   const handleRenameCategory = (id: string) => {
@@ -208,19 +241,82 @@ export default function Settings() {
 
       {/* ═══════ CATEGORIES ═══════ */}
       <section className="set-section">
-        <h2 className="set-title">Categories</h2>
-        
-        <div className="set-cat-add">
-          <input className="set-cat-add-input" placeholder="New category" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }} />
-          <button className="set-cat-add-btn" type="button" onClick={handleAddCategory}>+</button>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <h2 className="set-title" style={{ margin: 0 }}>Categories</h2>
+          {!isAddingCat && (
+            <button 
+              onClick={() => setIsAddingCat(true)} 
+              className="dash-btn dash-btn-dark" 
+              style={{ padding: "8px 16px", fontSize: "14px" }}
+            >
+              + Add Category
+            </button>
+          )}
         </div>
+
+        {/* Add Category Form */}
+        {isAddingCat && (
+          <div style={{ background: "var(--soft)", padding: "16px", borderRadius: "12px", marginBottom: "24px", display: "flex", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+            <input 
+              className="set-cat-add-input" 
+              placeholder="Category Name" 
+              value={newCatName} 
+              onChange={(e) => setNewCatName(e.target.value)} 
+              style={{ flex: 1, minWidth: "150px" }}
+              autoFocus
+            />
+            
+            <label style={{ 
+              background: "var(--bg)", 
+              border: "1px solid var(--line)", 
+              borderRadius: "8px", 
+              padding: "8px 12px", 
+              cursor: "pointer", 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "8px",
+              fontSize: "14px"
+            }}>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              {newCatImage ? newCatImage.name.substring(0, 15) + "..." : "Upload Image"}
+              <input 
+                type="file" 
+                accept="image/*" 
+                hidden 
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setNewCatImage(f);
+                  e.target.value = "";
+                }} 
+              />
+            </label>
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button 
+                onClick={handleAddCategory} 
+                disabled={uploadingNewCat || !newCatName.trim()} 
+                className="dash-btn dash-btn-dark"
+                style={{ padding: "8px 16px", fontSize: "14px" }}
+              >
+                {uploadingNewCat ? "Saving..." : "Save"}
+              </button>
+              <button 
+                onClick={() => { setIsAddingCat(false); setNewCatName(""); setNewCatImage(null); }} 
+                className="dash-btn dash-btn-line"
+                style={{ padding: "8px 16px", fontSize: "14px" }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
 
         {categories.length === 0 ? (
           <p className="set-empty">No categories yet.</p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginTop: "24px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginTop: "12px" }}>
             {categories.map((c) => (
-              <div key={c.id} style={{ position: "relative", aspectRatio: "4/3", background: "var(--bg)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--line)" }}>
+              <div key={c.id} style={{ position: "relative", aspectRatio: "1/1", background: "var(--bg)", borderRadius: "12px", overflow: "hidden", border: "1px solid var(--line)" }}>
                 {c.image ? (
                   <img src={c.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
                 ) : (
@@ -247,10 +343,10 @@ export default function Settings() {
                       onChange={(e) => setEditingCatName(e.target.value)} 
                       onKeyDown={(e) => { if (e.key === "Enter") handleRenameCategory(c.id); if (e.key === "Escape") setEditingCatId(null); }}
                       onBlur={() => handleRenameCategory(c.id)}
-                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid #fff", color: "#fff", padding: "4px", borderRadius: "4px", fontSize: "14px", width: "100%" }}
+                      style={{ background: "rgba(0,0,0,0.5)", border: "1px solid #fff", color: "#fff", padding: "4px", borderRadius: "4px", fontSize: "14px", width: "100%" }} 
                     />
                   ) : (
-                    <span onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ fontFamily: "var(--serif)", fontSize: "18px", color: "#fff", cursor: "pointer" }}>{c.label}</span>
+                    <span onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ fontFamily: "var(--serif)", fontSize: "16px", color: "#fff", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.label}</span>
                   )}
                   <span style={{ color: "#fff", fontSize: "14px" }}>→</span>
                 </div>
