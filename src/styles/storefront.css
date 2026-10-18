@@ -232,23 +232,29 @@
 .sf-section {
   max-width: 1200px; 
   margin: 0 auto;
-  padding: 48px 16px; /* 🟢 Tighter padding, equal top/bottom for spacing */
+  padding: 72px 16px; /* 🟢 Restored generous top/bottom spacing */
 }
-@media (min-width: 700px) { .sf-section { padding: 80px 32px; } }
+@media (min-width: 700px) { 
+  .sf-section { padding: 110px 32px; } 
+}
 
 .sf-section-head {
   display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 16px; margin-bottom: 24px; flex-wrap: wrap;
+  gap: 16px; margin-bottom: 32px; flex-wrap: wrap;
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@media (min-width: 700px) { .sf-section-head { margin-bottom: 32px; } }
+@media (min-width: 700px) { 
+  .sf-section-head { margin-bottom: 48px; } 
+}
 
 .sf-section-head-center {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@media (min-width: 700px) { .sf-section-head-center { margin-bottom: 40px; } }
+@media (min-width: 700px) { 
+  .sf-section-head-center { margin-bottom: 56px; } 
+}
 
 .sf-section-eyebrow {
   display: block;
@@ -259,7 +265,7 @@
   text-transform: uppercase;
   color: var(--faint);
   text-align: center;
-  margin: 0 0 10px;
+  margin: 0 0 14px;
 }
 .sf-section-head .sf-section-eyebrow { text-align: left; }
 
@@ -288,18 +294,6 @@
 }
 .sf-section-link:hover { color: var(--green); border-color: var(--green); gap: 12px; }
 .sf-section-link svg { width: 11px; height: 11px; }
-
-/* Divider */
-.sf-divider {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 16px;
-  display: flex; align-items: center; gap: 14px;
-  animation: sf-fade 0.9s ease both;
-}
-@media (min-width: 700px) { .sf-divider { padding: 0 32px; } }
-.sf-divider-line { flex: 1; height: 1px; background: var(--line); }
-.sf-divider-dot { width: 5px; height: 5px; border-radius: 0; background: var(--green); opacity: 0.5; flex: none; }
 
 /* ══════════════════════════════════════════════════
    FILTERBAR
