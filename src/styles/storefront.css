@@ -175,25 +175,118 @@
 .sf-empty-sub { color: var(--muted); font-size: 13px; margin: 0; }
 
 /* ══════════════════════════════════════════════════
-   FEATURED SECTION
+   FEATURED SECTION — Charcoal Card
    ══════════════════════════════════════════════════ */
-.sf-featured-card { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); overflow: hidden; }
-@media (min-width: 700px) { .sf-featured-card { flex-direction: row; align-items: stretch; min-height: 480px; } }
+.sf-featured-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel); /* 🟢 Charcoal background */
+  border-radius: 16px; /* 🟢 Slightly rounded, not completely square */
+  overflow: hidden;
+  color: #fff;
+}
+@media (min-width: 700px) {
+  .sf-featured-card {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 480px;
+  }
+}
 
-.sf-featured-media { width: 100%; aspect-ratio: 4 / 5; border: 0; padding: 0; cursor: pointer; overflow: hidden; background: var(--mat); }
-@media (min-width: 700px) { .sf-featured-media { aspect-ratio: auto; width: 50%; height: auto; } }
-.sf-featured-media img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease); }
+.sf-featured-media {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--mat);
+}
+@media (min-width: 700px) {
+  .sf-featured-media {
+    aspect-ratio: auto;
+    width: 50%;
+    height: auto;
+  }
+}
+.sf-featured-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.7s var(--ease);
+}
 .sf-featured-media:hover img { transform: scale(1.03); }
 
-.sf-featured-content { padding: 32px 24px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
-@media (min-width: 700px) { .sf-featured-content { width: 50%; padding: 64px; gap: 16px; } }
+.sf-featured-content {
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+}
+@media (min-width: 700px) {
+  .sf-featured-content {
+    width: 50%;
+    padding: 64px;
+    gap: 16px;
+  }
+}
 
-.sf-featured-eyebrow { font: 700 10px/1 var(--font); letter-spacing: 0.2em; text-transform: uppercase; color: var(--green); margin: 0; }
-.sf-featured-name { font-family: var(--serif); font-size: clamp(24px, 4vw, 36px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.1; color: var(--ink); margin: 0; }
-.sf-featured-desc { font-size: 14px; line-height: 1.6; color: var(--muted); margin: 0; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.sf-featured-price { font-size: 20px; font-weight: 500; color: var(--ink); margin-top: 8px; }
-.sf-featured-btn { margin-top: 16px; align-self: flex-start; padding: 14px 28px; background: var(--ink); color: var(--bg); font: 700 11px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; border: 0; border-radius: 0; cursor: pointer; transition: background 0.2s ease; }
-.sf-featured-btn:hover { background: var(--green); }
+/* 🟢 No green anywhere in the featured section */
+.sf-featured-eyebrow {
+  font: 700 10px/1 var(--font);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6); /* 🟢 Was green, now soft white */
+  margin: 0;
+}
+
+.sf-featured-name {
+  font-family: var(--serif);
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: #fff; /* 🟢 White text on charcoal */
+  margin: 0;
+}
+
+.sf-featured-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7); /* 🟢 Soft white for desc */
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sf-featured-price {
+  font-size: 20px;
+  font-weight: 500;
+  color: #fff; /* 🟢 White price */
+  margin-top: 8px;
+}
+
+.sf-featured-btn {
+  margin-top: 16px;
+  align-self: flex-start;
+  padding: 14px 28px;
+  background: #fff; /* 🟢 White button */
+  color: var(--panel); /* 🟢 Charcoal text */
+  font: 700 11px/1 var(--font);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  border: 0;
+  border-radius: 8px; /* 🟢 Slightly rounded button to match card */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.sf-featured-btn:hover {
+  background: var(--soft); /* 🟢 Very slight soft hover, no green */
+  transform: translateY(-2px);
+}
 
 /* ══════════════════════════════════════════════════
    FOOTER
