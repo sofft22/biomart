@@ -13,8 +13,11 @@ import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
 
+// 🟢 Forces the first letter of every word to be uppercase
 function titleCase(s: string): string {
-  return (s || "").replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+  return (s || "")
+    .toLowerCase()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function splitBrandName(name: string): { first: string; second: string } {
