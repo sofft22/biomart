@@ -1,137 +1,163 @@
 import { useEffect, useState } from "react";
-// 🟢 FIXED THE IMPORT PATH
-import { adminApi } from "../lib/adminApi"; 
-
-function sizeFor(value: string): number {
-  const len = value.length;
-  if (len <= 4) return 34;
-  if (len <= 6) return 30;
-  if (len <= 8) return 26;
-  if (len <= 10) return 22;
-  return 18;
-}
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { useToast } from "../components/Toast";
+import DashboardLayout from "../components/DashboardLayout";
+import PlanCard from "../components/PlanCard";
 
 export default function Overview() {
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
+  const { user, store, products, limits, loading } = useAuth();
+  const toast = useToast();
+  const [mounted, setMounted] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
 
-  useEffect(() => {
-    adminApi.overview()
-      .then((overview) => setData(overview))
-      .catch((e: any) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, []);
+  useEffect(() => setMounted(true), []);
 
-  if (loading) return <div className="admin-page">Loading…</div>;
-  if (error) return <div className="admin-page admin-err">{error}</div>;
-  if (!data) return null;
+  if (loading) {
+    return (
+      <div className="dash-shell dash-loading">
+        <div className="dash-spinner" />
+      </div>
+    );
+  }
+  if (!user || !store) return null;
 
-  const mrrStr = `₦${(data.mrr || 0).toLocaleString()}`;
-  const revenueStr = `₦${(data.totalRevenue || 0).toLocaleString()}`;
+  const productCap = limits?.products ?? 5;
+  const usage = productCap < 100000 ? Math.min(100, (products.length / productCap) * 100) : 0;
+  const atCap = productCap < 100000 && products.length >= productCap;
 
-  // 🟢 Build the SVG Line Chart
-  const chartData = data.chart || [];
-  const maxAmount = Math.max(1, ...chartData.map((d: any) => d.amount));
-  const svgWidth = 800;
-  const svgHeight = 200;
-  
-  const points = chartData.map((d: any, i: number) => {
-    const x = (i / (chartData.length - 1 || 1)) * svgWidth;
-    const y = svgHeight - ((d.amount / maxAmount) * (svgHeight - 40)) - 20;
-    return { x, y, amount: d.amount, label: d.label };
-  });
+  const storeUrl = `${location.origin}/store/${store.slug}`;
 
-  const linePath = points.map((p: any) => `${p.x},${p.y}`).join(" ");
-  const areaPath = `M0,${svgHeight} L${points.map((p: any) => `${p.x},${p.y}`).join(" L")} L${svgWidth},${svgHeight} Z`;
+  // 🟢 CALCULATE REAL NUMBERS
+  const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0);
+  const outOfStock = products.filter(p => !(p as any).inStock && !(p as any).in_stock).length;
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(storeUrl);
+    toast.show("Link copied");
+  };
 
   return (
-    <div className="admin-page">
-      <p className="admin-page-eyebrow">Overview</p>
-      <h1 className="admin-page-title">The <em>business</em>.</h1>
-
-      {/* MRR HERO CARD */}
-      <div className="admin-hero green">
-        <p className="admin-hero-label">Monthly recurring revenue</p>
-        <p className="admin-hero-value">{mrrStr}</p>
-        <p className="admin-hero-hint">From {data.payingStores || 0} paying stores</p>
+    <DashboardLayout>
+      <div className="dash-head" style={{ padding: 0 }}>
+        <p className="dash-head-eyebrow">Overview</p>
+        <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
+        <p className="dash-head-lead">Everything you need to run your store.</p>
       </div>
 
-      {/* 🟢 REMOVED THE OLD "FREE" CARD, ONLY KEPT THE ESSENTIALS */}
-      <div className="admin-stats">
-        <div className="admin-stat">
-          <p className="admin-stat-label">Total money earned</p>
-          <p className="admin-stat-value" style={{ fontSize: sizeFor(revenueStr) }}>{revenueStr}</p>
-        </div>
-        <div className="admin-stat">
-          <p className="admin-stat-label">Total stores</p>
-          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.totalStores || 0)) }}>{data.totalStores || 0}</p>
-        </div>
-        <div className={`admin-stat ${data.payingStores > 0 ? "is-green" : ""}`}>
-          <p className="admin-stat-label">Paying stores</p>
-          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.payingStores || 0)) }}>{data.payingStores || 0}</p>
-        </div>
-        <div className="admin-stat">
-          <p className="admin-stat-label">Products listed</p>
-          <p className="admin-stat-value" style={{ fontSize: sizeFor(String(data.totalProducts || 0)) }}>{(data.totalProducts || 0).toLocaleString()}</p>
+      {/* ── HERO CARD (Store Value & Products) ── */}
+      <div className="ov-hero-card">
+        <div className="ov-hero-left">
+          <p className="ov-hero-label">Catalogue value</p>
+          <p className="ov-hero-value">₦{totalValue.toLocaleString()}</p>
+          <p className="ov-hero-hint">Total value of all your products</p>
         </div>
       </div>
 
-      {/* 🟢 SMOOTH LINE CHART (Replaces Bar Chart) */}
-      <section className="admin-block">
-        <h2 className="admin-block-title">Revenue · Last 7 Days</h2>
-        <div style={{ position: "relative", width: "100%", overflow: "hidden", marginTop: 24 }}>
-          <svg viewBox={`0 0 ${svgWidth} ${svgHeight}`} style={{ width: "100%", height: "auto", display: "block" }}>
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--green)" stopOpacity="0.15" />
-                <stop offset="100%" stopColor="var(--green)" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            
-            <path d={areaPath} fill="url(#areaGrad)" />
-            <polyline points={linePath} fill="none" stroke="var(--green)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-
-            {points.map((p: any, i: number) => (
-              <g key={i}>
-                <circle cx={p.x} cy={p.y} r="5" fill="var(--bg)" stroke="var(--green)" strokeWidth="3" />
-                <text x={p.x} y={svgHeight - 4} textAnchor="middle" fontSize="12" fill="var(--muted)" fontWeight="bold">
-                  {p.label}
-                </text>
-                <title>{`${p.label}: ₦${p.amount.toLocaleString()}`}</title>
-              </g>
-            ))}
-          </svg>
+      {/* ── STATS (2 Columns) ── */}
+      <div className="ov-stats" style={{ gridTemplateColumns: "1fr 1fr" }}>
+        <div className="ov-stat">
+          <p className="ov-stat-label">Products live</p>
+          <p className="ov-stat-value">
+            {products.length}
+            {productCap < 100000 && <span className="ov-stat-cap"> / {productCap}</span>}
+          </p>
+          {productCap < 100000 && (
+            <div className="ov-usage">
+              <div className="ov-usage-fill" style={{ width: `${usage}%` }} />
+            </div>
+          )}
+          {atCap && (
+            <p className="ov-stat-warn">At limit · <Link to="/plan">Upgrade</Link></p>
+          )}
         </div>
-      </section>
 
-      {/* 🟢 TOP 3 PAYING STORES (Replaces Top Visited) */}
-      <section className="admin-block">
-        <h2 className="admin-block-title">Top paying stores</h2>
-        {data.topStores.length === 0 ? (
-          <p className="admin-empty">No payments recorded yet.</p>
-        ) : (
-          <ul className="admin-feed">
-            {data.topStores.map((s: any, i: number) => (
-              <li key={s.slug} className="admin-feed-row">
-                <div className="admin-rank" style={{ 
-                  background: i === 0 ? "#FFD700" : i === 1 ? "#C0C0C0" : "#CD7F32", 
-                  color: "#000" 
-                }}>
-                  {i + 1}
-                </div>
-                <div className="admin-feed-main">
-                  <p className="admin-feed-name">{s.name}</p>
-                  <p className="admin-feed-email">/{s.slug}</p>
-                </div>
-                <span className="admin-feed-value" style={{ color: "var(--green)", fontWeight: 600 }}>
-                  ₦{s.totalPaid.toLocaleString()}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
+        <div className="ov-stat">
+          <p className="ov-stat-label">Out of stock</p>
+          <p className="ov-stat-value" style={{ color: outOfStock > 0 ? "var(--danger)" : "inherit" }}>
+            {outOfStock}
+          </p>
+          <p className="ov-stat-hint">Products needing restock</p>
+        </div>
+      </div>
+
+      {/* ── PLAN CARD ── */}
+      <PlanCard />
+
+      {/* ── STORE LINK ── */}
+      <div className="ov-share">
+        <div className="ov-share-info">
+          <p className="ov-share-label">Your store link</p>
+          <p className="ov-share-url">{storeUrl}</p>
+        </div>
+        <div className="ov-share-actions">
+          <button onClick={copyLink} className="dash-btn dash-btn-line">Copy</button>
+          <button onClick={() => setQrOpen(true)} className="dash-btn dash-btn-line">QR</button>
+          <a href={storeUrl} target="_blank" rel="noopener" className="dash-btn dash-btn-dark">View store</a>
+        </div>
+      </div>
+
+      {/* ── QUICK ACTIONS ── */}
+      <div className="ov-quick">
+        <Link to="/dashboard/product" className="ov-quick-btn">
+          <span className="ov-quick-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          </span>
+          <span>
+            <b>Add product</b>
+            <small>New item to your catalogue</small>
+          </span>
+        </Link>
+
+        <a
+          href={`https://wa.me/?text=${encodeURIComponent("Check out my store: " + storeUrl)}`}
+          target="_blank"
+          rel="noopener"
+          className="ov-quick-btn"
+        >
+          <span className="ov-quick-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>
+          </span>
+          <span>
+            <b>Share on WhatsApp</b>
+            <small>Send your store link</small>
+          </span>
+        </a>
+
+        <Link to="/settings" className="ov-quick-btn">
+          <span className="ov-quick-icon">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M5 5l1.5 1.5M17.5 17.5L19 19M3 12h2M19 12h2M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>
+          </span>
+          <span>
+            <b>Store settings</b>
+            <small>Name, WhatsApp, link</small>
+          </span>
+        </Link>
+      </div>
+
+      {/* ── QR MODAL ── */}
+      {qrOpen && (
+        <div
+          className="ov-qr-backdrop"
+          onClick={(e) => { if (e.target === e.currentTarget) setQrOpen(false); }}
+        >
+          <div className="ov-qr-modal">
+            <button className="ov-qr-close" onClick={() => setQrOpen(false)} aria-label="Close">×</button>
+            <p className="ov-qr-eyebrow">Your store</p>
+            <h3 className="ov-qr-title">Scan to open</h3>
+            <div className="ov-qr-image">
+              <img
+                src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&margin=8&color=1A1A1A&bgcolor=FBF9F5&data=${encodeURIComponent(storeUrl)}`}
+                width={280}
+                height={280}
+                alt="Store QR code"
+              />
+            </div>
+            <p className="ov-qr-url">{storeUrl}</p>
+            <p className="ov-qr-hint">Print on flyers, cards, or your stall.</p>
+          </div>
+        </div>
+      )}
+    </DashboardLayout>
   );
 }
