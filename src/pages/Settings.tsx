@@ -9,7 +9,6 @@ import {
   updateCategory,
   removeCategory,
   setCategoryImage,
-  removeCategoryImage,
 } from "../lib/storeData";
 import type { Category } from "../types";
 
@@ -36,6 +35,8 @@ export default function Settings() {
 
   const [categories, setCategories] = useState<CatWithImg[]>([]);
   const [newCatName, setNewCatName] = useState("");
+  const [newCatImage, setNewCatImage] = useState<string | null>(null);
+  
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [editingCatName, setEditingCatName] = useState("");
   const [uploadingCatId, setUploadingCatId] = useState<string | null>(null);
@@ -111,7 +112,14 @@ export default function Settings() {
   const handleAddCategory = async () => {
     const result = addCategory(store.slug, newCatName);
     if (!result.ok) return toast.show(result.error);
+    if (newCatImage && result.category) {
+      try {
+        const url = await uploadImage(dataUrlToBlob(newCatImage));
+        setCategoryImage(store.slug, result.category.id, url);
+      } catch {}
+    }
     setNewCatName("");
+    setNewCatImage(null);
     refreshCategories();
     toast.show("Category added");
   };
@@ -163,7 +171,6 @@ export default function Settings() {
       {/* ═══════ STORE INFO ═══════ */}
       <section className="set-section" style={{ paddingTop: 0 }}>
         {!isEditing ? (
-          /* 🟢 READ-ONLY VIEW */
           <div style={{ display: "grid", gap: "24px", marginTop: "24px" }}>
             <div>
               <span className="set-label">Store Name</span>
@@ -191,7 +198,6 @@ export default function Settings() {
             </div>
           </div>
         ) : (
-          /* 🟢 EDIT VIEW */
           <>
             <div className="set-fields">
               <div className="set-field">
@@ -237,10 +243,10 @@ export default function Settings() {
         )}
       </section>
 
-      {/* ═══════ BANNER (Compact) ═══════ */}
+      {/* ═══════ BANNER ═══════ */}
       <section className="set-section">
         <h2 className="set-title">Store Banner</h2>
-        <div className="set-banner" style={{ maxHeight: "200px" }}>
+        <div className="set-banner" style={{ maxHeight: "240px" }}>
           <img src={displayBanner} alt="Store banner" style={{ objectFit: "cover" }} />
           <div className="set-banner-actions">
             <label className="set-banner-btn">
@@ -252,11 +258,24 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ═══════ CATEGORIES (Pill Grid) ═══════ */}
+      {/* ═══════ CATEGORIES ═══════ */}
       <section className="set-section">
         <h2 className="set-title">Categories</h2>
         
         <div className="set-cat-add">
+          <label className="set-cat-add-photo">
+            {newCatImage ? <img src={newCatImage} alt="" /> : (
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            )}
+            <input type="file" accept="image/*" hidden onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (!f) return;
+              const r = new FileReader();
+              r.onload = () => setNewCatImage(String(r.result));
+              r.readAsDataURL(f);
+              e.target.value = "";
+            }} />
+          </label>
           <input className="set-cat-add-input" placeholder="New category" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }} maxLength={30} />
           <button className="set-cat-add-btn" type="button" disabled={!newCatName.trim()} onClick={handleAddCategory}>Add</button>
         </div>
@@ -270,10 +289,16 @@ export default function Settings() {
               const busy = uploadingCatId === c.id;
               
               return (
-                <div key={c.id} style={{ display: "flex", alignItems: "center", background: "var(--card)", border: "1px solid var(--line)", padding: "8px 16px", borderRadius: "99px", gap: "12px" }}>
-                  {/* Category Image / Placeholder */}
-                  <label style={{ width: "24px", height: "24px", borderRadius: "50%", overflow: "hidden", background: "var(--mat)", display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0 }}>
-                    {c.image ? <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: "10px", fontWeight: 700 }}>{c.label.charAt(0)}</span>}
+                <div key={c.id} style={{ display: "flex", alignItems: "center", background: "var(--card)", border: "1px solid var(--line)", padding: "6px 12px 6px 6px", borderRadius: "99px", gap: "10px" }}>
+                  
+                  {/* Category Image */}
+                  <label style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", background: "var(--mat)", display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0, position: "relative" }}>
+                    {c.image ? (
+                      <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontSize: "12px", fontWeight: 700 }}>{c.label.charAt(0)}</span>
+                    )}
+                    {busy && <div style={{ position: "absolute", inset: 0, background: "rgba(255,255,255,0.7)", display: "grid", placeItems: "center" }}><div className="dash-spinner dash-spinner-sm" /></div>}
                     <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCatImage(c.id, f); e.target.value = ""; }} />
                   </label>
 
@@ -292,7 +317,7 @@ export default function Settings() {
                   )}
 
                   {/* Actions */}
-                  <div style={{ display: "flex", gap: "8px", marginLeft: "8px", borderLeft: "1px solid var(--line)", paddingLeft: "12px" }}>
+                  <div style={{ display: "flex", gap: "8px", marginLeft: "4px" }}>
                     <button onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)" }}>
                       <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
                     </button>
@@ -307,6 +332,30 @@ export default function Settings() {
         )}
       </section>
 
+      {/* ═══════ DANGER ZONE ═══════ */}
+      <section className="set-section">
+        <h2 className="set-title">Danger zone</h2>
+        <div className="set-danger-row">
+          <div>
+            <p className="set-danger-title">Delete store</p>
+            <p className="set-danger-sub">Removes every product and cancels your plan.</p>
+          </div>
+          <button type="button" className="set-danger-btn" onClick={() => toast.show("Contact support to delete")}>
+            Delete
+          </button>
+        </div>
+      </section>
+
     </DashboardLayout>
   );
+}
+
+function dataUrlToBlob(dataUrl: string): Blob {
+  const [meta, b64] = dataUrl.split(",");
+  const mime = /:(.*?);/.exec(meta)?.[1] ?? "image/jpeg";
+  const bin = atob(b64);
+  const len = bin.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
+  return new Blob([bytes], { type: mime });
 }
