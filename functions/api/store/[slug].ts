@@ -11,6 +11,17 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
       return Response.json({ error: "Store not found" }, { status: 404 });
     }
 
+    // 🟢 THE FIX: Parse the categories from the database string into an array
+    if (store && store.categories) {
+      try {
+        store.categories = typeof store.categories === 'string' ? JSON.parse(store.categories) : store.categories;
+      } catch (e) {
+        store.categories = [];
+      }
+    } else {
+      store.categories = [];
+    }
+
     // 2. Get the products
     const { results } = await env.DB.prepare(
       "SELECT * FROM products WHERE store_id = ? ORDER BY created_at DESC"
@@ -18,7 +29,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
 
     // 3. Return everything cleanly mapped
     return Response.json({
-      store,
+      store, // Now store.categories is a real Array!
       products: results.map((p: any) => {
         let parsedImages = [];
         try { parsedImages = JSON.parse(p.images || "[]"); } catch { parsedImages = []; }
