@@ -2,22 +2,21 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
   try {
     const cookie = request.headers.get("Cookie") || "";
     const sid = cookie.match(/sid=([^;]+)/)?.[1];
-    if (!sid) return Response.json({ error: "You need to log in to view this store." }, { status: 401 });
+    if (!sid) return Response.json({ error: "You need to log in." }, { status: 401 });
 
     const session = await env.DB.prepare(
       "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
     ).bind(sid, Date.now()).first<{ user_id: string }>();
     
-    if (!session) return Response.json({ error: "Your session has expired. Please log in again." }, { status: 401 });
+    if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
 
     const store = await env.DB.prepare(
-      "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, gallery_urls, plan, paid_until FROM stores WHERE user_id = ?"
+      "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, gallery_urls, plan FROM stores WHERE user_id = ?"
     ).bind(session.user_id).first<any>();
 
     return Response.json({ store });
   } catch (e: any) {
-    console.error("Store fetch error:", e);
-    return Response.json({ error: "We couldn't load your store details right now." }, { status: 500 });
+    return Response.json({ error: e.message }, { status: 500 });
   }
 };
 
@@ -25,13 +24,13 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
   try {
     const cookie = request.headers.get("Cookie") || "";
     const sid = cookie.match(/sid=([^;]+)/)?.[1];
-    if (!sid) return Response.json({ error: "You need to log in to save settings." }, { status: 401 });
+    if (!sid) return Response.json({ error: "You need to log in." }, { status: 401 });
 
     const session = await env.DB.prepare(
       "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
     ).bind(sid, Date.now()).first<{ user_id: string }>();
     
-    if (!session) return Response.json({ error: "Your session has expired. Please log in again." }, { status: 401 });
+    if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
 
     const store = await env.DB.prepare("SELECT id FROM stores WHERE user_id = ?")
       .bind(session.user_id).first<{ id: string }>();
@@ -50,8 +49,11 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram || null); }
     if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
     if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
+    
+    // 🟢 THIS IS THE CRITICAL FIX FOR THE BANNERS
     if ("gallery_urls" in body) { 
       updates.push("gallery_urls = ?"); 
+      // Save as a JSON string
       values.push(Array.isArray(body.gallery_urls) ? JSON.stringify(body.gallery_urls) : null); 
     }
 
@@ -65,7 +67,6 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
 
     return Response.json({ ok: true });
   } catch (e: any) {
-    console.error("Store save error:", e);
-    return Response.json({ error: "We couldn't save your changes. Please try again." }, { status: 500 });
+    return Response.json({ error: "Database error: " + e.message }, { status: 500 });
   }
 };
