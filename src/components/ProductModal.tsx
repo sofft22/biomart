@@ -16,8 +16,9 @@ interface Props {
   onOpenProduct: (p: Product) => void;
 }
 
-const CREAM = '#FBF9F5';
-const CREAM_DARK = '#EDE8E0';
+// 🟢 REMOVED CREAM - Now using pure white and light grey
+const BG_WHITE = '#FFFFFF';
+const BG_LIGHT_GREY = '#F3F3F3';
 const CHARCOAL = '#1A1A1A';
 const BRAND_GREEN = '#0F7A4A';
 const MUTED = 'rgba(26,26,26,0.5)';
@@ -162,13 +163,13 @@ export function ProductModal({
         ref={modalScrollRef}
         onClick={(e) => e.stopPropagation()}
         className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
-        style={{ backgroundColor: CREAM, color: CHARCOAL }}
+        style={{ backgroundColor: BG_WHITE, color: CHARCOAL }}
       >
         <button
           onClick={onClose}
           aria-label="Close"
           className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors duration-300"
-          style={{ backgroundColor: CREAM, color: CHARCOAL }}
+          style={{ backgroundColor: BG_WHITE, color: CHARCOAL }}
           onMouseEnter={(e) => (e.currentTarget.style.color = BRAND_GREEN)}
           onMouseLeave={(e) => (e.currentTarget.style.color = CHARCOAL)}
         >
@@ -186,12 +187,12 @@ export function ProductModal({
 
         <div className="grid grid-cols-1 sm:grid-cols-2">
           {/* ═══ IMAGE COLUMN ═══ */}
-          <div style={{ backgroundColor: CREAM }}>
+          <div style={{ backgroundColor: BG_WHITE }}>
             {/* Whole image area clickable — cycles through images */}
             <button
               onClick={handleImageTap}
               className="relative block aspect-[4/5] w-full overflow-hidden cursor-pointer"
-              style={{ touchAction: 'pan-y', backgroundColor: CREAM_DARK }}
+              style={{ touchAction: 'pan-y', backgroundColor: BG_LIGHT_GREY }}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
               aria-label={images.length > 1 ? 'Next image' : product.name}
@@ -199,7 +200,7 @@ export function ProductModal({
               {!mainImgLoaded && (
                 <div
                   className="absolute inset-0 animate-pulse"
-                  style={{ backgroundColor: CREAM_DARK }}
+                  style={{ backgroundColor: BG_LIGHT_GREY }}
                 />
               )}
               {currentImage && (
@@ -246,7 +247,7 @@ export function ProductModal({
                       border:
                         i === activeImage
                           ? `1px solid ${CHARCOAL}`
-                          : `1px solid ${CREAM_DARK}`,
+                          : `1px solid ${BG_LIGHT_GREY}`,
                     }}
                     aria-label={`View image ${i + 1} of ${images.length}`}
                   >
@@ -264,26 +265,27 @@ export function ProductModal({
           </div>
 
           {/* ═══ CONTENT COLUMN ═══ */}
-          <div className="p-6 sm:p-12" style={{ backgroundColor: CREAM }}>
-            {/* Name — matches ProductCard (weight 600, natural case) */}
+          <div className="p-6 sm:p-12" style={{ backgroundColor: BG_WHITE }}>
+            
+            {/* 🟢 PRODUCT NAME - Made Bigger */}
             <h2
-              className="text-[17px] leading-[1.35] tracking-[-0.01em] sm:text-[20px]"
+              className="text-[22px] leading-[1.25] tracking-[-0.01em] sm:text-[28px]"
               style={{ color: CHARCOAL, fontWeight: 600 }}
             >
               {product.name}
             </h2>
 
-            {/* Price — matches ProductCard (weight 500, larger) */}
+            {/* 🟢 PRICE - Made slightly smaller than the name */}
             <div className="mt-3 flex items-baseline gap-3 sm:mt-4 sm:gap-4">
               <p
-                className="text-[22px] leading-none tracking-[-0.01em] sm:text-[26px]"
+                className="text-[18px] leading-none tracking-[-0.01em] sm:text-[22px]"
                 style={{ color: CHARCOAL, fontWeight: 500 }}
               >
                 {naira(displayPrice)}
               </p>
               {displayCompare && (
                 <p
-                  className="text-[13.5px] line-through sm:text-[14.5px]"
+                  className="text-[12px] line-through sm:text-[13px]"
                   style={{ color: MUTED, fontWeight: 400 }}
                 >
                   {naira(displayCompare)}
@@ -317,9 +319,9 @@ export function ProductModal({
                         onClick={() => setSelectedVariantLabel(v.label)}
                         className="rounded-[8px] px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.14em] transition-colors duration-300"
                         style={{
-                          border: `1px solid ${active ? CHARCOAL : CREAM_DARK}`,
+                          border: `1px solid ${active ? CHARCOAL : BG_LIGHT_GREY}`,
                           backgroundColor: active ? CHARCOAL : 'transparent',
-                          color: active ? CREAM : CHARCOAL,
+                          color: active ? BG_WHITE : CHARCOAL,
                         }}
                       >
                         {v.label}
@@ -327,7 +329,7 @@ export function ProductModal({
                           <span
                             className="ml-2"
                             style={{
-                              color: active ? CREAM : BRAND_GREEN,
+                              color: active ? BG_WHITE : BRAND_GREEN,
                               fontWeight: 600,
                             }}
                           >
@@ -352,14 +354,14 @@ export function ProductModal({
                   </span>
                   <div
                     className="inline-flex items-stretch overflow-hidden rounded-[8px]"
-                    style={{ border: `1px solid ${CREAM_DARK}` }}
+                    style={{ border: `1px solid ${BG_LIGHT_GREY}` }}
                   >
                     <button
                       onClick={() => setQty(Math.max(1, qty - 1))}
                       className="flex h-10 w-10 items-center justify-center transition-colors duration-200"
                       style={{ color: CHARCOAL }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = CREAM_DARK)
+                        (e.currentTarget.style.backgroundColor = BG_LIGHT_GREY)
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = 'transparent')
@@ -371,8 +373,8 @@ export function ProductModal({
                       className="flex h-10 w-10 items-center justify-center text-[14px]"
                       style={{
                         color: CHARCOAL,
-                        borderLeft: `1px solid ${CREAM_DARK}`,
-                        borderRight: `1px solid ${CREAM_DARK}`,
+                        borderLeft: `1px solid ${BG_LIGHT_GREY}`,
+                        borderRight: `1px solid ${BG_LIGHT_GREY}`,
                         fontWeight: 600,
                       }}
                     >
@@ -383,7 +385,7 @@ export function ProductModal({
                       className="flex h-10 w-10 items-center justify-center transition-colors duration-200"
                       style={{ color: CHARCOAL }}
                       onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = CREAM_DARK)
+                        (e.currentTarget.style.backgroundColor = BG_LIGHT_GREY)
                       }
                       onMouseLeave={(e) =>
                         (e.currentTarget.style.backgroundColor = 'transparent')
@@ -406,7 +408,7 @@ export function ProductModal({
                           ? BRAND_GREEN
                           : CHARCOAL
                         : 'rgba(26,26,26,0.3)',
-                      color: CREAM,
+                      color: BG_WHITE,
                       cursor: canAdd ? 'pointer' : 'not-allowed',
                     }}
                     onMouseEnter={(e) => {
@@ -446,18 +448,11 @@ export function ProductModal({
                   </button>
                 </div>
 
-                {!canAdd && (
-                  <p
-                    className="mt-3 text-center text-[10.5px] font-bold uppercase tracking-[0.16em]"
-                    style={{ color: MUTED }}
-                  >
-                    Choose an option first
-                  </p>
-                )}
+                {/* 🟢 REMOVED THE "CHOOSE AN OPTION FIRST" TEXT HERE */}
 
                 <div
                   className="mt-10 flex items-center gap-4 pt-7"
-                  style={{ borderTop: `1px solid ${CREAM_DARK}` }}
+                  style={{ borderTop: `1px solid ${BG_LIGHT_GREY}` }}
                 >
                   <span
                     className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
@@ -470,13 +465,13 @@ export function ProductModal({
                     onClick={handleShareWhatsApp}
                     aria-label="Share on WhatsApp"
                     className="flex h-9 w-9 items-center justify-center rounded-[8px] transition-colors duration-300"
-                    style={{ border: `1px solid ${CREAM_DARK}`, color: CHARCOAL }}
+                    style={{ border: `1px solid ${BG_LIGHT_GREY}`, color: CHARCOAL }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = BRAND_GREEN;
                       e.currentTarget.style.color = BRAND_GREEN;
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = CREAM_DARK;
+                      e.currentTarget.style.borderColor = BG_LIGHT_GREY;
                       e.currentTarget.style.color = CHARCOAL;
                     }}
                   >
@@ -489,13 +484,13 @@ export function ProductModal({
                     onClick={handleCopyLink}
                     aria-label="Copy link"
                     className="flex h-9 w-9 items-center justify-center rounded-[8px] transition-colors duration-300"
-                    style={{ border: `1px solid ${CREAM_DARK}`, color: CHARCOAL }}
+                    style={{ border: `1px solid ${BG_LIGHT_GREY}`, color: CHARCOAL }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.borderColor = BRAND_GREEN;
                       e.currentTarget.style.color = BRAND_GREEN;
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = CREAM_DARK;
+                      e.currentTarget.style.borderColor = BG_LIGHT_GREY;
                       e.currentTarget.style.color = CHARCOAL;
                     }}
                   >
@@ -522,8 +517,8 @@ export function ProductModal({
               <p
                 className="mt-6 rounded-[10px] py-4 text-center text-[10.5px] font-bold uppercase tracking-[0.2em]"
                 style={{
-                  border: `1px solid ${CREAM_DARK}`,
-                  backgroundColor: CREAM,
+                  border: `1px solid ${BG_LIGHT_GREY}`,
+                  backgroundColor: BG_WHITE,
                   color: MUTED,
                 }}
               >
@@ -538,8 +533,8 @@ export function ProductModal({
           <div
             className="px-6 py-14 sm:px-12 sm:py-20"
             style={{
-              borderTop: `1px solid ${CREAM_DARK}`,
-              backgroundColor: CREAM,
+              borderTop: `1px solid ${BG_LIGHT_GREY}`,
+              backgroundColor: BG_WHITE,
             }}
           >
             <h3
@@ -563,7 +558,7 @@ export function ProductModal({
                 >
                   <div
                     className="aspect-[4/5] overflow-hidden"
-                    style={{ backgroundColor: CREAM_DARK }}
+                    style={{ backgroundColor: BG_LIGHT_GREY }}
                   >
                     {p.image_url && (
                       <img
