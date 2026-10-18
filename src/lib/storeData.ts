@@ -1,5 +1,5 @@
 import type { Category } from "../types";
-import { DEFAULT_CATEGORIES, slugifyCategory } from "./categories";
+import { slugifyCategory } from "./categories";
 
 const CATEGORIES_KEY = (slug: string) => `biomart:categories:${slug}`;
 const CATEGORY_IMAGES_KEY = (slug: string) => `biomart:category-images:${slug}`;
@@ -10,17 +10,14 @@ export function getCategories(storeSlug: string): Category[] {
   try {
     const raw = localStorage.getItem(CATEGORIES_KEY(storeSlug));
     if (!raw) {
-      localStorage.setItem(
-        CATEGORIES_KEY(storeSlug),
-        JSON.stringify(DEFAULT_CATEGORIES)
-      );
-      return DEFAULT_CATEGORIES;
+      // 🟢 FIX: Start empty instead of injecting fake categories
+      return [];
     }
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return DEFAULT_CATEGORIES;
+    if (!Array.isArray(parsed)) return [];
     return parsed;
   } catch {
-    return DEFAULT_CATEGORIES;
+    return [];
   }
 }
 
@@ -135,7 +132,7 @@ export function removeCategoryImage(
   saveCategoryImages(storeSlug, images);
 }
 
-/* ── COMBINED (new) ── */
+/* ── COMBINED ── */
 
 export function getCategoriesWithImages(
   storeSlug: string
