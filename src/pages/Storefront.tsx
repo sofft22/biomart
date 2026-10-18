@@ -72,39 +72,28 @@ export default function Storefront() {
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   
+  // 🟢 Categories are now fetched purely for the dropdown
   const [categories, setCategories] = useState<Category[]>([]);
-  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
-  const [categoryTick, setCategoryTick] = useState(0);
   const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // 🟢 FETCH CATEGORIES DIRECTLY FROM API (NO LOCAL STORAGE)
   useEffect(() => {
     if (!slug) return;
     
-    // We fetch fresh data from the API to get the real categories
+    // Fetch categories for the dropdown
     fetch(`/api/store/${slug}`)
       .then(res => res.json())
       .then(data => {
-        // Your API returns { store: { ..., categories: [] } }
         if (data.store && data.store.categories && Array.isArray(data.store.categories)) {
           setCategories(data.store.categories);
-          
-          // Build the images map from the API data
-          const imgMap: Record<string, string> = {};
-          data.store.categories.forEach((c: any) => {
-            if (c.image) imgMap[c.id] = c.image;
-            if (c.image_url) imgMap[c.id] = c.image_url;
-          });
-          setCategoryImages(imgMap);
         }
       })
       .catch(console.error);
-  }, [slug, categoryTick]);
+  }, [slug]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -124,19 +113,6 @@ export default function Storefront() {
     sessionStorage.setItem(key, "1");
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
-
-  useEffect(() => {
-    const onFocus = () => setCategoryTick((t) => t + 1);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") setCategoryTick((t) => t + 1);
-    };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -167,9 +143,6 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 USE STRICTLY THE API CATEGORIES
-  const usedCategories = categories;
-
   const filtered = useMemo(() => {
     let list = products;
     if (activeCategory !== "all") {
@@ -197,10 +170,8 @@ export default function Storefront() {
 
   const handleOpenProduct = (p: Product) => setOpenProduct(p);
   
-  // 🟢 FIXED: SILENT ADD. DOES NOT OPEN THE DRAWER.
   const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
     cart.add(product, qty, variant, unitPrice);
-    // We do NOT call setCartOpen(true) here.
   };
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -236,7 +207,6 @@ export default function Storefront() {
           {!searchOpen && <div className="sf-head-spacer" />}
           {!searchOpen && (
             <nav className="sf-head-links">
-              <button onClick={() => scrollTo("categories")}>Categories</button>
               <button onClick={() => scrollTo("shop-all")}>Shop all</button>
             </nav>
           )}
@@ -254,7 +224,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 SINGLE BANNER */}
+      {/* 🟢 BANNER ONLY */}
       {store?.cover_url && (
         <section className="sf-banner">
           <img src={store.cover_url} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
@@ -264,32 +234,6 @@ export default function Storefront() {
             <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta">
               Shop now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
-          </div>
-        </section>
-      )}
-
-      {/* 🟢 CATEGORIES (Strictly from API) */}
-      {usedCategories.length > 0 && (
-        <section className="sf-section" id="categories">
-          <div className="sf-section-head-center">
-            <span className="sf-section-eyebrow">Explore</span>
-            <h2 className="sf-section-title-center">Shop by category</h2>
-          </div>
-          <div className="sf-cat-grid">
-            {usedCategories.map((c, i) => {
-              const img = categoryImages[c.id] || (c as any).image_url || (c as any).image;
-              const active = activeCategory === c.id;
-              return (
-                <button key={c.id} onClick={() => { setActiveCategory(active ? "all" : c.id); setCurrentPage(1); scrollTo("shop-all"); }} className={`sf-cat-tile ${active ? "on" : ""}`}>
-                  {img ? <img src={img} alt={c.label} loading="lazy" /> : <div className="sf-cat-tile-placeholder">{c.label.charAt(0)}</div>}
-                  <div className="sf-cat-tile-overlay" />
-                  <div className="sf-cat-tile-content">
-                    <div className="sf-cat-tile-name">{titleCase(c.label)}</div>
-                    <span className="sf-cat-arrow">→</span>
-                  </div>
-                </button>
-              );
-            })}
           </div>
         </section>
       )}
@@ -364,7 +308,6 @@ export default function Storefront() {
             <div className="sf-footer-col">
               <h4 className="sf-footer-h">Shop</h4>
               <ul>
-                <li><button onClick={() => scrollTo("categories")}>Categories</button></li>
                 <li><button onClick={() => scrollTo("shop-all")}>Shop all</button></li>
               </ul>
             </div>
