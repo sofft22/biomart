@@ -10,9 +10,8 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     
     if (!session) return Response.json({ error: "Your session has expired. Please log in again." }, { status: 401 });
 
-    // 🟢 Optimization: Fetch only the columns needed for the store settings
     const store = await env.DB.prepare(
-      "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, plan, paid_until FROM stores WHERE user_id = ?"
+      "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, gallery_urls, plan, paid_until FROM stores WHERE user_id = ?"
     ).bind(session.user_id).first<any>();
 
     return Response.json({ store });
@@ -51,6 +50,10 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram || null); }
     if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
     if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
+    if ("gallery_urls" in body) { 
+      updates.push("gallery_urls = ?"); 
+      values.push(Array.isArray(body.gallery_urls) ? JSON.stringify(body.gallery_urls) : null); 
+    }
 
     if (updates.length === 0) return Response.json({ ok: true });
 
