@@ -1,163 +1,316 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { store as storeApi } from "../lib/api";
-import { getCategoriesWithImages } from "../lib/storeData"; // 🟢 Re-added this to get exact saved images
-import { naira } from "../lib/format";
-import type { Product, Category, Store } from "../types";
-
+import { useStoreContext } from "../context/StoreContext";
+import { useCart } from "../context/CartContext";
+import { track } from "../lib/api";
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
-import { useCart } from "../context/CartContext";
+import { getCategoryLabel } from "../lib/categories";
+import { getCategories, getCategoryImages } from "../lib/storeData";
+import type { Category, Product } from "../types";
 
-type CatWithImg = Category & { image?: string };
+type SortKey = "new" | "price-asc" | "price-desc" | "name";
+
+function titleCase(s: string): string {
+  return (s || "").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function splitBrandName(name: string): { first: string; second: string } {
+  const parts = (name || "").trim().split(/\s+/);
+  if (parts.length <= 1) return { first: parts[0] || "", second: "" };
+  return { first: parts[0], second: parts.slice(1).join(" ") };
+}
+
+function useReveal(deps: unknown[] = []) {
+  useEffect(() => {
+    let mounted = true;
+    const io = ("IntersectionObserver" in window)
+      ? new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in");
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
+        )
+      : null;
+
+    const scan = () => {
+      if (!mounted) return;
+      const els = document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)");
+      if (!io) {
+        els.forEach((el) => el.classList.add("in"));
+        return;
+      }
+      els.forEach((el) => io.observe(el));
+    };
+
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      mounted = false;
+      io?.disconnect();
+      mo.disconnect();
+    };
+  }, deps);
+}
 
 export default function Storefront() {
-  const { slug } = useParams<{ slug: string }>();
-  const { addToCart } = useCart();
+  const { slug = "" } = useParams<{ slug: string }>();
+  const { loading, store, products, error } = useStoreContext();
+  const cart = useCart();
 
-  const [store, setStore] = useState<Store | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<CatWithImg[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [openProduct, setOpenProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("all");
+  
+  // 🟢 ADDED SORT STATE
+  const [sort, setSort] = useState<SortKey>("new");
+  
+  const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
+  const [headerHidden, setHeaderHidden] = useState(false);
+  const [headerSolid, setHeaderSolid] = useState(false);
+  const [categoryTick, setCategoryTick] = useState(0);
+  const lastYRef = useRef(0);
 
-  const [sortBy, setSortBy] = useState("featured");
-  const [filterCategory, setFilterCategory] = useState("all");
+  // 🟢 PAGINATION STATE (10/15/20)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setItemsPerPage(20); // Desktop
+      else if (window.innerWidth >= 768) setItemsPerPage(15); // Tablet
+      else setItemsPerPage(10); // Mobile
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
-    setLoading(true);
-    
-    storeApi
-      .public(slug)
-      .then((data) => {
-        setStore(data.store);
-        setProducts(data.products ?? []);
-        
-        // 🟢 FIX: Use the exact categories from Settings (includes exact images)
-        // No fallbacks, no random default fields.
-        const savedCats = getCategoriesWithImages(slug);
-        setCategories(savedCats);
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setLoading(false));
+    const key = `biomart:tracked:store:${slug}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    track.storeVisit(slug).catch(() => {});
   }, [slug]);
 
-  const displayedProducts = useMemo(() => {
-    let list = [...products];
-    if (filterCategory !== "all") {
-      list = list.filter((p) => p.category_id === filterCategory);
+  // 🟢 FIXED: Strictly uses your saved categories and images
+  useEffect(() => {
+    if (!slug) return;
+    setCategories(getCategories(slug));
+    setCategoryImages(getCategoryImages(slug));
+  }, [slug, categoryTick]);
+
+  useEffect(() => {
+    const onFocus = () => setCategoryTick((t) => t + 1);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") setCategoryTick((t) => t + 1);
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, []);
+
+  useEffect(() => {
+    let ticking = false;
+    const update = () => {
+      const y = window.scrollY;
+      const last = lastYRef.current;
+      const diff = y - last;
+      const atTop = y < 40;
+
+      setHeaderSolid(y > 120);
+      if (atTop) setHeaderHidden(false);
+      else if (diff > 6 && y > 200) setHeaderHidden(true);
+      else if (diff < -6) setHeaderHidden(false);
+
+      lastYRef.current = y;
+      ticking = false;
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
+
+  // 🟢 FIXED: Only uses categories that actually have products OR are in your saved list.
+  const usedCategories = useMemo(() => {
+    const uniqueCats = new Map<string, Category>();
+    for (const p of products) {
+      const cid = (p as any).category_id || (p as any).category;
+      if (cid && !uniqueCats.has(cid)) {
+        const existingCat = categories.find((c) => c.id === cid);
+        uniqueCats.set(cid, { id: cid, label: existingCat?.label || cid, sort_order: 0 });
+      }
     }
-    switch (sortBy) {
-      case "price-asc": list.sort((a, b) => a.price - b.price); break;
-      case "price-desc": list.sort((a, b) => b.price - a.price); break;
-      case "newest": list.sort((a, b) => new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime()); break;
-      case "featured": default:
-        list.sort((a, b) => {
-          const ao = (a as any).sort_order ?? 999999;
-          const bo = (b as any).sort_order ?? 999999;
-          return ao - bo;
-        });
+    if (uniqueCats.size === 0 && categories.length > 0) return categories;
+    return Array.from(uniqueCats.values());
+  }, [categories, products]);
+
+  // 🟢 FILTER & SORT LOGIC
+  const filtered = useMemo(() => {
+    let list = products;
+    if (activeCategory !== "all") {
+      list = list.filter((p) => ((p as any).category_id || (p as any).category) === activeCategory);
+    }
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
+    }
+    const sorted = [...list];
+    switch (sort) {
+      case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
+      case "price-desc": sorted.sort((a, b) => b.price - a.price); break;
+      case "name": sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
+      case "new":
+      default:
+        sorted.sort((a, b) => new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime());
         break;
     }
-    return list;
-  }, [products, filterCategory, sortBy]);
+    return sorted;
+  }, [products, activeCategory, query, sort]);
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleOpenProduct = (p: Product) => setOpenProduct(p);
+  const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
+    cart.add(product, qty, variant, unitPrice);
+    setCartOpen(true);
+  };
+
+  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
-  if (!store) return <div className="sf-shell" style={{ display: "grid", placeItems: "center", minHeight: "100vh" }}><h1 className="sf-notfound-title">Store not found</h1></div>;
+  if (error || !store) return <div className="sf-loading">Store not found</div>;
+
+  const brand = splitBrandName(store.name);
+  const tagline = (store as any).tagline || "";
+  const address = (store as any).address || "";
+
+  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
 
   return (
     <div className="sf-shell">
-      {/* HEADER (Matches your screenshot) */}
-      <header style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 40, padding: "24px 32px", display: "flex", justifyContent: "space-between", alignItems: "center", color: "#fff", textShadow: "0 2px 10px rgba(0,0,0,0.3)" }}>
-        <h1 style={{ fontSize: "18px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.14em", margin: 0 }}>
-          {store.name}
-        </h1>
-        <button onClick={() => setCartOpen(true)} style={{ background: "none", border: 0, color: "#fff", cursor: "pointer" }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <path d="M16 10a4 4 0 0 1-8 0"></path>
-          </svg>
-        </button>
+      <header className={headerClasses}>
+        <div className="sf-head-inner">
+          {!searchOpen && (
+            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
+              {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
+              {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
+              {brand.first && <span className="sf-wordmark-dot">.</span>}
+            </button>
+          )}
+          <div className={`sf-head-searchbar ${searchOpen ? "open" : ""}`}>
+            {searchOpen && (
+              <>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+                <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} placeholder="Search products…" autoFocus />
+              </>
+            )}
+          </div>
+          {!searchOpen && <div className="sf-head-spacer" />}
+          {!searchOpen && (
+            <nav className="sf-head-links">
+              <button onClick={() => scrollTo("categories")}>Categories</button>
+              <button onClick={() => scrollTo("shop-all")}>Shop all</button>
+            </nav>
+          )}
+          <div className="sf-head-actions">
+            <button onClick={() => setSearchOpen(!searchOpen)} className="sf-icon-btn" aria-label="Search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            </button>
+            {!searchOpen && (
+              <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+                {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
-      {/* BANNER */}
-      <div className="sf-banner">
-        {store.cover_url ? (
-          <img src={store.cover_url} alt={store.name} />
-        ) : (
-          <div style={{ width: "100%", height: "100%", background: "var(--mat)" }} />
-        )}
-        <div className="sf-banner-overlay" />
-        <div className="sf-banner-text">
-          <h2 className="sf-banner-tagline">
-            {(store as any).tagline || "Discover your new favourites."}
-          </h2>
-          <button className="sf-banner-cta" onClick={() => document.getElementById("shop-all")?.scrollIntoView({ behavior: "smooth" })}>
-            Shop Now
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-          </button>
-        </div>
-      </div>
-
-      {/* CATEGORIES */}
-      {categories.length > 0 && (
-        <section className="sf-section">
-          <div className="sf-section-head-center">
-            <p className="sf-section-eyebrow">Explore</p>
-            <h2 className="sf-section-title-center">Shop by category</h2>
-          </div>
-          <div className={`sf-cat-grid sf-cat-count-${Math.min(categories.length, 4)}`}>
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                className="sf-cat-tile"
-                onClick={() => {
-                  setFilterCategory(cat.id);
-                  document.getElementById("shop-all")?.scrollIntoView({ behavior: "smooth" });
-                }}
-              >
-                {/* 🟢 FIX: Strictly uses the image saved in settings. No fallbacks. */}
-                {cat.image ? (
-                  <img src={cat.image} alt={cat.label} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", background: "var(--mat)" }} />
-                )}
-                <div className="sf-cat-tile-overlay" />
-                <div className="sf-cat-tile-content">
-                  <span className="sf-cat-tile-name">{cat.label}</span>
-                  <span className="sf-cat-arrow">→</span>
-                </div>
-              </button>
-            ))}
+      {/* 🟢 SINGLE BANNER (No default images) */}
+      {store?.cover_url && (
+        <section className="sf-banner">
+          <img src={store.cover_url} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <div className="sf-banner-overlay" />
+          <div className="sf-banner-text">
+            <h1 className="sf-banner-tagline">{tagline || titleCase(store.name)}</h1>
+            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta">
+              Shop now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
           </div>
         </section>
       )}
 
-      {/* PRODUCT GRID */}
-      <section id="shop-all" className="sf-section">
+      {/* 🟢 CATEGORIES (2 per row mobile) */}
+      {usedCategories.length > 0 && (
+        <section className="sf-section" id="categories">
+          <div className="sf-section-head-center">
+            <span className="sf-section-eyebrow">Explore</span>
+            <h2 className="sf-section-title-center">Shop by category</h2>
+          </div>
+          <div className="sf-cat-grid">
+            {usedCategories.map((c, i) => {
+              // 🟢 STRICT FIX: Only uses the saved category image. No product fallbacks.
+              const img = categoryImages[c.id];
+              const active = activeCategory === c.id;
+              return (
+                <button key={c.id} onClick={() => { setActiveCategory(active ? "all" : c.id); setCurrentPage(1); scrollTo("shop-all"); }} className={`sf-cat-tile ${active ? "on" : ""}`}>
+                  {img ? <img src={img} alt={c.label} loading="lazy" /> : <div className="sf-cat-tile-placeholder">{c.label.charAt(0)}</div>}
+                  <div className="sf-cat-tile-overlay" />
+                  <div className="sf-cat-tile-content">
+                    <div className="sf-cat-tile-name">{titleCase(c.label)}</div>
+                    <span className="sf-cat-arrow">→</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 🟢 SHOP ALL */}
+      <section className="sf-section" id="shop-all">
         <div className="sf-section-head">
           <div>
-            <p className="sf-section-eyebrow">Catalogue</p>
-            <h2 className="sf-section-title">Shop all</h2>
+            <h2 className="sf-section-title">{activeCategory === "all" ? (query ? `Results for "${query}"` : "Shop all") : titleCase(getCategoryLabel(categories, activeCategory))}</h2>
           </div>
         </div>
 
-        {/* FILTERS */}
+        {/* 🟢 FILTER & SORT DROPDOWNS (Side by side) */}
         <div className="sf-filter-bar">
           <div className="sf-filter-group">
-            <select className="sf-select" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-              <option value="featured">Sort: Featured</option>
+            <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
+              <option value="new">Sort: Newest</option>
               <option value="price-asc">Price: Low to High</option>
               <option value="price-desc">Price: High to Low</option>
-              <option value="newest">Newest Arrivals</option>
+              <option value="name">Name: A-Z</option>
             </select>
 
-            <select className="sf-select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
+            <select className="sf-select" value={activeCategory} onChange={(e) => { setActiveCategory(e.target.value); setCurrentPage(1); }}>
               <option value="all">All Categories</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
@@ -166,68 +319,87 @@ export default function Storefront() {
           </div>
         </div>
 
-        {displayedProducts.length === 0 ? (
-          <div className="sf-empty">
-            <h3 className="sf-empty-title">No products found</h3>
-            <p style={{ color: "var(--muted)" }}>Try changing the filter or category.</p>
-          </div>
+        {paginatedProducts.length === 0 ? (
+          <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
-          <div className="sf-grid-all">
-            {displayedProducts.map((p, i) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                index={i}
-                onClick={() => setSelectedProduct(p)}
-                onAddToCart={() => {
-                  addToCart(p, 1, undefined, 0);
-                  setCartOpen(true);
-                }}
-              />
-            ))}
-          </div>
+          <>
+            <div className="sf-grid-all">
+              {paginatedProducts.map((p, i) => (
+                <ProductCard key={p.id} product={p} index={i} priority={i < 4} onClick={() => handleOpenProduct(p)} onAddToCart={() => handleAddToCart(p, 1, null, p.price)} />
+              ))}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="sf-pagination">
+                <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollTo("shop-all"); }}>Next</button>
+              </div>
+            )}
+          </>
         )}
       </section>
 
-      {/* FOOTER (Matches your screenshot) */}
-      <footer className="sf-footer">
+      {/* 🟢 FOOTER (Charcoal, Icons, Tagline, Green Bag) */}
+      <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
-          <div className="sf-footer-top" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", borderBottom: "1px solid rgba(255,255,255,0.1)", paddingBottom: "40px" }}>
-             <span className="sf-footer-brand">
-                <span className="sf-footer-brand-1">{store.name}</span>
-                <span className="sf-footer-brand-dot">.</span>
-              </span>
-              <p className="sf-footer-bio" style={{ marginTop: "8px" }}>
-                {(store as any).tagline || "Quality wears always"}
-              </p>
+          <div className="sf-footer-top">
+            <div className="sf-footer-brand-col">
+              <div className="sf-footer-brand">
+                {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
+                {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
+                {brand.first && <span className="sf-footer-brand-dot">.</span>}
+              </div>
+              <p className="sf-footer-bio">{tagline || "Curated essentials for the modern wardrobe."}</p>
+            </div>
+            <div className="sf-footer-col">
+              <h4 className="sf-footer-h">Shop</h4>
+              <ul>
+                <li><button onClick={() => scrollTo("categories")}>Categories</button></li>
+                <li><button onClick={() => scrollTo("shop-all")}>Shop all</button></li>
+              </ul>
+            </div>
+            <div className="sf-footer-col">
+              <h4 className="sf-footer-h">Contact</h4>
+              <div className="sf-footer-icons">
+                {store.whatsapp && (
+                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
+                  </a>
+                )}
+                {store.instagram && (
+                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="Instagram">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none" /></svg>
+                  </a>
+                )}
+                {store.tiktok && (
+                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="TikTok">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>
+                  </a>
+                )}
+              </div>
+              {address && <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" className="sf-contact-address">{address}</a>}
+            </div>
           </div>
           <div className="sf-footer-bot">
-            <p className="sf-footer-copyright">© {new Date().getFullYear()} {store.name}. All rights reserved.</p>
-            <a href="https://biomart.pages.dev" target="_blank" rel="noreferrer" className="sf-footer-pow">
-              Powered by Biomart
+            <span className="sf-footer-copyright">© 2026 {titleCase(store.name)}</span>
+            <a href="https://biomart.com" target="_blank" rel="noopener" className="sf-footer-pow">
+              <svg viewBox="0 0 60 64" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+              Powered by biomart
             </a>
           </div>
         </div>
       </footer>
 
-      {/* FLOATING WHATSAPP */}
-      <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="sf-floating-wa">
-        <svg viewBox="0 0 24 24">
-          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
-        </svg>
+      {/* 🟢 FLOATING WHATSAPP */}
+      <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}?text=Hi, I have a question about your store.`} target="_blank" rel="noopener" className="sf-floating-wa" aria-label="Chat on WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
+        Chat with us
       </a>
 
-      {selectedProduct && (
-        <ProductModal
-          product={selectedProduct}
-          products={products}
-          store={store}
-          onClose={() => setSelectedProduct(null)}
-          onAddToCart={(qty, variant, delta) => addToCart(selectedProduct, qty, variant, delta)}
-          onOpenProduct={(p) => setSelectedProduct(p)}
-        />
+      {openProduct && (
+        <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0))} onOpenProduct={(p) => handleOpenProduct(p)} />
       )}
-
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
