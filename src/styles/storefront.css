@@ -387,12 +387,13 @@
 
 .sf-cat-tile {
   position: relative;
-  aspect-ratio: 4 / 4.5;
+  /* 🟢 Remove aspect-ratio and use padding hack for perfect mobile support */
+  padding-top: 110%; /* This creates a perfect aspect ratio that never fails */
   border-radius: 0;
   overflow: hidden;
   background: var(--mat);
   cursor: pointer;
-  border: 0; padding: 0;
+  border: 0;
   display: block; 
   width: 100%;
   transition: transform 0.4s var(--spring);
@@ -407,7 +408,9 @@
 
 .sf-cat-tile img {
   position: absolute; inset: 0;
-  width: 100%; height: 100%; object-fit: cover;
+  width: 100%; height: 100%; 
+  object-fit: cover;
+  display: block; /* 🟢 Forces the image to render on mobile */
   transition: transform 0.7s var(--ease);
 }
 .sf-cat-tile:hover img { transform: scale(1.05); }
