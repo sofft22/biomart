@@ -380,50 +380,7 @@ export default function Storefront() {
         </div>
       </section>
 
-      {/* ═══ NEW ARRIVALS ═══ */}
-      {newArrivals.length > 0 && (
-        <section className="sf-section" id="new-arrivals">
-          <div className="sf-section-head">
-            <div data-reveal>
-              <span className="sf-section-eyebrow">New</span>
-              <h2 className="sf-section-title">New arrivals</h2>
-            </div>
-            <button
-              data-reveal
-              onClick={() => scrollTo("shop-all")}
-              className="sf-section-link"
-            >
-              See all
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="sf-grid-4">
-            {newArrivals.map((p, i) => (
-              <div
-                key={p.id}
-                data-reveal
-                style={{ transitionDelay: `${i * 80}ms` }}
-              >
-                <ProductCard
-                  product={p}
-                  index={i}
-                  priority={i < 4}
-                  showNew
-                  onClick={() => handleOpenProduct(p)}
-                  onAddToCart={() => handleAddToCart(p, 1, null, p.price)}
-                />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {newArrivals.length > 0 && usedCategories.length > 0 && (
-        <div className="sf-divider" data-reveal aria-hidden="true" />
-      )}
+      
 
       {/* ═══ CATEGORIES ═══ */}
       {usedCategories.length > 0 && (
