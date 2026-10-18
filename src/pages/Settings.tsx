@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 import DashboardLayout from "../components/DashboardLayout";
@@ -8,7 +8,6 @@ import {
   addCategory,
   updateCategory,
   removeCategory,
-  reorderCategories,
   setCategoryImage,
   removeCategoryImage,
 } from "../lib/storeData";
@@ -16,19 +15,14 @@ import type { Category } from "../types";
 
 type CatWithImg = Category & { image?: string };
 
-const DEFAULT_BANNER =
-  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85&auto=format&fit=crop";
-
-const LONG_PRESS_MS = 500;
-
-function titleCase(s: string): string {
-  return (s || "").replace(/\b\p{L}/gu, (c) => c.toUpperCase());
-}
+const DEFAULT_BANNER = "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85&auto=format&fit=crop";
 
 export default function Settings() {
   const { store, refresh } = useAuth();
   const toast = useToast();
 
+  const [isEditing, setIsEditing] = useState(false);
+  
   const [name, setName] = useState(store?.name ?? "");
   const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
   const [address, setAddress] = useState((store as any)?.address ?? "");
@@ -42,18 +36,9 @@ export default function Settings() {
 
   const [categories, setCategories] = useState<CatWithImg[]>([]);
   const [newCatName, setNewCatName] = useState("");
-  const [newCatImage, setNewCatImage] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; label: string } | null>(null);
-
-  /* Drag state */
-  const [pickedId, setPickedId] = useState<string | null>(null);
-  const [pickedOverId, setPickedOverId] = useState<string | null>(null);
-  const longPressTimer = useRef<number | null>(null);
-  const touchStartY = useRef<number>(0);
-  const listRef = useRef<HTMLUListElement | null>(null);
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
+  const [editingCatName, setEditingCatName] = useState("");
+  const [uploadingCatId, setUploadingCatId] = useState<string | null>(null);
 
   const refreshCategories = () => {
     if (!store?.slug) return;
@@ -89,7 +74,8 @@ export default function Settings() {
         instagram: instagram.trim() || null,
         tiktok: tiktok.trim() || null,
       } as any);
-      await refresh();
+      await refresh(true);
+      setIsEditing(false);
       toast.show("Saved");
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Could not save");
@@ -103,7 +89,7 @@ export default function Settings() {
       const url = await uploadImage(file);
       setBannerUrl(url);
       await storeApi.update({ cover_url: url } as any);
-      await refresh();
+      await refresh(true);
       toast.show("Banner updated");
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Upload failed");
@@ -115,7 +101,7 @@ export default function Settings() {
     setBannerUrl("");
     try {
       await storeApi.update({ cover_url: null } as any);
-      await refresh();
+      await refresh(true);
       toast.show("Banner removed");
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Could not remove");
@@ -125,37 +111,28 @@ export default function Settings() {
   const handleAddCategory = async () => {
     const result = addCategory(store.slug, newCatName);
     if (!result.ok) return toast.show(result.error);
-    if (newCatImage && result.category) {
-      try {
-        const url = await uploadImage(dataUrlToBlob(newCatImage));
-        setCategoryImage(store.slug, result.category.id, url);
-      } catch {}
-    }
     setNewCatName("");
-    setNewCatImage(null);
     refreshCategories();
     toast.show("Category added");
   };
 
-  const handleRename = (id: string) => {
-    const result = updateCategory(store.slug, id, editingName);
+  const handleRenameCategory = (id: string) => {
+    const result = updateCategory(store.slug, id, editingCatName);
     if (!result.ok) return toast.show(result.error);
-    setEditingId(null);
-    setEditingName("");
+    setEditingCatId(null);
     refreshCategories();
     toast.show("Renamed");
   };
 
-  const handleDeleteCategory = () => {
-    if (!confirmDelete) return;
-    removeCategory(store.slug, confirmDelete.id);
+  const handleDeleteCategory = (id: string, label: string) => {
+    if (!confirm(`Delete "${label}"?`)) return;
+    removeCategory(store.slug, id);
     refreshCategories();
-    setConfirmDelete(null);
     toast.show("Category deleted");
   };
 
-  const handleCategoryImage = async (id: string, file: File) => {
-    setUploadingId(id);
+  const handleCatImage = async (id: string, file: File) => {
+    setUploadingCatId(id);
     try {
       const url = await uploadImage(file);
       setCategoryImage(store.slug, id, url);
@@ -164,429 +141,172 @@ export default function Settings() {
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Upload failed");
     }
-    setUploadingId(null);
-  };
-
-  const handleRemoveCategoryImage = (id: string) => {
-    removeCategoryImage(store.slug, id);
-    refreshCategories();
-    toast.show("Image removed");
-  };
-
-  /* Drag reorder */
-  const persistOrder = (list: CatWithImg[]) => {
-    reorderCategories(store.slug, list.map((c, i) => ({ ...c, sort_order: i })));
-    refreshCategories();
-  };
-
-  const applyMove = (fromId: string, toId: string) => {
-    if (!fromId || !toId || fromId === toId) return;
-    const list = [...categories];
-    const fromIdx = list.findIndex((c) => c.id === fromId);
-    const toIdx = list.findIndex((c) => c.id === toId);
-    if (fromIdx < 0 || toIdx < 0) return;
-    const [moved] = list.splice(fromIdx, 1);
-    list.splice(toIdx, 0, moved);
-    setCategories(list);
-    persistOrder(list);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent, id: string) => {
-    if (editingId) return;
-    touchStartY.current = e.touches[0].clientY;
-    if (longPressTimer.current) window.clearTimeout(longPressTimer.current);
-    longPressTimer.current = window.setTimeout(() => {
-      setPickedId(id);
-      setPickedOverId(id);
-      if (navigator.vibrate) navigator.vibrate(15);
-    }, LONG_PRESS_MS);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (longPressTimer.current && !pickedId) {
-      const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
-      if (dy > 5) {
-        window.clearTimeout(longPressTimer.current);
-        longPressTimer.current = null;
-      }
-    }
-    if (!pickedId) return;
-    e.preventDefault();
-    const y = e.touches[0].clientY;
-    const rows = listRef.current?.querySelectorAll("[data-cat-id]");
-    if (!rows) return;
-    let targetId: string | null = null;
-    rows.forEach((el) => {
-      const rect = (el as HTMLElement).getBoundingClientRect();
-      if (y >= rect.top && y <= rect.bottom) {
-        targetId = (el as HTMLElement).dataset.catId ?? null;
-      }
-    });
-    if (targetId && targetId !== pickedOverId) setPickedOverId(targetId);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      window.clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-    if (pickedId && pickedOverId && pickedId !== pickedOverId) {
-      applyMove(pickedId, pickedOverId);
-    }
-    setPickedId(null);
-    setPickedOverId(null);
+    setUploadingCatId(null);
   };
 
   const displayBanner = bannerUrl || DEFAULT_BANNER;
 
   return (
     <DashboardLayout>
-      <div className="dash-head" style={{ padding: 0 }}>
-        <p className="dash-head-eyebrow">Settings</p>
-        <h1 className="dash-title">
-          Your <em>store</em>.
-        </h1>
+      <div className="dash-head" style={{ padding: 0, display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <p className="dash-head-eyebrow">Settings</p>
+          <h1 className="dash-title">Your <em>store</em>.</h1>
+        </div>
+        {!isEditing && (
+          <button onClick={() => setIsEditing(true)} className="dash-btn dash-btn-dark">
+            Edit Store Info
+          </button>
+        )}
       </div>
 
-      {/* ═══════ STORE ═══════ */}
-      <section className="set-section">
-        <h2 className="set-title">Store</h2>
-
-        <div className="set-banner">
-          <img src={displayBanner} alt="Store banner" />
-          <div className="set-banner-actions">
-            <label className="set-banner-btn">
-              {uploadingBanner ? (
-                <div className="dash-spinner dash-spinner-sm" />
-              ) : (
-                <>
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                  </svg>
-                  Change
-                </>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                disabled={uploadingBanner}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleUploadBanner(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-            {bannerUrl && (
-              <button type="button" onClick={handleRemoveBanner} className="set-banner-btn danger">
-                Remove
+      {/* ═══════ STORE INFO ═══════ */}
+      <section className="set-section" style={{ paddingTop: 0 }}>
+        {!isEditing ? (
+          /* 🟢 READ-ONLY VIEW */
+          <div style={{ display: "grid", gap: "24px", marginTop: "24px" }}>
+            <div>
+              <span className="set-label">Store Name</span>
+              <p style={{ fontSize: "18px", fontWeight: 600, margin: "8px 0 0" }}>{name || "—"}</p>
+            </div>
+            <div>
+              <span className="set-label">Tagline</span>
+              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{tagline || "—"}</p>
+            </div>
+            <div>
+              <span className="set-label">Address</span>
+              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{address || "—"}</p>
+            </div>
+            <div>
+              <span className="set-label">WhatsApp</span>
+              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{whatsapp || "—"}</p>
+            </div>
+            <div>
+              <span className="set-label">Instagram</span>
+              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{instagram ? `@${instagram}` : "—"}</p>
+            </div>
+            <div>
+              <span className="set-label">TikTok</span>
+              <p style={{ fontSize: "16px", margin: "8px 0 0", color: "var(--muted)" }}>{tiktok ? `@${tiktok}` : "—"}</p>
+            </div>
+          </div>
+        ) : (
+          /* 🟢 EDIT VIEW */
+          <>
+            <div className="set-fields">
+              <div className="set-field">
+                <label className="set-label">Store name</label>
+                <input className="set-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Adaeze's Closet" maxLength={60} />
+              </div>
+              <div className="set-field">
+                <label className="set-label">Tagline</label>
+                <input className="set-input" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="Where Lagos style meets everyday luxury" maxLength={100} />
+              </div>
+              <div className="set-field">
+                <label className="set-label">Address</label>
+                <input className="set-input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="12 Admiralty Way, Lekki, Lagos" />
+              </div>
+              <div className="set-field">
+                <label className="set-label">WhatsApp</label>
+                <input className="set-input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="08012345678" inputMode="tel" />
+              </div>
+              <div className="set-field">
+                <label className="set-label">Instagram</label>
+                <div className="set-input-prefixed">
+                  <span className="set-prefix">@</span>
+                  <input className="set-input" value={instagram} onChange={(e) => setInstagram(e.target.value.replace(/^@/, ""))} placeholder="adaezescloset" />
+                </div>
+              </div>
+              <div className="set-field">
+                <label className="set-label">TikTok</label>
+                <div className="set-input-prefixed">
+                  <span className="set-prefix">@</span>
+                  <input className="set-input" value={tiktok} onChange={(e) => setTiktok(e.target.value.replace(/^@/, ""))} placeholder="adaezescloset" />
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
+              <button onClick={handleSaveStore} disabled={saving} className="dash-btn dash-btn-dark">
+                {saving ? "Saving…" : "Save Changes"}
               </button>
-            )}
-          </div>
-        </div>
-
-        <div className="set-fields">
-          <div className="set-field">
-            <label className="set-label">Store name</label>
-            <input
-              className="set-input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Adaeze's Closet"
-              maxLength={60}
-            />
-          </div>
-
-          <div className="set-field">
-            <label className="set-label">Tagline</label>
-            <input
-              className="set-input"
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-              placeholder="Where Lagos style meets everyday luxury"
-              maxLength={100}
-            />
-          </div>
-
-          <div className="set-field">
-            <label className="set-label">Address</label>
-            <input
-              className="set-input"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder="12 Admiralty Way, Lekki, Lagos"
-            />
-          </div>
-
-          <div className="set-field">
-            <label className="set-label">WhatsApp</label>
-            <input
-              className="set-input"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="08012345678"
-              inputMode="tel"
-            />
-          </div>
-
-          <div className="set-field">
-            <label className="set-label">Instagram</label>
-            <div className="set-input-prefixed">
-              <span className="set-prefix">@</span>
-              <input
-                className="set-input"
-                value={instagram}
-                onChange={(e) => setInstagram(e.target.value.replace(/^@/, ""))}
-                placeholder="adaezescloset"
-              />
+              <button onClick={() => setIsEditing(false)} className="dash-btn dash-btn-line">
+                Cancel
+              </button>
             </div>
-          </div>
-
-          <div className="set-field">
-            <label className="set-label">TikTok</label>
-            <div className="set-input-prefixed">
-              <span className="set-prefix">@</span>
-              <input
-                className="set-input"
-                value={tiktok}
-                onChange={(e) => setTiktok(e.target.value.replace(/^@/, ""))}
-                placeholder="adaezescloset"
-              />
-            </div>
-          </div>
-        </div>
-
-        <button onClick={handleSaveStore} disabled={saving} className="set-save">
-          {saving ? "Saving…" : "Save changes"}
-        </button>
+          </>
+        )}
       </section>
 
-      {/* ═══════ CATEGORIES ═══════ */}
+      {/* ═══════ BANNER (Compact) ═══════ */}
+      <section className="set-section">
+        <h2 className="set-title">Store Banner</h2>
+        <div className="set-banner" style={{ maxHeight: "200px" }}>
+          <img src={displayBanner} alt="Store banner" style={{ objectFit: "cover" }} />
+          <div className="set-banner-actions">
+            <label className="set-banner-btn">
+              {uploadingBanner ? <div className="dash-spinner dash-spinner-sm" /> : "Change"}
+              <input type="file" accept="image/*" hidden disabled={uploadingBanner} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadBanner(f); e.target.value = ""; }} />
+            </label>
+            {bannerUrl && <button type="button" onClick={handleRemoveBanner} className="set-banner-btn danger">Remove</button>}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════ CATEGORIES (Pill Grid) ═══════ */}
       <section className="set-section">
         <h2 className="set-title">Categories</h2>
-
+        
         <div className="set-cat-add">
-          <label className="set-cat-add-photo">
-            {newCatImage ? (
-              <img src={newCatImage} alt="" />
-            ) : (
-              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                const r = new FileReader();
-                r.onload = () => setNewCatImage(String(r.result));
-                r.readAsDataURL(f);
-                e.target.value = "";
-              }}
-            />
-          </label>
-          <input
-            className="set-cat-add-input"
-            placeholder="New category"
-            value={newCatName}
-            onChange={(e) => setNewCatName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }}
-            maxLength={30}
-          />
-          <button
-            className="set-cat-add-btn"
-            type="button"
-            disabled={!newCatName.trim()}
-            onClick={handleAddCategory}
-          >
-            Add
-          </button>
+          <input className="set-cat-add-input" placeholder="New category" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") handleAddCategory(); }} maxLength={30} />
+          <button className="set-cat-add-btn" type="button" disabled={!newCatName.trim()} onClick={handleAddCategory}>Add</button>
         </div>
 
         {categories.length === 0 ? (
           <p className="set-empty">No categories yet.</p>
         ) : (
-          <ul ref={listRef} className="set-cat-list">
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", marginTop: "16px" }}>
             {categories.map((c) => {
-              const isEditing = editingId === c.id;
-              const busy = uploadingId === c.id;
-              const isPicked = pickedId === c.id;
-              const isPickedOver = pickedOverId === c.id && pickedId && pickedId !== c.id;
-
+              const isEditing = editingCatId === c.id;
+              const busy = uploadingCatId === c.id;
+              
               return (
-                <li
-                  key={c.id}
-                  data-cat-id={c.id}
-                  onTouchStart={(e) => handleTouchStart(e, c.id)}
-                  onTouchMove={handleTouchMove}
-                  onTouchEnd={handleTouchEnd}
-                  className={`set-cat-row ${isPicked ? "picked" : ""} ${isPickedOver ? "over" : ""}`}
-                >
-                  <div className="set-cat-row-img">
-                    {c.image ? (
-                      <>
-                        <img src={c.image} alt={c.label} />
-                        <button
-                          type="button"
-                          className="set-cat-row-img-x"
-                          onClick={() => handleRemoveCategoryImage(c.id)}
-                          aria-label="Remove image"
-                        >
-                          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                            <path d="M6 6l12 12M18 6L6 18" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <label className="set-cat-row-img-add">
-                        {busy ? (
-                          <div className="dash-spinner dash-spinner-sm" />
-                        ) : (
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">
-                            <path d="M12 5v14M5 12h14" />
-                          </svg>
-                        )}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          hidden
-                          disabled={busy}
-                          onChange={(e) => {
-                            const f = e.target.files?.[0];
-                            if (f) handleCategoryImage(c.id, f);
-                            e.target.value = "";
-                          }}
-                        />
-                      </label>
-                    )}
-                  </div>
+                <div key={c.id} style={{ display: "flex", alignItems: "center", background: "var(--card)", border: "1px solid var(--line)", padding: "8px 16px", borderRadius: "99px", gap: "12px" }}>
+                  {/* Category Image / Placeholder */}
+                  <label style={{ width: "24px", height: "24px", borderRadius: "50%", overflow: "hidden", background: "var(--mat)", display: "grid", placeItems: "center", cursor: "pointer", flexShrink: 0 }}>
+                    {c.image ? <img src={c.image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <span style={{ fontSize: "10px", fontWeight: 700 }}>{c.label.charAt(0)}</span>}
+                    <input type="file" accept="image/*" hidden disabled={busy} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCatImage(c.id, f); e.target.value = ""; }} />
+                  </label>
 
-                  <div className="set-cat-row-name">
-                    {isEditing ? (
-                      <input
-                        className="set-cat-row-input"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") handleRename(c.id);
-                          if (e.key === "Escape") { setEditingId(null); setEditingName(""); }
-                        }}
-                        autoFocus
-                      />
-                    ) : (
-                      <span className="set-cat-row-label">{titleCase(c.label)}</span>
-                    )}
-                  </div>
+                  {/* Category Name */}
+                  {isEditing ? (
+                    <input 
+                      autoFocus
+                      value={editingCatName} 
+                      onChange={(e) => setEditingCatName(e.target.value)} 
+                      onKeyDown={(e) => { if (e.key === "Enter") handleRenameCategory(c.id); if (e.key === "Escape") setEditingCatId(null); }}
+                      onBlur={() => handleRenameCategory(c.id)}
+                      style={{ background: "transparent", border: "none", outline: "none", fontSize: "14px", fontWeight: 600, width: "100px" }}
+                    />
+                  ) : (
+                    <span style={{ fontSize: "14px", fontWeight: 600 }}>{c.label}</span>
+                  )}
 
-                  <div className="set-cat-row-actions">
-                    {isEditing ? (
-                      <>
-                        <button
-                          type="button"
-                          className="set-cat-act primary"
-                          onClick={() => handleRename(c.id)}
-                          aria-label="Save"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12.5l4.5 4.5L19 7.5" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          className="set-cat-act"
-                          onClick={() => { setEditingId(null); setEditingName(""); }}
-                          aria-label="Cancel"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                            <path d="M6 6l12 12M18 6L6 18" />
-                          </svg>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          type="button"
-                          className="set-cat-act"
-                          onClick={() => { setEditingId(c.id); setEditingName(c.label); }}
-                          aria-label="Rename"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M12 20h9" />
-                            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-                          </svg>
-                        </button>
-                        <button
-                          type="button"
-                          className="set-cat-act danger"
-                          onClick={() => setConfirmDelete({ id: c.id, label: c.label })}
-                          aria-label="Delete"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                          </svg>
-                        </button>
-                      </>
-                    )}
+                  {/* Actions */}
+                  <div style={{ display: "flex", gap: "8px", marginLeft: "8px", borderLeft: "1px solid var(--line)", paddingLeft: "12px" }}>
+                    <button onClick={() => { setEditingCatId(c.id); setEditingCatName(c.label); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)" }}>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+                    </button>
+                    <button onClick={() => handleDeleteCategory(c.id, c.label)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--danger)" }}>
+                      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg>
+                    </button>
                   </div>
-                </li>
+                </div>
               );
             })}
-          </ul>
+          </div>
         )}
       </section>
 
-      {/* ═══════ DANGER ═══════ */}
-      <section className="set-section">
-        <h2 className="set-title">Danger zone</h2>
-        <div className="set-danger-row">
-          <div>
-            <p className="set-danger-title">Delete store</p>
-            <p className="set-danger-sub">Removes every product and cancels your plan.</p>
-          </div>
-          <button
-            type="button"
-            className="set-danger-btn"
-            onClick={() => toast.show("Contact support to delete")}
-          >
-            Delete
-          </button>
-        </div>
-      </section>
-
-      {confirmDelete && (
-        <div
-          className="set-confirm-backdrop"
-          onClick={(e) => { if (e.target === e.currentTarget) setConfirmDelete(null); }}
-        >
-          <div className="set-confirm">
-            <h3 className="set-confirm-title">Delete "{titleCase(confirmDelete.label)}"?</h3>
-            <p className="set-confirm-sub">Products in this category won't be deleted.</p>
-            <div className="set-confirm-actions">
-              <button className="set-confirm-btn ghost" onClick={() => setConfirmDelete(null)}>
-                Cancel
-              </button>
-              <button className="set-confirm-btn danger" onClick={handleDeleteCategory}>
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
-}
-
-function dataUrlToBlob(dataUrl: string): Blob {
-  const [meta, b64] = dataUrl.split(",");
-  const mime = /:(.*?);/.exec(meta)?.[1] ?? "image/jpeg";
-  const bin = atob(b64);
-  const len = bin.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = bin.charCodeAt(i);
-  return new Blob([bytes], { type: mime });
 }
