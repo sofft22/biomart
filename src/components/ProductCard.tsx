@@ -32,6 +32,12 @@ export const ProductCard = memo(function ProductCard({
   const altText = `${product.name} — biomart`;
   const inStock = (product as any).inStock ?? (product as any).in_stock ?? true;
 
+  // 🟢 Calculate Discount
+  const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
+  const discountPercent = hasDiscount
+    ? Math.round(((product.compare_at_price! - product.price) / product.compare_at_price!) * 100)
+    : 0;
+
   const handleQuickAction = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (hasVariants) onClick();
@@ -60,7 +66,6 @@ export const ProductCard = memo(function ProductCard({
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
               onLoad={() => setImgLoaded(true)}
-              // 🟢 Added 'has-second' logic for hover
               className={`pc-img pc-img-swap ${imgLoaded ? 'is-loaded' : ''} ${hasSecondImage ? 'has-second' : ''}`}
             />
           )}
@@ -103,9 +108,13 @@ export const ProductCard = memo(function ProductCard({
           )}
         </div>
 
-        {showNew && (
+        {/* 🟢 Badges Section: Shows New OR Discount (and hides if Sold Out) */}
+        {inStock && (
           <div className="pc-badges">
-            <span className="pc-badge">New</span>
+            {showNew && <span className="pc-badge">New</span>}
+            {hasDiscount && (
+              <span className="pc-badge pc-badge-discount">-{discountPercent}%</span>
+            )}
           </div>
         )}
 
@@ -124,10 +133,16 @@ export const ProductCard = memo(function ProductCard({
         )}
       </button>
 
-      {/* 🟢 Reduced gap via inline style for firmness */}
       <button onClick={onClick} className="pc-meta" style={{ marginTop: 8 }}>
-        <p className="pc-name">{product.name}</p>
+        {/* 🟢 Capitalized Name */}
+        <p className="pc-name" style={{ textTransform: 'capitalize' }}>
+          {product.name}
+        </p>
         <div className="pc-price-row" style={{ marginTop: 2 }}>
+          {/* 🟢 Show Old Price crossed out if there's a discount */}
+          {hasDiscount && (
+            <span className="pc-price-old">{naira(product.compare_at_price!)}</span>
+          )}
           <span className="pc-price">{naira(product.price)}</span>
         </div>
       </button>
