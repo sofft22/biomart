@@ -13,11 +13,8 @@ import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
 
-// 🟢 Forces the first letter of every word to be uppercase
 function titleCase(s: string): string {
-  return (s || "")
-    .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return (s || "").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function splitBrandName(name: string): { first: string; second: string } {
@@ -147,27 +144,18 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query]);
 
-  // 🟢 Category images now fallback to product image
+  // 🟢 FIXED: Always filter categories based on products attached to them
   const usedCategories = useMemo(() => {
-    const uniqueCats = new Map<string, Category>();
-    
+    if (categories.length === 0) return [];
+    if (products.length === 0) return categories;
+
+    const usedIds = new Set<string>();
     for (const p of products) {
       const cid = (p as any).category_id || (p as any).category;
-      if (cid && !uniqueCats.has(cid)) {
-        const existingCat = categories.find((c) => c.id === cid);
-        uniqueCats.set(cid, {
-          id: cid,
-          label: existingCat?.label || cid, 
-          sort_order: 0
-        });
-      }
+      if (cid) usedIds.add(cid);
     }
-    
-    if (uniqueCats.size === 0 && categories.length > 0) {
-      return categories;
-    }
-    
-    return Array.from(uniqueCats.values());
+
+    return categories.filter((c) => usedIds.has(c.id));
   }, [categories, products]);
 
   const newArrivals = useMemo(() => {
@@ -280,6 +268,7 @@ export default function Storefront() {
   const catCount = Math.min(usedCategories.length, 5);
   const showFilters = usedCategories.length > 0;
 
+  // 🟢 FEATURED LOGIC
   const featuredProduct = products[0];
 
   return (
@@ -438,7 +427,6 @@ export default function Storefront() {
 
           <div className={`sf-cat-grid sf-cat-count-${catCount}`}>
             {usedCategories.map((c, i) => {
-              // 🟢 FALLBACK LOGIC: Image from settings OR fallback to first product image
               const img = categoryImages[c.id] || products.find(p => (p.category_id || p.category) === c.id)?.image_url;
               const active = activeCategory === c.id;
               return (
@@ -470,7 +458,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* ═══ FEATURED PRODUCT ═══ */}
+      {/* ═══ FEATURED PRODUCT (Full width mobile, Side-by-side desktop) ═══ */}
       {featuredProduct && (
         <>
           <div className="sf-divider" data-reveal aria-hidden="true" />
