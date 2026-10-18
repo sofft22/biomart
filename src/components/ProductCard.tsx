@@ -11,7 +11,6 @@ interface Props {
   index?: number;
 }
 
-// 🟢 Optimization: Wrapped in memo() to stop unnecessary re-renders
 export const ProductCard = memo(function ProductCard({
   product,
   onClick,
@@ -49,12 +48,7 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <article className="pc" style={{ animationDelay: `${delay}s` }}>
-      <button 
-        onClick={onClick} 
-        className="pc-media" 
-        style={{ backgroundColor: 'var(--bg)' }} // 🟢 Match store background
-        aria-label={`View ${product.name}`}
-      >
+      <button onClick={onClick} className="pc-media" aria-label={`View ${product.name}`}>
         {!imgLoaded && images.length > 0 && <div className="pc-skeleton" />}
 
         <div className="pc-desktop">
@@ -66,7 +60,8 @@ export const ProductCard = memo(function ProductCard({
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
               onLoad={() => setImgLoaded(true)}
-              className={`pc-img pc-img-swap ${imgLoaded ? 'is-loaded' : ''}`}
+              // 🟢 Added 'has-second' logic for hover
+              className={`pc-img pc-img-swap ${imgLoaded ? 'is-loaded' : ''} ${hasSecondImage ? 'has-second' : ''}`}
             />
           )}
           {hasSecondImage && (
@@ -97,9 +92,7 @@ export const ProductCard = memo(function ProductCard({
               ))}
             </div>
           ) : (
-            <div className="pc-no-image" style={{ backgroundColor: 'var(--bg)' }}>
-              No image
-            </div>
+            <div className="pc-no-image">No image</div>
           )}
           {hasSecondImage && (
             <div className="pc-dots">
@@ -131,9 +124,10 @@ export const ProductCard = memo(function ProductCard({
         )}
       </button>
 
-      <button onClick={onClick} className="pc-meta">
+      {/* 🟢 Reduced gap via inline style for firmness */}
+      <button onClick={onClick} className="pc-meta" style={{ marginTop: 8 }}>
         <p className="pc-name">{product.name}</p>
-        <div className="pc-price-row">
+        <div className="pc-price-row" style={{ marginTop: 2 }}>
           <span className="pc-price">{naira(product.price)}</span>
         </div>
       </button>
