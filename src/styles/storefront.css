@@ -408,7 +408,7 @@
    ══════════════════════════════════════════════════ */
 .sf-grid-4 {
   display: grid; grid-template-columns: repeat(2, 1fr);
-  gap: 32px 16px; /* 🟢 Nice spacing between rows and columns */
+  gap: 34px 18px; /* 🟢 Nice spacing between rows and columns */
 }
 @media (min-width: 640px) { 
   .sf-grid-4 { grid-template-columns: repeat(3, 1fr); gap: 48px 24px; } 
