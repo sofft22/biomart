@@ -79,12 +79,13 @@ export default function Storefront() {
   const [categoryTick, setCategoryTick] = useState(0);
   const lastYRef = useRef(0);
 
-  // 🟢 SLIDER STATE
+  // 🟢 4-IMAGE DEMO SLIDER
   const [currentSlide, setCurrentSlide] = useState(0);
   const bannerImages = [
     store?.cover_url || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85",
     "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600&q=85",
-    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&q=85"
+    "https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=1600&q=85",
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&q=85"
   ];
 
   // 🟢 PAGINATION STATE (10/15/20)
@@ -102,7 +103,7 @@ export default function Storefront() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // 🟢 AUTO-SLIDE
+  // 🟢 AUTO-SLIDE (5 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
@@ -201,7 +202,6 @@ export default function Storefront() {
     return sorted;
   }, [products, activeCategory, query, sort]);
 
-  // 🟢 PAGINATION SLICE
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -224,7 +224,6 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* ═══ HEADER ═══ */}
       <header className={headerClasses}>
         <div className="sf-head-inner">
           {!searchOpen && (
@@ -263,7 +262,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* ═══ AUTO-SLIDER BANNER ═══ */}
+      {/* 🟢 SLIDER */}
       <section className="sf-banner">
         {bannerImages.map((img, i) => (
           <img key={i} src={img} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: i === currentSlide ? 1 : 0, transition: 'opacity 0.8s ease' }} />
@@ -277,7 +276,7 @@ export default function Storefront() {
         </div>
       </section>
 
-      {/* ═══ CATEGORIES ═══ */}
+      {/* 🟢 CATEGORIES (Centered on mobile) */}
       {usedCategories.length > 0 && (
         <section className="sf-section" id="categories">
           <div className="sf-section-head-center">
@@ -303,7 +302,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* ═══ SHOP ALL ═══ */}
+      {/* 🟢 SHOP ALL */}
       <section className="sf-section" id="shop-all">
         <div className="sf-section-head">
           <div>
@@ -332,7 +331,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* ═══ FOOTER (Charcoal, Icons, Tagline) ═══ */}
+      {/* 🟢 FOOTER (Charcoal, Icons Side-by-Side) */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           <div className="sf-footer-top">
@@ -397,6 +396,13 @@ export default function Storefront() {
           </div>
         </div>
       </footer>
+
+      {/* 🟢 FLOATING WHATSAPP (Placed above cart) */}
+      <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}?text=Hi, I have a question about your store.`} target="_blank" rel="noopener" className="sf-floating-wa" aria-label="Chat on WhatsApp">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" />
+        </svg>
+      </a>
 
       {openProduct && (
         <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0))} onOpenProduct={(p) => handleOpenProduct(p)} />
