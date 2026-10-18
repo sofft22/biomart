@@ -1,411 +1,248 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { useStoreContext } from "../context/StoreContext";
-import { useCart } from "../context/CartContext";
-import { track } from "../lib/api";
-import ProductCard from "../components/ProductCard";
-import ProductModal from "../components/ProductModal";
-import CartDrawer from "../components/CartDrawer";
-import { getCategoryLabel } from "../lib/categories";
-import { getCategories, getCategoryImages } from "../lib/storeData";
-import type { Category, Product } from "../types";
+/* ══════════════════════════════════════════════════
+   STOREFRONT — FINAL CSS (Monochrome, Fixed Layout)
+   ══════════════════════════════════════════════════ */
 
-type SortKey = "new" | "price-asc" | "price-desc" | "name";
+.sf-shell { min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font); }
+.sf-loading { min-height: 100vh; display: grid; place-items: center; background: var(--bg); }
+.sf-spinner { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--ink); animation: spin 0.75s linear infinite; }
+.sf-notfound-title { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; margin: 0; color: var(--ink); }
+.sf-notfound-sub { margin: 8px 0 0; font-size: 14px; color: var(--muted); }
 
-function titleCase(s: string): string {
-  return (s || "").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+@keyframes sf-rise { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sf-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sf-slide-up { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes sf-kenburns { 0% { transform: scale(1) translate(0, 0); } 100% { transform: scale(1.05) translate(-1%, -1%); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
 
-function splitBrandName(name: string): { first: string; second: string } {
-  const parts = (name || "").trim().split(/\s+/);
-  if (parts.length <= 1) return { first: parts[0] || "", second: "" };
-  return { first: parts[0], second: parts.slice(1).join(" ") };
+/* ─── HEADER ─── */
+.sf-head { position: absolute; top: 0; left: 0; right: 0; z-index: 40; color: #fff; transform: translateY(0); transition: transform 0.4s var(--ease), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease; }
+.sf-head.sf-head-hidden { transform: translateY(-110%); }
+.sf-head.sf-head-solid { position: fixed; background: rgba(251, 249, 245, 0.94); backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4); color: var(--ink); box-shadow: 0 1px 0 var(--line); }
+.sf-head-inner { max-width: 1400px; margin: 0 auto; padding: 0 20px; height: 64px; display: flex; align-items: center; gap: 12px; }
+@media (min-width: 700px) { .sf-head-inner { height: 76px; padding: 0 32px; gap: 16px; } }
+.sf-head-spacer { flex: 1; min-width: 8px; }
+
+.sf-wordmark { display: inline-flex; align-items: baseline; font-family: var(--font); font-size: 16px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1; padding-left: 0.14em; color: inherit; background: transparent; border: 0; cursor: pointer; text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35); transition: text-shadow 0.2s ease; max-width: 55%; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: sf-fade 0.5s ease both; }
+@media (min-width: 700px) { .sf-wordmark { font-size: 18px; max-width: none; } }
+.sf-head-solid .sf-wordmark { text-shadow: none; }
+.sf-wordmark-1 { font-weight: 800; color: inherit; }
+.sf-wordmark-2 { font-weight: 300; margin-left: 0.5em; opacity: 0.7; color: inherit; }
+.sf-wordmark-dot { font-weight: 800; color: var(--green); margin-left: 0.05em; }
+.sf-head:not(.sf-head-solid) .sf-wordmark-1 { color: #fff; }
+.sf-head:not(.sf-head-solid) .sf-wordmark-2 { color: rgba(255,255,255,0.78); }
+.sf-head:not(.sf-head-solid) .sf-wordmark-dot { color: #fff; }
+
+.sf-head-links { display: none; align-items: center; gap: 28px; font-family: var(--font); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: inherit; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); animation: sf-fade 0.6s ease both; }
+.sf-head-solid .sf-head-links { text-shadow: none; }
+@media (min-width: 900px) { .sf-head-links { display: flex; } }
+.sf-head-links button { padding: 4px 0; background: transparent; border: 0; color: inherit; font: inherit; cursor: pointer; opacity: 0.88; transition: opacity 0.15s ease; }
+.sf-head-links button:hover { opacity: 1; }
+
+.sf-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.sf-icon-btn { width: 44px; height: 44px; display: grid; place-items: center; color: inherit; background: transparent; border: 0; border-radius: 50%; cursor: pointer; transition: background 0.15s ease; position: relative; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35); }
+.sf-head-solid .sf-icon-btn { text-shadow: none; }
+.sf-icon-btn:hover { background: rgba(255, 255, 255, 0.15); }
+.sf-head-solid .sf-icon-btn:hover { background: rgba(26, 26, 26, 0.06); }
+.sf-icon-btn.on { background: rgba(255, 255, 255, 0.15); }
+.sf-head-solid .sf-icon-btn.on { background: rgba(26, 26, 26, 0.08); color: var(--ink); }
+.sf-icon-btn svg { width: 20px; height: 20px; }
+.sf-icon-badge { position: absolute; top: 6px; right: 6px; min-width: 18px; height: 18px; border-radius: 99px; background: var(--ink); color: #fff; font: 800 10px/1 var(--font); display: grid; place-items: center; padding: 0 4px; border: 2px solid rgba(255,255,255,0.85); }
+.sf-head-solid .sf-icon-badge { border-color: var(--bg); }
+
+.sf-head-searchbar { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 0; overflow: hidden; }
+.sf-head-searchbar.open { padding: 0 8px 0 16px; background: rgba(255, 255, 255, 0.15); border-radius: 99px; height: 48px; animation: sf-fade 0.35s ease both; }
+.sf-head-solid .sf-head-searchbar.open { background: rgba(26, 26, 26, 0.06); }
+.sf-head-searchbar svg { width: 18px; height: 18px; color: currentColor; flex: none; opacity: 0.6; }
+.sf-head-searchbar input { flex: 1; min-width: 0; padding: 8px 4px; background: transparent; border: 0; outline: none; color: inherit; font: 500 16px/1 var(--font); }
+.sf-head-searchbar input::placeholder { color: currentColor; opacity: 0.5; }
+
+/* ─── BANNER ─── */
+.sf-banner { position: relative; width: 100%; aspect-ratio: 4 / 5; overflow: hidden; background: var(--mat); }
+@media (min-width: 640px) { .sf-banner { aspect-ratio: 16 / 9; max-height: 600px; } }
+@media (min-width: 1024px) { .sf-banner { aspect-ratio: 21 / 9; max-height: 680px; } }
+.sf-banner > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: sf-kenburns 14s ease-in-out infinite alternate, sf-fade 1s ease both; }
+.sf-banner-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.75) 100%); }
+.sf-banner-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 24px 48px; color: #fff; max-width: 1400px; margin: 0 auto; text-align: center; }
+@media (min-width: 700px) { .sf-banner-text { padding: 0 32px 80px; } }
+.sf-banner-tagline { font-family: var(--serif); font-size: clamp(34px, 7vw, 70px); font-weight: 400; font-style: italic; letter-spacing: -0.02em; line-height: 1.1; margin: 0 auto 24px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); max-width: 16em; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+.sf-banner-cta { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: #fff; color: var(--ink); border: 0; border-radius: 8px; font: 700 12px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45); transition: transform 0.25s var(--spring), box-shadow 0.3s ease; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
+.sf-banner-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.55); }
+.sf-banner-cta svg { width: 14px; height: 14px; }
+
+/* ─── SECTIONS ─── */
+.sf-section { max-width: 1400px; margin: 0 auto; padding: 80px 16px; }
+@media (min-width: 700px) { .sf-section { padding: 120px 32px; } }
+
+.sf-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 700px) { .sf-section-head { margin-bottom: 56px; } }
+
+.sf-section-head-center { text-align: center; margin-bottom: 40px; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (min-width: 700px) { .sf-section-head-center { margin-bottom: 64px; } }
+
+.sf-section-eyebrow { display: block; font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); text-align: center; margin: 0 0 16px; }
+.sf-section-head .sf-section-eyebrow { text-align: left; }
+
+.sf-section-title { font-family: var(--serif); font-size: clamp(32px, 5vw, 48px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); }
+.sf-section-title-center { font-family: var(--serif); font-size: clamp(36px, 6vw, 56px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); text-align: center; }
+
+/* ─── CATEGORIES (2 per row on mobile) ─── */
+.sf-cat-grid {
+  display: grid !important;
+  gap: 12px; 
+  margin: 0 auto;
+  width: 100%;
+  grid-template-columns: repeat(2, 1fr) !important; /* 🟢 2 columns on mobile */
+}
+@media (min-width: 700px) {
+  .sf-cat-grid { gap: 24px; grid-template-columns: repeat(4, 1fr) !important; }
+  .sf-cat-grid.sf-cat-count-1 { grid-template-columns: minmax(0, 300px) !important; justify-content: center; }
+  .sf-cat-grid.sf-cat-count-2 { grid-template-columns: repeat(2, minmax(0, 300px)) !important; justify-content: center; }
+  .sf-cat-grid.sf-cat-count-3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; justify-content: center; }
 }
 
-function useReveal(deps: unknown[] = []) {
-  useEffect(() => {
-    let mounted = true;
-    const io = ("IntersectionObserver" in window)
-      ? new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("in");
-                io.unobserve(entry.target);
-              }
-            }
-          },
-          { rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
-        )
-      : null;
-
-    const scan = () => {
-      if (!mounted) return;
-      const els = document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)");
-      if (!io) {
-        els.forEach((el) => el.classList.add("in"));
-        return;
-      }
-      els.forEach((el) => io.observe(el));
-    };
-
-    scan();
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      mounted = false;
-      io?.disconnect();
-      mo.disconnect();
-    };
-  }, deps);
+.sf-cat-tile {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--mat);
+  cursor: pointer;
+  border: 0; padding: 0;
+  display: block; width: 100%;
+  animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+.sf-cat-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.7s var(--ease); display: block; }
+.sf-cat-tile:hover img { transform: scale(1.04); }
 
-export default function Storefront() {
-  const { slug = "" } = useParams<{ slug: string }>();
-  const { loading, store, products, error } = useStoreContext();
-  const cart = useCart();
+.sf-cat-tile-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.7) 100%); pointer-events: none; }
+.sf-cat-tile-content { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; align-items: center; color: #fff; }
+@media (min-width: 700px) { .sf-cat-tile-content { left: 20px; right: 20px; bottom: 20px; } }
 
-  const [openProduct, setOpenProduct] = useState<Product | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("all");
-  const [sort, setSort] = useState<SortKey>("new");
-  const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [categoryImages, setCategoryImages] = useState<Record<string, string>>({});
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [headerSolid, setHeaderSolid] = useState(false);
-  const [categoryTick, setCategoryTick] = useState(0);
-  const lastYRef = useRef(0);
+.sf-cat-tile-name { font-family: var(--serif); font-size: 18px; font-weight: 400; letter-spacing: -0.01em; line-height: 1.1; text-transform: none; }
+@media (min-width: 700px) { .sf-cat-tile-name { font-size: 26px; } }
 
-  // 🟢 SMART SLIDER LOGIC (Reads gallery_urls from DB)
-  const [currentSlide, setCurrentSlide] = useState(0);
-  
-  const bannerImages = useMemo(() => {
-    let gallery = [];
-    try { gallery = JSON.parse((store as any)?.gallery_urls || "[]"); } catch {}
-    
-    // If they uploaded to the gallery, use those.
-    if (Array.isArray(gallery) && gallery.length > 0) {
-      return gallery;
-    }
-    // Fallback to cover_url if no gallery
-    if (store?.cover_url) {
-      return [store.cover_url];
-    }
-    // No default Unsplash images (as requested)
-    return [];
-  }, [store?.cover_url, (store as any)?.gallery_urls]);
+.sf-cat-arrow { font-family: var(--font); font-size: 14px; font-weight: 300; opacity: 0.8; transition: transform 0.3s ease; }
+.sf-cat-tile:hover .sf-cat-arrow { transform: translateX(4px); opacity: 1; }
 
-  // 🟢 PAGINATION STATE (10/15/20)
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+/* ─── PRODUCT GRID & PAGINATION ─── */
+.sf-grid-all { display: grid; grid-template-columns: repeat(2, 1fr); gap: 48px 16px; }
+@media (min-width: 768px) { .sf-grid-all { grid-template-columns: repeat(3, 1fr); gap: 64px 24px; } }
+@media (min-width: 1024px) { .sf-grid-all { grid-template-columns: repeat(4, 1fr); gap: 80px 32px; } }
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setItemsPerPage(20); // Desktop
-      else if (window.innerWidth >= 768) setItemsPerPage(15); // Tablet
-      else setItemsPerPage(10); // Mobile
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+.sf-empty { padding: 80px 20px; text-align: center; }
+.sf-empty-title { font-family: var(--serif); font-size: 24px; font-weight: 400; margin: 0 0 12px; color: var(--ink); }
 
-  // 🟢 AUTO-SLIDE (Only slides if more than 1 image)
-  useEffect(() => {
-    if (bannerImages.length <= 1) return; 
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % bannerImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [bannerImages.length]);
+.sf-pagination { display: flex; justify-content: center; align-items: center; gap: 24px; margin-top: 64px; }
+.sf-pagination button { padding: 14px 28px; background: transparent; border: 1px solid var(--ink); border-radius: 8px; font: 700 12px/1 var(--font); text-transform: uppercase; cursor: pointer; transition: all 0.2s ease; }
+.sf-pagination button:hover:not(:disabled) { background: var(--ink); color: var(--bg); }
+.sf-pagination button:disabled { opacity: 0.3; cursor: not-allowed; }
 
-  useEffect(() => {
-    if (!slug) return;
-    const key = `biomart:tracked:store:${slug}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    track.storeVisit(slug).catch(() => {});
-  }, [slug]);
+/* ─── PRODUCT CARD ─── */
+.pc { display: flex; flex-direction: column; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1); animation: sf-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.pc:hover { transform: translateY(-4px); }
 
-  useEffect(() => {
-    if (!slug) return;
-    setCategories(getCategories(slug));
-    setCategoryImages(getCategoryImages(slug));
-  }, [slug, categoryTick]);
+.pc-media { position: relative; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 0; background: var(--bg); width: 100%; border: 0; padding: 0; cursor: pointer; display: block; }
+.pc-skeleton { position: absolute; inset: 0; background: linear-gradient(90deg, var(--mat) 0%, rgba(0,0,0,0.04) 50%, var(--mat) 100%); background-size: 200% 100%; animation: shimmer 1.5s linear infinite; }
+.pc-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity 0.45s ease, transform 0.6s var(--ease); }
+.pc-img.is-loaded { opacity: 1; }
+.pc-desktop { position: absolute; inset: 0; display: none; }
+@media (min-width: 700px) { .pc-desktop { display: block; } }
 
-  useEffect(() => {
-    const onFocus = () => setCategoryTick((t) => t + 1);
-    const onVisible = () => {
-      if (document.visibilityState === "visible") setCategoryTick((t) => t + 1);
-    };
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisible);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisible);
-    };
-  }, []);
+.pc-img-swap { opacity: 0; }
+.pc-img-swap.is-loaded { opacity: 1; }
+.pc-media:hover .pc-img-swap.has-second { opacity: 0; }
+.pc-img-alt { opacity: 0; transition: opacity 0.45s ease; }
+.pc-media:hover .pc-img-alt { opacity: 1; }
 
-  useEffect(() => {
-    let ticking = false;
-    const update = () => {
-      const y = window.scrollY;
-      const last = lastYRef.current;
-      const diff = y - last;
-      const atTop = y < 40;
+.pc-media:hover .pc-img { transform: scale(1.03); }
+.pc-mobile { position: absolute; inset: 0; display: block; }
+@media (min-width: 700px) { .pc-mobile { display: none; } }
+.pc-carousel { display: flex; height: 100%; width: 100%; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+.pc-carousel::-webkit-scrollbar { display: none; }
+.pc-slide { height: 100%; width: 100%; flex-shrink: 0; scroll-snap-align: center; position: relative; }
+.pc-slide .pc-img { position: absolute; inset: 0; opacity: 1; }
+.pc-no-image { display: flex; height: 100%; width: 100%; align-items: center; justify-content: center; background: var(--bg); color: var(--muted); font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
 
-      setHeaderSolid(y > 120);
-      if (atTop) setHeaderHidden(false);
-      else if (diff > 6 && y > 200) setHeaderHidden(true);
-      else if (diff < -6) setHeaderHidden(false);
+.pc-dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; pointer-events: none; z-index: 2; }
+.pc-dot { width: 12px; height: 3px; border-radius: 0; background: rgba(0, 0, 0, 0.2); transition: all 0.25s ease; }
+.pc-dot.on { background: rgba(0, 0, 0, 0.8); width: 20px; }
 
-      lastYRef.current = y;
-      ticking = false;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(update);
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    update();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+.pc-badges { position: absolute; left: 12px; top: 12px; z-index: 3; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; pointer-events: none; }
+.pc-badge { font-family: var(--font); font-size: 9px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; padding: 6px 10px; border-radius: 0; background: #fff; color: var(--ink); }
 
-  useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
+.pc-sold-out { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; background: rgba(251,249,245,0.82); backdrop-filter: blur(2px); }
+.pc-sold-out span { font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink); }
+.pc-hover-cta { position: absolute; inset: 0; z-index: 3; display: none; align-items: flex-end; justify-content: center; padding-bottom: 24px; pointer-events: none; }
+@media (min-width: 700px) { .pc-hover-cta { display: flex; } }
+.pc-quick-btn { pointer-events: auto; background: var(--ink); color: #fff; font-family: var(--font); font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; padding: 16px 28px; border: 0; border-radius: 8px; opacity: 0; transform: translateY(8px); transition: all 0.3s var(--spring); box-shadow: 0 12px 28px -14px rgba(26, 26, 26, 0.5); cursor: pointer; }
+.pc-media:hover .pc-quick-btn { opacity: 1; transform: translateY(0); }
+.pc-quick-btn:hover { background: #000; }
 
-  const usedCategories = useMemo(() => {
-    const uniqueCats = new Map<string, Category>();
-    for (const p of products) {
-      const cid = (p as any).category_id || (p as any).category;
-      if (cid && !uniqueCats.has(cid)) {
-        const existingCat = categories.find((c) => c.id === cid);
-        uniqueCats.set(cid, { id: cid, label: existingCat?.label || cid, sort_order: 0 });
-      }
-    }
-    if (uniqueCats.size === 0 && categories.length > 0) return categories;
-    return Array.from(uniqueCats.values());
-  }, [categories, products]);
+.pc-meta { margin-top: 16px; background: transparent; border: 0; padding: 0; text-align: left; display: block; width: 100%; cursor: pointer; font-family: inherit; }
+.pc-name { font-family: var(--font); font-size: 14px; font-weight: 450; letter-spacing: 0.005em; color: var(--ink); line-height: 1.4; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (min-width: 700px) { .pc-name { font-size: 15px; } }
+.pc-price-row { margin-top: 6px; display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.pc-price { font-family: var(--font); font-size: 14px; font-weight: 350; color: var(--muted); letter-spacing: 0.005em; margin: 0; }
+.pc-price-old { font-family: var(--font); font-size: 12px; font-weight: 400; color: var(--muted); opacity: 0.6; text-decoration: line-through; margin: 0; }
 
-  const filtered = useMemo(() => {
-    let list = products;
-    if (activeCategory !== "all") {
-      list = list.filter((p) => ((p as any).category_id || (p as any).category) === activeCategory);
-    }
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
-    }
-    const sorted = [...list];
-    switch (sort) {
-      case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
-      case "price-desc": sorted.sort((a, b) => b.price - a.price); break;
-      case "name": sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case "new":
-      default:
-        sorted.sort((a, b) => new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime());
-        break;
-    }
-    return sorted;
-  }, [products, activeCategory, query, sort]);
+/* ─── FOOTER ─── */
+.sf-footer { background: var(--panel); color: #fff; padding: 80px 0 100px; /* 🟢 100px bottom padding so WhatsApp doesn't cover */ margin-top: 80px; }
+@media (min-width: 700px) { .sf-footer { padding: 120px 0 120px; margin-top: 120px; } }
+.sf-footer-inner { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+@media (min-width: 700px) { .sf-footer-inner { padding: 0 32px; } }
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+.sf-footer-top { display: grid; grid-template-columns: 1fr; gap: 48px; padding-bottom: 64px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+@media (min-width: 700px) { .sf-footer-top { grid-template-columns: 2fr 1fr 1fr; gap: 80px; padding-bottom: 80px; } }
+.sf-footer-brand-col { grid-column: 1 / -1; }
+@media (min-width: 700px) { .sf-footer-brand-col { grid-column: auto; } }
 
-  const handleOpenProduct = (p: Product) => setOpenProduct(p);
-  const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
-    cart.add(product, qty, variant, unitPrice);
-    setCartOpen(true);
-  };
+.sf-footer-brand { display: inline-flex; align-items: baseline; font-family: var(--font); font-size: 20px; letter-spacing: 0.14em; text-transform: uppercase; line-height: 1; padding-left: 0.14em; margin-bottom: 16px; }
+.sf-footer-brand-1 { font-weight: 800; color: #fff; }
+.sf-footer-brand-2 { font-weight: 300; color: rgba(255,255,255,0.6); margin-left: 0.5em; }
+.sf-footer-brand-dot { font-weight: 800; color: var(--green-lite); margin-left: 0.05em; }
+.sf-footer-bio { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.7); margin: 0; max-width: 24em; }
 
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+.sf-footer-h { font: 700 10.5px/1 var(--font); letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin: 0 0 24px; }
+.sf-footer-col ul { display: grid; gap: 14px; list-style: none; padding: 0; margin: 0; }
+.sf-footer-col button { font-size: 14px; color: #fff; background: transparent; border: 0; padding: 0; cursor: pointer; font-family: inherit; text-align: left; transition: opacity 0.2s ease; }
+.sf-footer-col button:hover { opacity: 0.6; }
 
-  if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
-  if (error || !store) return <div className="sf-loading">Store not found</div>;
+.sf-footer-icons { display: flex; flex-direction: row; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.sf-contact-icon { width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.04); display: inline-grid; place-items: center; flex: none; transition: all 0.2s ease; }
+.sf-contact-icon:hover { border-color: rgba(255, 255, 255, 0.4); transform: translateY(-2px); background: rgba(255, 255, 255, 0.08); }
+.sf-contact-address { color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.5; text-decoration: none; }
+.sf-contact-address:hover { color: #fff; }
 
-  const brand = splitBrandName(store.name);
-  const tagline = (store as any).tagline || "";
-  const address = (store as any).address || "";
+.sf-footer-bot { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; padding-top: 32px; color: rgba(255,255,255,0.4); font-size: 13px; }
+.sf-footer-copyright { font-family: var(--font); font-weight: 400; }
 
-  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
+/* 🟢 POWERED BY BIOMART (Bigger + Green Bag Icon) */
+.sf-footer-pow { display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.6); font-weight: 500; font-size: 14px; text-decoration: none; transition: color 0.2s ease; }
+.sf-footer-pow:hover { color: #fff; }
+.sf-footer-pow svg { width: 18px; height: 20px; stroke: var(--green-lite); fill: none; }
 
-  return (
-    <div className="sf-shell">
-      <header className={headerClasses}>
-        <div className="sf-head-inner">
-          {!searchOpen && (
-            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
-              {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
-              {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
-              {brand.first && <span className="sf-wordmark-dot">.</span>}
-            </button>
-          )}
-          <div className={`sf-head-searchbar ${searchOpen ? "open" : ""}`}>
-            {searchOpen && (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-                <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} placeholder="Search products…" autoFocus />
-              </>
-            )}
-          </div>
-          {!searchOpen && <div className="sf-head-spacer" />}
-          {!searchOpen && (
-            <nav className="sf-head-links">
-              <button onClick={() => scrollTo("categories")}>Categories</button>
-              <button onClick={() => scrollTo("shop-all")}>Shop all</button>
-            </nav>
-          )}
-          <div className="sf-head-actions">
-            <button onClick={() => setSearchOpen(!searchOpen)} className="sf-icon-btn" aria-label="Search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-            </button>
-            {!searchOpen && (
-              <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
-                {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* 🟢 SMART SLIDER (No default images) */}
-      {bannerImages.length > 0 && (
-        <section className="sf-banner">
-          {bannerImages.map((img, i) => (
-            <img key={i} src={img} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", opacity: i === currentSlide ? 1 : 0, transition: 'opacity 0.8s ease' }} />
-          ))}
-          <div className="sf-banner-overlay" />
-          <div className="sf-banner-text">
-            <h1 className="sf-banner-tagline">{tagline || titleCase(store.name)}</h1>
-            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta">
-              Shop now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </button>
-          </div>
-        </section>
-      )}
-
-      {/* 🟢 CATEGORIES */}
-      {usedCategories.length > 0 && (
-        <section className="sf-section" id="categories">
-          <div className="sf-section-head-center">
-            <span className="sf-section-eyebrow">Explore</span>
-            <h2 className="sf-section-title-center">Shop by category</h2>
-          </div>
-          <div className="sf-cat-grid">
-            {usedCategories.map((c, i) => {
-              const img = categoryImages[c.id] || products.find(p => (p.category_id || p.category) === c.id)?.image_url;
-              const active = activeCategory === c.id;
-              return (
-                <button key={c.id} onClick={() => { setActiveCategory(active ? "all" : c.id); setCurrentPage(1); scrollTo("shop-all"); }} className={`sf-cat-tile ${active ? "on" : ""}`}>
-                  {img ? <img src={img} alt={c.label} loading="lazy" /> : <div className="sf-cat-tile-placeholder">{c.label.charAt(0)}</div>}
-                  {/* 🟢 The overlay is back */}
-                  <div className="sf-cat-tile-overlay" />
-                  <div className="sf-cat-tile-content">
-                    <div className="sf-cat-tile-name">{titleCase(c.label)}</div>
-                    <span className="sf-cat-arrow">→</span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      {/* 🟢 SHOP ALL */}
-      <section className="sf-section" id="shop-all">
-        <div className="sf-section-head">
-          <div>
-            <h2 className="sf-section-title">{activeCategory === "all" ? (query ? `Results for "${query}"` : "Shop all") : titleCase(getCategoryLabel(categories, activeCategory))}</h2>
-          </div>
-        </div>
-
-        {paginatedProducts.length === 0 ? (
-          <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
-        ) : (
-          <>
-            <div className="sf-grid-all">
-              {paginatedProducts.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} priority={i < 4} onClick={() => handleOpenProduct(p)} onAddToCart={() => handleAddToCart(p, 1, null, p.price)} />
-              ))}
-            </div>
-            
-            {totalPages > 1 && (
-              <div className="sf-pagination">
-                <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
-                <span>Page {currentPage} of {totalPages}</span>
-                <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollTo("shop-all"); }}>Next</button>
-              </div>
-            )}
-          </>
-        )}
-      </section>
-
-      {/* 🟢 FOOTER (Untouched Charcoal, Icons, Powered by) */}
-      <footer className="sf-footer" id="contact">
-        <div className="sf-footer-inner">
-          <div className="sf-footer-top">
-            <div className="sf-footer-brand-col">
-              <div className="sf-footer-brand">
-                {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
-                {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
-                {brand.first && <span className="sf-footer-brand-dot">.</span>}
-              </div>
-              <p className="sf-footer-bio">{tagline || "Curated essentials for the modern wardrobe."}</p>
-            </div>
-            <div className="sf-footer-col">
-              <h4 className="sf-footer-h">Shop</h4>
-              <ul>
-                <li><button onClick={() => scrollTo("categories")}>Categories</button></li>
-                <li><button onClick={() => scrollTo("shop-all")}>Shop all</button></li>
-              </ul>
-            </div>
-            <div className="sf-footer-col">
-              <h4 className="sf-footer-h">Contact</h4>
-              <div className="sf-footer-icons">
-                {store.whatsapp && (
-                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="WhatsApp">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
-                  </a>
-                )}
-                {store.instagram && (
-                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none" /></svg>
-                  </a>
-                )}
-                {store.tiktok && (
-                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="TikTok">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>
-                  </a>
-                )}
-              </div>
-              {address && <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" className="sf-contact-address">{address}</a>}
-            </div>
-          </div>
-          <div className="sf-footer-bot">
-            <span className="sf-footer-copyright">© 2026 {titleCase(store.name)}</span>
-            <a href="https://biomart.com" target="_blank" rel="noopener" className="sf-footer-pow">
-              <svg viewBox="0 0 60 64" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
-              Powered by biomart
-            </a>
-          </div>
-        </div>
-      </footer>
-
-      {/* 🟢 FLOATING WHATSAPP (Untouched) */}
-      <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}?text=Hi, I have a question about your store.`} target="_blank" rel="noopener" className="sf-floating-wa" aria-label="Chat on WhatsApp">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
-        Chat with us
-      </a>
-
-      {openProduct && (
-        <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0))} onOpenProduct={(p) => handleOpenProduct(p)} />
-      )}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-    </div>
-  );
+/* ─── FLOATING WHATSAPP ─── */
+.sf-floating-wa {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: #0a5d38;
+  color: #fff;
+  border-radius: 99px;
+  font: 700 14px/1 var(--font);
+  text-decoration: none;
+  box-shadow: 0 10px 30px -10px rgba(10, 93, 56, 0.6);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+.sf-floating-wa:hover { transform: translateY(-3px); box-shadow: 0 16px 40px -10px rgba(10, 93, 56, 0.8); }
+.sf-floating-wa svg { width: 20px; height: 20px; fill: currentColor; }
+@media (max-width: 640px) { .sf-floating-wa { bottom: 16px; right: 16px; padding: 12px 20px; font-size: 12px; } .sf-floating-wa svg { width: 18px; height: 18px; } }
