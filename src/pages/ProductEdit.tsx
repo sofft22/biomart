@@ -36,20 +36,18 @@ export default function ProductEdit() {
 
   const photoLimit = limits?.images ?? 1;
 
-  // 🟢 FIX 1: Load categories and set the default correctly
   useEffect(() => {
     if (!currentStore?.slug) return;
     const cats = getCategories(currentStore.slug);
     setCategories(cats);
     
-    // If editing an existing product, use its category. 
-    // If creating a new one, default to the LAST created category (which is the newest).
+    // 🟢 Auto-select newest category if creating new
     if (product) {
       setCategoryId(product.category_id || (cats[cats.length - 1]?.id ?? ""));
     } else if (cats.length > 0 && !categoryId) {
       setCategoryId(cats[cats.length - 1].id);
     }
-  }, [currentStore?.slug, product]); // 🟢 Added 'product' so it waits for the product to load
+  }, [currentStore?.slug, product]);
 
   useEffect(() => {
     if (!id || !currentStore?.slug) { setLoadingProduct(false); return; }
@@ -76,7 +74,6 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    // Don't overwrite the categoryId if it's already set by the previous effect
     if (product.category_id) setCategoryId(product.category_id);
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
@@ -154,7 +151,7 @@ export default function ProductEdit() {
       if (product) await productsApi.update(product.id, payload);
       else await productsApi.create(payload);
       
-      await refresh(true); // 🟢 Force refresh the cache
+      await refresh(true); 
       nav("/dashboard/products");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save");
@@ -167,7 +164,7 @@ export default function ProductEdit() {
     if (!confirm(`Delete "${product.name}"?`)) return;
     try {
       await productsApi.remove(product.id);
-      await refresh(true); // 🟢 Force refresh the cache
+      await refresh(true); 
       nav("/dashboard/products");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not delete");
@@ -316,7 +313,7 @@ export default function ProductEdit() {
           )}
         </section>
 
-        {/* 🟢 FIX 2: Fully controlled Dropdown */}
+        {/* 🟢 CATEGORY */}
         <section className="pe-section">
           <label className="pe-label" htmlFor="pe-cat">Category</label>
           {categories.length === 0 ? (
@@ -327,8 +324,8 @@ export default function ProductEdit() {
             <select
               id="pe-cat"
               className="pe-input pe-select"
-              value={categoryId} // 🟢 Tied to state
-              onChange={(e) => setCategoryId(e.target.value)} // 🟢 Updates state
+              value={categoryId}
+              onChange={(e) => setCategoryId(e.target.value)}
             >
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
