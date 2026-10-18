@@ -68,25 +68,23 @@
 .sf-banner-text { position: absolute; left: 0; right: 0; bottom: 0; padding: 0 24px 48px; color: #fff; max-width: 1400px; margin: 0 auto; text-align: center; }
 @media (min-width: 700px) { .sf-banner-text { padding: 0 32px 80px; } }
 .sf-banner-tagline { font-family: var(--serif); font-size: clamp(34px, 7vw, 70px); font-weight: 400; font-style: italic; letter-spacing: -0.02em; line-height: 1.1; margin: 0 auto 24px; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.45); max-width: 16em; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+
+/* Base button styles (Desktop/Tablet) */
 .sf-banner-cta { display: inline-flex; align-items: center; gap: 8px; padding: 16px 32px; background: #fff; color: var(--ink); border: 0; border-radius: 8px; font: 700 12px/1 var(--font); letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.45); transition: transform 0.25s var(--spring), box-shadow 0.3s ease; animation: sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both; }
 .sf-banner-cta:hover { transform: translateY(-2px); box-shadow: 0 16px 40px -14px rgba(0, 0, 0, 0.55); }
 .sf-banner-cta svg { width: 14px; height: 14px; }
 
-/* ─── SECTIONS ─── */
-.sf-section { max-width: 1400px; margin: 0 auto; padding: 80px 16px; }
-@media (min-width: 700px) { .sf-section { padding: 120px 32px; } }
-
-.sf-section-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 40px; flex-wrap: wrap; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
-@media (min-width: 700px) { .sf-section-head { margin-bottom: 56px; } }
-
-.sf-section-head-center { text-align: center; margin-bottom: 40px; animation: sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
-@media (min-width: 700px) { .sf-section-head-center { margin-bottom: 64px; } }
-
-.sf-section-eyebrow { display: block; font-family: var(--font); font-size: 10px; font-weight: 700; letter-spacing: 0.32em; text-transform: uppercase; color: var(--muted); text-align: center; margin: 0 0 16px; }
-.sf-section-head .sf-section-eyebrow { text-align: left; }
-
-.sf-section-title { font-family: var(--serif); font-size: clamp(32px, 5vw, 48px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); }
-.sf-section-title-center { font-family: var(--serif); font-size: clamp(36px, 6vw, 56px); font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin: 0; color: var(--ink); text-align: center; }
+/* NEW: Mobile adjustments for the button (screens smaller than 640px) */
+@media (max-width: 639px) {
+  .sf-banner-cta {
+    padding: 12px 24px; /* Reduces the size of the button */
+    font-size: 10px; /* Makes the text smaller */
+  }
+  .sf-banner-cta svg {
+    width: 12px; /* Makes the arrow smaller */
+    height: 12px;
+  }
+}
 
 /* ─── CATEGORIES (2 per row on mobile) ─── */
 .sf-cat-grid {
