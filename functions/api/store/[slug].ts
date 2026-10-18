@@ -2,7 +2,6 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
   try {
     const slug = params.slug as string;
     
-    // 1. Get the store
     const store = await env.DB.prepare(
       "SELECT * FROM stores WHERE slug = ?"
     ).bind(slug).first<any>();
@@ -11,8 +10,8 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
       return Response.json({ error: "Store not found" }, { status: 404 });
     }
 
-    // 🟢 THE FIX: Parse the categories from the database string into an array
-    if (store && store.categories) {
+    // 🟢 CRITICAL FIX: Parse categories so frontend gets an Array, not a string
+    if (store.categories) {
       try {
         store.categories = typeof store.categories === 'string' ? JSON.parse(store.categories) : store.categories;
       } catch (e) {
@@ -22,14 +21,12 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
       store.categories = [];
     }
 
-    // 2. Get the products
     const { results } = await env.DB.prepare(
       "SELECT * FROM products WHERE store_id = ? ORDER BY created_at DESC"
     ).bind(store.id).all();
 
-    // 3. Return everything cleanly mapped
     return Response.json({
-      store, // Now store.categories is a real Array!
+      store,
       products: results.map((p: any) => {
         let parsedImages = [];
         try { parsedImages = JSON.parse(p.images || "[]"); } catch { parsedImages = []; }
