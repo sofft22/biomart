@@ -6,9 +6,7 @@ import { track } from "../lib/api";
 import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
-import { getCategoryLabel } from "../lib/categories";
-import { getCategories } from "../lib/storeData";
-import type { Category, Product } from "../types";
+import type { Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
 
@@ -22,45 +20,6 @@ function splitBrandName(name: string): { first: string; second: string } {
   return { first: parts[0], second: parts.slice(1).join(" ") };
 }
 
-function useReveal(deps: unknown[] = []) {
-  useEffect(() => {
-    let mounted = true;
-    const io = ("IntersectionObserver" in window)
-      ? new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("in");
-                io.unobserve(entry.target);
-              }
-            }
-          },
-          { rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
-        )
-      : null;
-
-    const scan = () => {
-      if (!mounted) return;
-      const els = document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)");
-      if (!io) {
-        els.forEach((el) => el.classList.add("in"));
-        return;
-      }
-      els.forEach((el) => io.observe(el));
-    };
-
-    scan();
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      mounted = false;
-      io?.disconnect();
-      mo.disconnect();
-    };
-  }, deps);
-}
-
 export default function Storefront() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { loading, store, products, error } = useStoreContext();
@@ -68,25 +27,16 @@ export default function Storefront() {
 
   const [openProduct, setOpenProduct] = useState<Product | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("all");
   const [sort, setSort] = useState<SortKey>("new");
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   
-  const [categories, setCategories] = useState<Category[]>([]);
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
   const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  // Fetch categories instantly from local storage and sort alphabetically
-  useEffect(() => {
-    if (!slug) return;
-    const savedCats = getCategories(slug);
-    setCategories(savedCats.sort((a, b) => a.label.localeCompare(b.label)));
-  }, [slug]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -134,13 +84,8 @@ export default function Storefront() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
-
   const filtered = useMemo(() => {
     let list = products;
-    if (activeCategory !== "all") {
-      list = list.filter((p) => ((p as any).category_id || (p as any).category) === activeCategory);
-    }
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
@@ -156,7 +101,7 @@ export default function Storefront() {
         break;
     }
     return sorted;
-  }, [products, activeCategory, query, sort]);
+  }, [products, query, sort]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -233,21 +178,13 @@ export default function Storefront() {
       <section className="sf-section" id="shop-all">
         <div className="sf-section-head">
           <div>
-            <h2 className="sf-section-title">{activeCategory === "all" ? (query ? `Results for "${query}"` : "Shop all") : titleCase(getCategoryLabel(categories, activeCategory))}</h2>
+            <h2 className="sf-section-title">{query ? `Results for "${query}"` : "Shop all"}</h2>
           </div>
         </div>
 
+        {/* 🟢 ONLY SORT DROPDOWN */}
         <div className="sf-filter-bar">
           <div className="sf-filter-group">
-            {/* 🟢 CATEGORY FIRST */}
-            <select className="sf-select" value={activeCategory} onChange={(e) => { setActiveCategory(e.target.value); setCurrentPage(1); }}>
-              <option value="all">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>{titleCase(c.label)}</option>
-              ))}
-            </select>
-
-            {/* 🟢 SORT SECOND */}
             <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
               <option value="new">Sort: Newest</option>
               <option value="price-asc">Price: Low to High</option>
@@ -285,7 +222,6 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 SMARTER FOOTER */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           <div className="sf-footer-top" style={{ display: "flex", flexWrap: "wrap", gap: "40px", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: "32px" }}>
