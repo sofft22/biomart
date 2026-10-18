@@ -7,6 +7,7 @@ import ProductCard from "../components/ProductCard";
 import ProductModal from "../components/ProductModal";
 import CartDrawer from "../components/CartDrawer";
 import { getCategoryLabel } from "../lib/categories";
+import { getCategories } from "../lib/storeData";
 import type { Category, Product } from "../types";
 
 type SortKey = "new" | "price-asc" | "price-desc" | "name";
@@ -72,7 +73,6 @@ export default function Storefront() {
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   
-  // 🟢 Categories are now fetched purely for the dropdown
   const [categories, setCategories] = useState<Category[]>([]);
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
@@ -81,18 +81,11 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  // 🟢 Fetch categories instantly from local storage and sort alphabetically
   useEffect(() => {
     if (!slug) return;
-    
-    // Fetch categories for the dropdown
-    fetch(`/api/store/${slug}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.store && data.store.categories && Array.isArray(data.store.categories)) {
-          setCategories(data.store.categories);
-        }
-      })
-      .catch(console.error);
+    const savedCats = getCategories(slug);
+    setCategories(savedCats.sort((a, b) => a.label.localeCompare(b.label)));
   }, [slug]);
 
   useEffect(() => {
@@ -293,11 +286,11 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 FOOTER */}
+      {/* 🟢 FOOTER (Navigation removed) */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
-          <div className="sf-footer-top">
-            <div className="sf-footer-brand-col">
+          <div className="sf-footer-top" style={{ display: "flex", flexWrap: "wrap", gap: "40px", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div className="sf-footer-brand-col" style={{ flex: "1 1 300px" }}>
               <div className="sf-footer-brand">
                 {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
                 {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
@@ -305,13 +298,8 @@ export default function Storefront() {
               </div>
               <p className="sf-footer-bio">{tagline || "Curated essentials for the modern wardrobe."}</p>
             </div>
-            <div className="sf-footer-col">
-              <h4 className="sf-footer-h">Shop</h4>
-              <ul>
-                <li><button onClick={() => scrollTo("shop-all")}>Shop all</button></li>
-              </ul>
-            </div>
-            <div className="sf-footer-col">
+            
+            <div className="sf-footer-col" style={{ flex: "1 1 200px" }}>
               <h4 className="sf-footer-h">Contact</h4>
               <div className="sf-footer-icons">
                 {store.whatsapp && (
