@@ -86,29 +86,8 @@ async function getDb(): Promise<Database> {
       );
     `);
 
-    const res = db.exec("SELECT COUNT(*) FROM stores");
-    const count = (res[0]?.values[0]?.[0] as number) ?? 0;
-
-    if (count === 0) {
-      const now = Date.now();
-      db.run(`
-        INSERT INTO stores (id, user_id, slug, name, bio, tagline, address, whatsapp, instagram, tiktok, cover_url, created_at, plan, subscription_status)
-        VALUES (
-          'store-1', 'user-1', 'soft', 'Soft Closet',
-          'Bags, shoes and skincare · Lagos',
-          'Where Lagos style meets everyday luxury',
-          '12 Admiralty Way, Lekki, Lagos',
-          '09162443887', 'soft', 'soft', NULL, ${now}, 'free', 'active'
-        );
-        INSERT INTO products (id, store_id, name, price, compare_at_price, description, category, in_stock, images, created_at)
-        VALUES
-          ('p1', 'store-1', 'Ankara tote bag', 20500, 27000, 'Handcrafted Ankara tote', 'bags', 1, '["https://images.unsplash.com/photo-1591561954557-26941169b49e?w=500&q=75"]', ${now}),
-          ('p2', 'store-1', 'White sneakers', 32000, NULL, 'Clean white sneakers', 'shoes', 1, '["https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=500&q=75"]', ${now}),
-          ('p3', 'store-1', 'Shea body butter', 6500, NULL, 'Raw shea butter', 'skincare', 1, '["https://images.unsplash.com/photo-1556228720-195a672e8a03?w=500&q=75"]', ${now});
-        INSERT INTO users (id, email, password_hash, plan) VALUES ('user-1', 'demo@biomart.local', '', 'free');
-      `);
-    }
-
+    // 🟢 REMOVED THE FAKE SEEDED DATA. STARTS CLEAN.
+    
     _db = db;
     return db;
   })();
@@ -153,11 +132,6 @@ function hydrateProduct(p: any): Product {
 
 const CURRENT_USER_ID = "user-1";
 
-/* ══════════════════════════════════════════════════
-   AUTO-DOWNGRADE
-   Runs on every me() call. If a paid store has been
-   expired for more than 7 days, drop it to Free.
-   ══════════════════════════════════════════════════ */
 function autoDowngradeExpired(db: Database): void {
   const graceCutoff = Date.now() - 7 * 86400000;
   db.run(
@@ -170,12 +144,9 @@ function autoDowngradeExpired(db: Database): void {
   );
 }
 
-/* ── Auth ── */
 export const auth = {
   async me(): Promise<MeResponse> {
     const db = await getDb();
-
-    // Auto-downgrade expired stores before returning
     autoDowngradeExpired(db);
 
     const users = rows<{ id: string; email: string; plan: string; is_admin?: number }>(
@@ -212,7 +183,6 @@ export const auth = {
   async logout(): Promise<void> {},
 };
 
-/* ── Store ── */
 export const store = {
   async update(payload: Partial<Store>): Promise<void> {
     const db = await getDb();
@@ -248,12 +218,10 @@ export const store = {
       [s.id]
     ).map(hydrateProduct);
 
-    // Only return up to the visible limit
     return { store: s, products: all.slice(0, limit) };
   },
 };
 
-/* ── Products ── */
 export const products = {
   async list(): Promise<Product[]> {
     const db = await getDb();
@@ -269,7 +237,6 @@ export const products = {
     if (!stores[0]) throw new ApiError("No store", 404);
     const storeRow = stores[0];
 
-    // Photo limit check
     const plan = (storeRow as any).plan ?? "free";
     const photoLimit = getLimit(plan).photos;
     const imgs = payload.images ?? (payload.image_url ? [payload.image_url, ...(payload.image_urls ?? [])] : []);
@@ -372,7 +339,6 @@ export const products = {
   },
 };
 
-/* ── Upload ── */
 export async function uploadImage(file: File | Blob): Promise<string> {
   return await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -382,7 +348,6 @@ export async function uploadImage(file: File | Blob): Promise<string> {
   });
 }
 
-/* ── Track ── */
 export const track = {
   async storeVisit(slug: string): Promise<{ ok: true }> {
     try {
@@ -401,7 +366,6 @@ export const track = {
   async productView(_id: string): Promise<{ ok: true }> { return { ok: true }; },
 };
 
-/* ── Stats ── */
 export type StatsResponse = {
   visits: { today: number; week: number; month: number };
   totalProductViews: number;
@@ -430,7 +394,6 @@ export const stats = {
   },
 };
 
-/* ── Admin ── */
 function hashPassword(pw: string): string {
   let h = 0;
   for (let i = 0; i < pw.length; i++) {
@@ -613,7 +576,6 @@ export const admin = {
     const db = await getDb();
     const nextWeek = Date.now() + 7 * 86400000;
     
-    // Get stores on paid plans expiring in the next 7 days, OR already expired
     const data = rows<any>(
       db,
       `SELECT stores.id, stores.name, stores.slug, stores.plan, stores.paid_until
