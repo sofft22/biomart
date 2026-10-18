@@ -153,7 +153,7 @@ export default function Storefront() {
 
   useReveal([products.length, categories.length, activeCategory, sort, query, currentPage]);
 
-  // 🟢 FIXED: Simply show all categories from Settings. No missing mobile sections.
+  // 🟢 STRICT FIX: Only show categories from Settings. No fake fallbacks.
   const usedCategories = categories;
 
   const filtered = useMemo(() => {
@@ -182,6 +182,8 @@ export default function Storefront() {
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleOpenProduct = (p: Product) => setOpenProduct(p);
+  
+  // 🟢 FIXED: Only adds to cart and opens drawer. NO WHATSAPP.
   const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
     cart.add(product, qty, variant, unitPrice);
     setCartOpen(true);
@@ -252,7 +254,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 CATEGORIES (2 per row mobile) */}
+      {/* 🟢 CATEGORIES (Strictly from Settings) */}
       {usedCategories.length > 0 && (
         <section className="sf-section" id="categories">
           <div className="sf-section-head-center">
@@ -261,7 +263,6 @@ export default function Storefront() {
           </div>
           <div className="sf-cat-grid">
             {usedCategories.map((c, i) => {
-              // 🟢 STRICT: Only uses the image saved in settings. No fallbacks.
               const img = categoryImages[c.id];
               const active = activeCategory === c.id;
               return (
@@ -312,7 +313,14 @@ export default function Storefront() {
           <>
             <div className="sf-grid-all">
               {paginatedProducts.map((p, i) => (
-                <ProductCard key={p.id} product={p} index={i} priority={i < 4} onClick={() => handleOpenProduct(p)} onAddToCart={() => handleAddToCart(p, 1, null, p.price)} />
+                <ProductCard 
+                  key={p.id} 
+                  product={p} 
+                  index={i} 
+                  priority={i < 4} 
+                  onClick={() => handleOpenProduct(p)} 
+                  onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
+                />
               ))}
             </div>
             
@@ -385,7 +393,16 @@ export default function Storefront() {
       </a>
 
       {openProduct && (
-        <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0))} onOpenProduct={(p) => handleOpenProduct(p)} />
+        <ProductModal 
+          product={openProduct} 
+          products={products} 
+          store={store} 
+          onClose={() => setOpenProduct(null)} 
+          onAddToCart={(qty, variant, priceDelta) => {
+            handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0));
+          }} 
+          onOpenProduct={(p) => handleOpenProduct(p)} 
+        />
       )}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
