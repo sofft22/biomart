@@ -32,9 +32,10 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const photoLimit = limits?.images ?? 1;
+  const photoLimit = limits?.photos ?? 1;
+  const canUseVariants = limits?.variants ?? false;
 
-  // Fetch product data if editing
+  // Load product data if editing
   useEffect(() => {
     if (!id || !currentStore?.slug) { 
       setLoadingProduct(false); 
@@ -125,12 +126,11 @@ export default function ProductEdit() {
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category_id: "", // 🟢 Hardcoded to empty since categories are gone
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      variants: variants.length > 0 ? { suggested: variants } : undefined,
+      variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : undefined,
     };
 
     try {
@@ -312,62 +312,95 @@ export default function ProductEdit() {
           </button>
         </section>
 
-        {/* VARIANTS */}
+        {/* 🟢 VARIANTS (Locked for Free/Starter) */}
         <section className="pe-section">
-          <div className="pe-section-head">
+          <div className="pe-section-head" style={{ marginBottom: canUseVariants ? 16 : 0 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
-            <button type="button" onClick={addVariant} className="pe-add-variant">
-              + Add
-            </button>
+            {canUseVariants && (
+              <button type="button" onClick={addVariant} className="pe-add-variant">
+                + Add Variant
+              </button>
+            )}
           </div>
 
-          {variants.length > 0 && (
-            <div className="pe-variants">
-              {variants.map((v, i) => {
-                const finalPrice = numericPrice + (v.priceDelta || 0);
-                const hasExtra = (v.priceDelta || 0) > 0;
-                return (
-                  <div key={i} className="pe-variant">
-                    <div className="pe-variant-main">
-                      <input
-                        className="pe-input"
-                        value={v.label}
-                        onChange={(e) => updateVariant(i, { label: e.target.value })}
-                        placeholder="Size M"
-                      />
-                      <div className="pe-variant-extra">
-                        <span className="pe-variant-plus">+</span>
+          {/* Locked State UI */}
+          {!canUseVariants ? (
+            <div style={{ 
+              background: "var(--soft)", 
+              border: "1px dashed var(--line)", 
+              borderRadius: "16px", 
+              padding: "24px", 
+              display: "flex", 
+              flexDirection: "column", 
+              alignItems: "center", 
+              textAlign: "center" 
+            }}>
+              <div style={{ width: 48, height: 48, background: "var(--bg)", borderRadius: "50%", display: "grid", placeItems: "center", marginBottom: 16, color: "var(--green)" }}>
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 8px", color: "var(--ink)" }}>
+                Unlock Product Variants
+              </h3>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 20px", maxWidth: 300 }}>
+                Sell different sizes, colors, or styles. Upgrade to Pro to add variants to your products.
+              </p>
+              <Link to="/plan" className="dash-btn dash-btn-dark" style={{ padding: "10px 24px", fontSize: 12 }}>
+                Upgrade to Pro
+              </Link>
+            </div>
+          ) : (
+            // Unlocked UI
+            variants.length > 0 && (
+              <div className="pe-variants">
+                {variants.map((v, i) => {
+                  const finalPrice = numericPrice + (v.priceDelta || 0);
+                  const hasExtra = (v.priceDelta || 0) > 0;
+                  return (
+                    <div key={i} className="pe-variant">
+                      <div className="pe-variant-main">
                         <input
                           className="pe-input"
-                          type="number"
-                          inputMode="numeric"
-                          value={v.priceDelta || ""}
-                          onChange={(e) =>
-                            updateVariant(i, { priceDelta: Number(e.target.value) || 0 })
-                          }
-                          placeholder="0"
+                          value={v.label}
+                          onChange={(e) => updateVariant(i, { label: e.target.value })}
+                          placeholder="Size M / Color Red"
                         />
+                        <div className="pe-variant-extra">
+                          <span className="pe-variant-plus">+</span>
+                          <input
+                            className="pe-input"
+                            type="number"
+                            inputMode="numeric"
+                            value={v.priceDelta || ""}
+                            onChange={(e) =>
+                              updateVariant(i, { priceDelta: Number(e.target.value) || 0 })
+                            }
+                            placeholder="0"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeVariant(i)}
+                          className="pe-variant-x"
+                          aria-label="Remove variant"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                            <path d="M6 6l12 12M18 6L6 18" />
+                          </svg>
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeVariant(i)}
-                        className="pe-variant-x"
-                        aria-label="Remove variant"
-                      >
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M6 6l12 12M18 6L6 18" />
-                        </svg>
-                      </button>
+                      <p className="pe-variant-hint">
+                        {hasExtra
+                          ? `${v.label.trim() || "Variant"} · ${naira(finalPrice)}`
+                          : `${v.label.trim() || "Variant"} · same price`}
+                      </p>
                     </div>
-                    <p className="pe-variant-hint">
-                      {hasExtra
-                        ? `${v.label.trim() || "Variant"} · ${naira(finalPrice)}`
-                        : `${v.label.trim() || "Variant"} · same price`}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )
           )}
         </section>
 
