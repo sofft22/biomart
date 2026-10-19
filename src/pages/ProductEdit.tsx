@@ -32,8 +32,12 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // 🟢 DIRECT PLAN CHECK (Bypasses stale cache entirely)
+  const isPro = currentStore?.plan === "pro" || currentStore?.plan === "lifetime";
+  
+  // We use the limits for photos, but fallback to the plan check for variants
   const photoLimit = limits?.photos ?? 1;
-  const canUseVariants = limits?.variants ?? false;
+  const canUseVariants = isPro;
 
   // 🟢 FORCE FRESH DATA ON LOAD
   useEffect(() => {
@@ -135,6 +139,7 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
+      // 🟢 ONLY SEND VARIANTS IF THEY ARE PRO
       variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : undefined,
     };
 
