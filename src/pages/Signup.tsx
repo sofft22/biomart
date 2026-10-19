@@ -123,31 +123,63 @@ export default function Signup() {
               />
             </div>
 
-            {/* 🟢 TERMS & CONDITIONS CHECKBOX */}
-            <div className="auth-field" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 8 }}>
-              <input
-                type="checkbox"
-                id="terms"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
+                        {/* 🟢 CUSTOM TERMS & CONDITIONS CHECKBOX */}
+            <div 
+              onClick={() => setAgreed(!agreed)}
+              style={{ 
+                display: "flex", 
+                alignItems: "flex-start", 
+                gap: 12, 
+                marginTop: 16, 
+                marginBottom: 8,
+                cursor: "pointer",
+                userSelect: "none"
+              }}
+            >
+              {/* The visual box */}
+              <div
                 style={{
-                  width: 18,
-                  height: 18,
-                  marginTop: 2,
-                  cursor: "pointer",
-                  accentColor: "var(--green)" // Makes the checkbox green in modern browsers
+                  width: 20,
+                  height: 20,
+                  flexShrink: 0,
+                  borderRadius: 4,
+                  border: `1.5px solid ${agreed ? "var(--green)" : "var(--line)"}`,
+                  background: agreed ? "var(--green)" : "var(--bg)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "all 0.2s ease",
+                  marginTop: 2
                 }}
-              />
-              <label htmlFor="terms" style={{ fontSize: 13, lineHeight: 1.5, color: "var(--muted)", cursor: "pointer" }}>
+              >
+                {agreed && (
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12.5l4.5 4.5L19 7.5" />
+                  </svg>
+                )}
+              </div>
+
+              {/* The text */}
+              <span style={{ fontSize: 13, lineHeight: 1.5, color: "var(--muted)" }}>
                 I agree to the{" "}
-                <Link to="/legal/terms" target="_blank" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
+                <Link 
+                  to="/legal/terms" 
+                  target="_blank" 
+                  onClick={(e) => e.stopPropagation()} // Prevents toggling the checkbox when clicking the link
+                  style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
+                >
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link to="/legal/privacy" target="_blank" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
+                <Link 
+                  to="/legal/privacy" 
+                  target="_blank" 
+                  onClick={(e) => e.stopPropagation()} // Prevents toggling the checkbox when clicking the link
+                  style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
+                >
                   Privacy Policy
                 </Link>.
-              </label>
+              </span>
             </div>
 
             {error && (
