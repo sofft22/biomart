@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_PRICES_MONTHLY, PLAN_PRICES_QUARTERLY } from "../lib/plans";
@@ -28,52 +27,18 @@ export default function Plan() {
 
       {/* 🟢 MONTHLY / QUARTERLY TOGGLE */}
       <div style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
-        <div style={{ 
-          display: "inline-flex", 
-          background: "var(--soft)", 
-          padding: 4, 
-          borderRadius: 99,
-          border: "1px solid var(--line)"
-        }}>
+        <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
           <button
             onClick={() => setIsQuarterly(false)}
-            style={{
-              padding: "10px 24px",
-              borderRadius: 99,
-              fontSize: 13,
-              fontWeight: 600,
-              border: 0,
-              cursor: "pointer",
-              background: !isQuarterly ? "var(--bg)" : "transparent",
-              color: !isQuarterly ? "var(--ink)" : "var(--muted)",
-              boxShadow: !isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none",
-              transition: "all 0.2s ease"
-            }}
+            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: !isQuarterly ? "var(--bg)" : "transparent", color: !isQuarterly ? "var(--ink)" : "var(--muted)", boxShadow: !isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}
           >
             Monthly
           </button>
           <button
             onClick={() => setIsQuarterly(true)}
-            style={{
-              padding: "10px 24px",
-              borderRadius: 99,
-              fontSize: 13,
-              fontWeight: 600,
-              border: 0,
-              cursor: "pointer",
-              background: isQuarterly ? "var(--bg)" : "transparent",
-              color: isQuarterly ? "var(--ink)" : "var(--muted)",
-              boxShadow: isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: 8
-            }}
+            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: isQuarterly ? "var(--bg)" : "transparent", color: isQuarterly ? "var(--ink)" : "var(--muted)", boxShadow: isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: 8 }}
           >
-            Quarterly
-            <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>
-              Save 8%
-            </span>
+            Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
           </button>
         </div>
       </div>
@@ -91,6 +56,7 @@ export default function Plan() {
             <li>✅ 5 products</li>
             <li>✅ 1 photo per product</li>
             <li>❌ No variants</li>
+            <li>❌ Shows Biomart ad</li>
           </ul>
 
           <button disabled className="dash-btn dash-btn-line" style={{ marginTop: "auto", width: "100%" }}>
@@ -104,15 +70,14 @@ export default function Plan() {
           <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For the casual seller.</p>
           <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>
             ₦{isQuarterly ? PLAN_PRICES_QUARTERLY.starter.toLocaleString() : PLAN_PRICES_MONTHLY.starter.toLocaleString()}
-            <span style={{ fontSize: 15, color: "var(--muted)", fontWeight: 400 }}>
-              /{isQuarterly ? "3mo" : "mo"}
-            </span>
+            <span style={{ fontSize: 15, color: "var(--muted)", fontWeight: 400 }}>/{isQuarterly ? "3mo" : "mo"}</span>
           </p>
           
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
             <li>✅ 15 products</li>
             <li>✅ 3 photos per product</li>
             <li>❌ No variants</li>
+            <li>❌ Shows Biomart ad</li>
           </ul>
 
           <a href={getWhatsAppLink("Starter")} target="_blank" rel="noopener" className="dash-btn dash-btn-line" style={{ marginTop: "auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -128,15 +93,14 @@ export default function Plan() {
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: "0 0 24px" }}>For serious brands.</p>
           <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px", color: "#fff" }}>
             ₦{isQuarterly ? PLAN_PRICES_QUARTERLY.pro.toLocaleString() : PLAN_PRICES_MONTHLY.pro.toLocaleString()}
-            <span style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>
-              /{isQuarterly ? "3mo" : "mo"}
-            </span>
+            <span style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>/{isQuarterly ? "3mo" : "mo"}</span>
           </p>
           
           <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, color: "rgba(255,255,255,0.9)" }}>
             <li>✅ Unlimited products</li>
             <li>✅ 10 photos per product</li>
             <li>✅ Product variants</li>
+            <li>✅ No Biomart ad</li>
           </ul>
 
           <a href={getWhatsAppLink("Pro")} target="_blank" rel="noopener" className="dash-btn" style={{ marginTop: "auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "var(--green)", color: "#fff" }}>
