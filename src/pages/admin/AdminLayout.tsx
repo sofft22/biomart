@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { auth } from "../../lib/api";
-
+import HelpWidget from "./HelpWidget";
 const I = {
   home: (
     <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -200,6 +200,7 @@ export default function AdminLayout() {
           </NavLink>
         ))}
       </nav>
+      <HelpWidget />
     </div>
   );
 }
