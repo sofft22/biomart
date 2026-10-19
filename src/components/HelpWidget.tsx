@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 
-// 🟢 THE KNOWLEDGE BASE
 const GUIDES = [
   {
     id: "overview",
@@ -9,7 +8,7 @@ const GUIDES = [
     steps: [
       "The Overview page is your business hub.",
       "The top green card shows your Catalogue Value (the total price of all your products combined).",
-      "The next two cards show your Products Live (how many items you have) and Total Photos (how rich your catalogue is).",
+      "The next two cards show your Products Live (how many items you have) and Total Photos.",
       "The Plan Card acts as a countdown timer showing exactly how many days you have left until your subscription expires."
     ]
   },
@@ -111,7 +110,6 @@ const GUIDES = [
   }
 ];
 
-// 🟢 HIGHLIGHT COMPONENT
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
@@ -134,13 +132,10 @@ function Highlight({ text, query }: { text: string; query: string }) {
 export default function HelpWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
-  
-  // 🟢 CTRL+F STATE
   const [currentMatch, setCurrentMatch] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Filter guides based on search
   const filteredGuides = useMemo(() => {
     if (!search.trim()) return GUIDES;
     const q = search.toLowerCase();
@@ -152,14 +147,12 @@ export default function HelpWidget() {
     );
   }, [search]);
 
-  // Reset matches when search changes
   useEffect(() => {
     setCurrentMatch(0);
     if (!search.trim()) {
       setTotalMatches(0);
       return;
     }
-    // Count total times the word appears in the filtered guides
     let count = 0;
     const q = search.toLowerCase();
     filteredGuides.forEach((g) => {
@@ -171,7 +164,6 @@ export default function HelpWidget() {
     setTotalMatches(count);
   }, [search, filteredGuides]);
 
-  // 🟢 SCROLL TO MATCH LOGIC
   const handleNextMatch = () => {
     if (totalMatches === 0) return;
     setCurrentMatch((prev) => (prev + 1) % totalMatches);
@@ -182,15 +174,10 @@ export default function HelpWidget() {
     setCurrentMatch((prev) => (prev - 1 + totalMatches) % totalMatches);
   };
 
-  // Scroll to the active guide when match changes
   useEffect(() => {
     if (!containerRef.current || totalMatches === 0) return;
-    
-    // Find the specific DOM node that contains the match
-    // For simplicity, we just scroll to the matching guide block
     let currentCount = 0;
     const q = search.toLowerCase();
-    
     for (let i = 0; i < filteredGuides.length; i++) {
       const g = filteredGuides[i];
       const hasTitle = g.title.toLowerCase().includes(q);
@@ -199,9 +186,7 @@ export default function HelpWidget() {
       
       if (currentMatch >= currentCount && currentMatch < currentCount + matchesInGuide) {
         const el = document.getElementById(`guide-${g.id}`);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
         break;
       }
       currentCount += matchesInGuide;
@@ -210,7 +195,7 @@ export default function HelpWidget() {
 
   return (
     <>
-      {/* 🟢 FLOATING BUTTON */}
+      {/* 🟢 FLOATING ACTION BUTTON */}
       <button
         onClick={() => setIsOpen(true)}
         style={{
@@ -242,13 +227,13 @@ export default function HelpWidget() {
         </svg>
       </button>
 
-      {/* 🟢 HELP MODAL */}
+      {/* 🟢 MINIMAL HELP MODAL */}
       {isOpen && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(0,0,0,0.6)",
+            background: "rgba(0,0,0,0.5)",
             backdropFilter: "blur(4px)",
             zIndex: 100,
             display: "flex",
@@ -262,8 +247,8 @@ export default function HelpWidget() {
             style={{
               background: "var(--bg)",
               width: "100%",
-              maxWidth: 600,
-              maxHeight: "85vh",
+              maxWidth: 540,
+              maxHeight: "80vh",
               borderRadius: 20,
               display: "flex",
               flexDirection: "column",
@@ -271,29 +256,21 @@ export default function HelpWidget() {
               boxShadow: "0 24px 64px -12px rgba(0,0,0,0.4)"
             }}
           >
-            {/* Header & Search */}
-            <div style={{ padding: "24px 24px 16px", borderBottom: "1px solid var(--line)", background: "var(--bg)", zIndex: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0 }}>How can we help?</h2>
-                <button onClick={() => setIsOpen(false)} style={{ background: "none", border: 0, cursor: "pointer", color: "var(--muted)" }}>
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
-                </button>
-              </div>
-              
-              {/* Search Bar */}
+            {/* Search Header */}
+            <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid var(--line)", background: "var(--bg)", zIndex: 10 }}>
               <div style={{ position: "relative" }}>
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ position: "absolute", left: 12, top: 12, color: "var(--muted)" }}>
                   <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search guides (e.g., 'variant', 'photo')..."
+                  placeholder="Search guides..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   autoFocus
                   style={{
                     width: "100%",
-                    padding: "10px 100px 10px 40px", // extra padding right for the find controls
+                    padding: "10px 100px 10px 40px",
                     borderRadius: 10,
                     border: "1px solid var(--line)",
                     background: "var(--soft)",
@@ -302,11 +279,10 @@ export default function HelpWidget() {
                   }}
                 />
                 
-                {/* 🟢 CTRL+F FIND CONTROLS */}
                 {search.trim() && (
                   <div style={{ position: "absolute", right: 8, top: 8, display: "flex", alignItems: "center", gap: 4, background: "var(--bg)", borderRadius: 6, padding: "2px 4px" }}>
                     <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600, marginRight: 4 }}>
-                      {totalMatches > 0 ? `${currentMatch + 1} of ${totalMatches}` : "0 of 0"}
+                      {totalMatches > 0 ? `${currentMatch + 1}/${totalMatches}` : "0/0"}
                     </span>
                     <button onClick={handlePrevMatch} disabled={totalMatches === 0} style={{ background: "none", border: 0, cursor: totalMatches > 0 ? "pointer" : "default", color: totalMatches > 0 ? "var(--ink)" : "var(--line)", display: "grid", placeItems: "center", padding: 2 }}>
                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 15l-6-6-6 6"/></svg>
@@ -319,8 +295,8 @@ export default function HelpWidget() {
               </div>
             </div>
 
-            {/* Scrollable Guide List */}
-            <div ref={containerRef} style={{ flex: 1, overflowY: "auto", padding: "16px 24px", position: "relative" }}>
+            {/* Guide List */}
+            <div ref={containerRef} style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
               {filteredGuides.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
                   <p>No results found for "{search}".</p>
@@ -344,23 +320,38 @@ export default function HelpWidget() {
                       </ul>
                     </div>
                   ))}
+
+                  {/* 🟢 MINIMAL WHATSAPP SUPPORT LINK AT THE BOTTOM OF THE LIST */}
+                  <div style={{ padding: "32px 0 16px", textAlign: "center", borderTop: "1px dashed var(--line)", marginTop: 16 }}>
+                    <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Still stuck?</p>
+                    <a
+                      href="https://wa.me/2347072789513?text=Hi Biomart,%20I%20need%20help%20with%20my%20store."
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 8,
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "var(--ink)",
+                        textDecoration: "none",
+                        padding: "10px 20px",
+                        background: "var(--soft)",
+                        borderRadius: 99,
+                        transition: "background 0.2s ease"
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--line)"}
+                      onMouseLeave={(e) => e.currentTarget.style.background = "var(--soft)"}
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ color: "var(--green)" }}>
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
+                      </svg>
+                      Chat with Support
+                    </a>
+                  </div>
                 </div>
               )}
-            </div>
-
-            {/* Footer: Contact Support */}
-            <div style={{ padding: 24, borderTop: "1px solid var(--line)", background: "var(--soft)", textAlign: "center" }}>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 12px" }}>Still stuck? We're here to help.</p>
-              <a
-                href="https://wa.me/2347072789513?text=Hi Biomart,%20I%20need%20help%20with%20my%20store."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="dash-btn dash-btn-dark"
-                style={{ display: "inline-flex", alignItems: "center", gap: 8, width: "100%", justifyContent: "center", padding: "12px" }}
-              >
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>
-                Chat with Support
-              </a>
             </div>
           </div>
         </div>
