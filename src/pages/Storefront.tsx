@@ -162,8 +162,11 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
   
+  // Only show custom banner if they uploaded one. (We remove the ad from the top entirely)
+  const hasCustomBanner = !!store.cover_url;
+
+  // Show ad in the footer ONLY for Free users
   const isFreePlan = store.plan === "free" || !store.plan;
-  const showDefaultBanner = isFreePlan || !store.cover_url;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
 
@@ -206,8 +209,8 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* Actual Uploaded Banner (Only shows for Paid plans) */}
-      {!showDefaultBanner && (
+      {/* 🟢 CUSTOM BANNER (Only shows if they uploaded an image) */}
+      {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div className="sf-banner-overlay" />
@@ -220,9 +223,8 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 SHOP ALL SECTION */}
-      <section className="sf-section" id="shop-all" style={{ paddingTop: showDefaultBanner ? "120px" : "80px" }}>
-        {/* Title and Sort Side-by-Side */}
+      {/* 🟢 SHOP ALL SECTION (Sort side-by-side) */}
+      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
           <div>
             <h2 className="sf-section-title">{query ? `Results for "${query}"` : "Shop all"}</h2>
@@ -264,44 +266,37 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 BIOMART AD BANNER (Placed right above the footer) */}
-      {showDefaultBanner && (
-        <section style={{ 
-          width: "100%", 
-          padding: "80px 24px", 
-          background: "var(--bg)", 
-          borderTop: "1px solid var(--line)",
-          display: "flex", 
-          flexDirection: "column", 
-          alignItems: "center", 
-          justifyContent: "center", 
-          textAlign: "center" 
-        }}>
-          <div style={{ maxWidth: "800px" }}>
-            {/* Brand Wordmark */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 24, color: "var(--green)" }}>
-              <svg viewBox="0 0 60 64" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
-                <path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" />
-                <path d="M20 26V14A10 10 0 0 1 40 14V26" />
-              </svg>
-              <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--green)" }}>Biomart</span>
+      {/* 🟢 FOOTER WITH INTEGRATED BIOMART AD */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: isFreePlan ? "0" : "80px" }}>
+        
+        {/* Ad Section (Only for Free Plan) */}
+        {isFreePlan && (
+          <div style={{ background: "var(--bg)", borderBottom: "1px solid var(--line)", padding: "80px 24px", textAlign: "center" }}>
+            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+              {/* Brand Wordmark */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 24, color: "var(--green)" }}>
+                <svg viewBox="0 0 60 64" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+                  <path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" />
+                  <path d="M20 26V14A10 10 0 0 1 40 14V26" />
+                </svg>
+                <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--green)" }}>Biomart</span>
+              </div>
+
+              {/* Main Headline */}
+              <h2 style={{ fontFamily: "var(--font)", fontSize: "clamp(40px, 6vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, color: "var(--ink)", margin: "0 0 32px" }}>
+                Your bio link, but it sells.
+              </h2>
+
+              {/* CTA */}
+              <a href="/signup" className="dash-btn dash-btn-dark" style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "16px 32px", borderRadius: 12, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none" }}>
+                CREATE YOUR FREE STORE
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+              </a>
             </div>
-
-            {/* Main Headline */}
-            <h2 style={{ fontFamily: "var(--font)", fontSize: "clamp(40px, 6vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, color: "var(--ink)", margin: "0 0 32px" }}>
-              Your bio link, but it sells.
-            </h2>
-
-            {/* CTA */}
-            <a href="/signup" className="dash-btn dash-btn-dark" style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "16px 32px", borderRadius: 12, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none" }}>
-              CREATE YOUR FREE STORE
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-            </a>
           </div>
-        </section>
-      )}
+        )}
 
-      <footer className="sf-footer" id="contact">
+        {/* Standard Footer Content */}
         <div className="sf-footer-inner">
           <div className="sf-footer-top" style={{ display: "flex", flexWrap: "wrap", gap: "40px", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: "32px" }}>
             <div className="sf-footer-brand-col" style={{ flex: "1 1 300px" }}>
