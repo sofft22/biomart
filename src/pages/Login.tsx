@@ -28,7 +28,29 @@ export default function Login() {
     }
   }
 
-  // 🟢 WHATSAPP SUPPORT LINK
+  // 🟢 REUSABLE STYLES (Matched to Signup)
+  const labelStyle = {
+    display: "block",
+    fontSize: 12,
+    fontWeight: 800,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    color: "var(--ink)",
+    marginBottom: 8,
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "14px 16px",
+    borderRadius: 12,
+    border: "1px solid rgba(26,26,26,0.15)",
+    background: "rgba(255,255,255,0.6)",
+    fontSize: 15,
+    color: "var(--ink)",
+    outline: "none",
+    transition: "border-color 0.2s ease",
+  };
+
   const whatsappUrl = `https://wa.me/2347072789513?text=${encodeURIComponent(
     `Hi Biomart, I forgot my password for ${email || "[my email]"}. Please help me reset it.`
   )}`;
@@ -61,9 +83,11 @@ export default function Login() {
 
       <main className="auth-main">
         <div className={`auth-form-wrap ${mounted ? "in" : ""}`}>
-          <form onSubmit={onSubmit} className="auth-form">
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="login-email">Email</label>
+          <form onSubmit={onSubmit} className="auth-form" style={{ maxWidth: 440, margin: "0 auto" }}>
+            
+            {/* EMAIL */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle} htmlFor="login-email">Email Address</label>
               <input
                 id="login-email"
                 type="email"
@@ -73,11 +97,26 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="login-password">Password</label>
+            {/* PASSWORD */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                <label style={{ ...labelStyle, marginBottom: 0 }} htmlFor="login-password">Password</label>
+                <a 
+                  href={whatsappUrl}
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ fontSize: 12, fontWeight: 600, color: "var(--green)", textDecoration: "none" }}
+                >
+                  Forgot password?
+                </a>
+              </div>
               <input
                 id="login-password"
                 type="password"
@@ -86,30 +125,27 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
-              {/* 🟢 FORGOT PASSWORD WHATSAPP LINK */}
-              <a 
-                href={whatsappUrl}
-                target="_blank" 
-                rel="noopener noreferrer"
-                style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 600, color: "var(--green)", textDecoration: "none" }}
-              >
-                Forgot password?
-              </a>
             </div>
 
             {error && (
-              <p className="auth-error" role="alert">{error}</p>
+              <div style={{ padding: "12px 16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: 8, fontSize: 13, fontWeight: 500, marginBottom: 24 }}>
+                {error}
+              </div>
             )}
 
             <div className="auth-submit">
-              <button type="submit" disabled={busy}>
+              <button type="submit" disabled={busy} style={{ height: 54, borderRadius: 12, fontWeight: 700 }}>
                 {busy ? "Logging in…" : "Log in"}
               </button>
             </div>
           </form>
 
-          <p className="auth-foot">
+          <p className="auth-foot" style={{ marginTop: 24 }}>
             Don't have a store?{" "}
             <Link to="/signup" className="auth-foot-link">
               Create one
