@@ -1088,3 +1088,42 @@
   color: var(--ink);
   border-bottom-color: var(--ink);
 }
+.ov-plan-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.ov-plan-eyebrow {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 4px;
+  color: var(--green);
+}
+.ov-plan-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ink);
+}
+.ov-plan-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 8px 0 0;
+}
+.ov-plan-bar-bg {
+  width: 100%;
+  height: 8px;
+  background: var(--soft);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 16px;
+}
+.ov-plan-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease;
+}
