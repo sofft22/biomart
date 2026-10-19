@@ -35,6 +35,11 @@ export default function ProductEdit() {
   const photoLimit = limits?.photos ?? 1;
   const canUseVariants = limits?.variants ?? false;
 
+  // 🟢 FORCE FRESH DATA ON LOAD
+  useEffect(() => {
+    refresh(true);
+  }, [refresh]);
+
   // Load product data if editing
   useEffect(() => {
     if (!id || !currentStore?.slug) { 
