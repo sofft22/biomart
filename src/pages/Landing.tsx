@@ -8,22 +8,13 @@ const I = {
       <path d="M20 26V14A10 10 0 0 1 40 14V26" />
     </svg>
   ),
-  bag: <svg className="ic" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>,
-  jar: <svg className="ic" viewBox="0 0 24 24"><path d="M7 9h10v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V9z"/><path d="M6 5.5h12V9H6z"/></svg>,
-  hat: <svg className="ic" viewBox="0 0 24 24"><path d="M3 15h18"/><path d="M6 15c0-5 2-8 6-8s6 3 6 8"/></svg>,
-  shoe: <svg className="ic" viewBox="0 0 24 24"><path d="M3 16c0-3 2-4 4-4l3 2 4-4 3 5c2 0 4 1 4 3v1H3v-3z"/></svg>,
-  wave: <svg className="ic" viewBox="0 0 24 24"><path d="M3 9c3-5 6 5 9 0s6 5 9 0"/><path d="M3 15c3-5 6 5 9 0s6 5 9 0"/></svg>,
-  bowl: <svg className="ic" viewBox="0 0 24 24"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M9 7c0-1.5 1-1.5 1-3"/><path d="M14 7c0-1.5 1-1.5 1-3"/></svg>,
-  sliders: <svg className="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4"/></svg>,
-  tag: <svg className="ic" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8-9-9z"/><path d="M7.5 8.5h.01"/></svg>,
-  grid: <svg className="ic" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>,
-  chat: <svg className="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5z"/></svg>,
-  bolt: <svg className="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
   x: <svg className="ic" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>,
   tick: <svg className="ic" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>,
   arrow: <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>,
   arrowSm: <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>,
-  dress: <svg className="ic" viewBox="0 0 24 24"><path d="M9 3h6l-1 4 3 14H7L10 7 9 3z"/></svg>,
+  sliders: <svg className="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4"/></svg>,
+  tag: <svg className="ic" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8-9-9z"/><path d="M7.5 8.5h.01"/></svg>,
+  bolt: <svg className="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
 };
 
 const SIGNUP_URL = "/signup";
@@ -208,16 +199,8 @@ export default function Landing() {
 
   const wa = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 
-  const audience = [
-    { icon: I.wave, label: "Hair" },
-    { icon: I.bag, label: "Fashion" },
-    { icon: I.jar, label: "Skincare" },
-    { icon: I.bowl, label: "Food" },
-    { icon: I.shoe, label: "Shoes" },
-    { icon: I.dress, label: "Boutiques" },
-    { icon: I.sliders, label: "Thrift" },
-    { icon: I.hat, label: "Accessories" },
-  ];
+  // 🟢 TEXT-ONLY TICKER
+  const audience = ["Hair", "Fashion", "Skincare", "Food", "Shoes", "Boutiques", "Thrift", "Accessories"];
 
   const legalContent = {
     privacy: {
@@ -299,12 +282,13 @@ export default function Landing() {
           </div>
         </header>
 
+        {/* 🟢 TEXT-ONLY TICKER */}
         <div className="serve-strip">
           <div className="marquee-track">
             {[...audience, ...audience, ...audience].map((a, i) => (
-              <div key={i} className="serve-item">
-                {a.icon}
-                <span>{a.label}</span>
+              <div key={i} className="serve-item" style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 15, fontWeight: 500, color: "var(--muted)" }}>{a}</span>
+                <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--line)" }} />
               </div>
             ))}
           </div>
@@ -339,7 +323,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 MEANINGFUL "HOW IT WORKS" */}
+        {/* 🟢 "HOW IT WORKS" EXACTLY AS SCREENSHOT */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
@@ -366,7 +350,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 MEANINGFUL "FEATURES" */}
         <section className="sec" id="features">
           <div className="wrap">
             <div className="sh reveal">
@@ -393,7 +376,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 FIXED PRICING PAGE */}
+        {/* 🟢 FIXED PRICING PAGE (Exactly like app) */}
         <section className="sec bg-soft" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
@@ -492,7 +475,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 BETTER FAQ */}
         <section className="sec" id="faq">
           <div className="wrap">
             <div className="sh reveal">
