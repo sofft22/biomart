@@ -162,17 +162,11 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
   
+  // 🟢 THE AD LOGIC: Shows on Free & Starter. Hides on Pro.
   const isPro = store.plan === "pro" || store.plan === "lifetime";
   const hasCustomBanner = !!store.cover_url;
 
-  // 🟢 HEADER FIX: If no banner, the header needs a dark background so white text is visible.
-  const headerClasses = [
-    "sf-head", 
-    headerSolid ? "sf-head-solid" : "", 
-    !hasCustomBanner ? "sf-head-solid" : "", // Force solid background if no banner
-    headerHidden ? "sf-head-hidden" : "", 
-    searchOpen ? "sf-head-searching" : ""
-  ].filter(Boolean).join(" ");
+  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
 
   return (
     <div className="sf-shell">
@@ -213,7 +207,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER (Only shows if they uploaded an image) */}
+      {/* CUSTOM BANNER */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
@@ -270,52 +264,41 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 FOOTER WITH INTEGRATED SMART AD */}
+      {/* 🟢 FOOTER */}
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
           
-          {/* Ad Section (Small & Smart, Inside Footer, Only for Free & Starter) */}
+          {/* Ad Section (Only for Free & Starter) */}
           {!isPro && (
             <div style={{ 
-              background: "rgba(255,255,255,0.03)", 
-              border: "1px solid rgba(255,255,255,0.08)", 
+              background: "var(--bg)", 
+              border: "1px solid var(--line)", 
               borderRadius: 16, 
-              padding: "24px 32px", 
+              padding: "32px", 
               display: "flex", 
               flexWrap: "wrap", 
               alignItems: "center", 
               justifyContent: "space-between",
               gap: 24,
-              marginBottom: 64 
+              marginBottom: 48 
             }}>
               <div style={{ flex: "1 1 300px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <svg viewBox="0 0 60 64" width="20" height="20" fill="none" stroke="var(--green)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round">
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: "var(--green)" }}>
+                  <svg viewBox="0 0 60 64" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round">
                     <path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" />
                     <path d="M20 26V14A10 10 0 0 1 40 14V26" />
                   </svg>
-                  <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff" }}>Biomart</span>
+                  <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)" }}>Biomart</span>
                 </div>
-                <h3 style={{ fontFamily: "var(--font)", fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "#fff" }}>
+                <h3 style={{ fontFamily: "var(--font)", fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "var(--ink)" }}>
                   Your bio link, but it sells.
                 </h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0 }}>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
                   Turn your WhatsApp into a beautiful store in 60 seconds.
                 </p>
               </div>
               
-              <a href="/signup" style={{ 
-                background: "#fff", 
-                color: "var(--ink)", 
-                padding: "12px 24px", 
-                borderRadius: 8, 
-                fontSize: 11, 
-                fontWeight: 700, 
-                letterSpacing: "0.1em", 
-                textTransform: "uppercase", 
-                textDecoration: "none",
-                whiteSpace: "nowrap"
-              }}>
+              <a href="/signup" className="dash-btn dash-btn-dark" style={{ padding: "14px 24px", fontSize: 12, whiteSpace: "nowrap" }}>
                 Create your free store
               </a>
             </div>
