@@ -1,8 +1,8 @@
 /* ══════════════════════════════════════════════════
-   LANDING — MASTER CSS (Fixed Spacing & Layout)
+   LANDING — MASTER CSS (Fixed)
    ══════════════════════════════════════════════════ */
 
-/* ─── GLOBAL & VARIABLES ─── */
+/* ─── GLOBAL ─── */
 html, body {
   margin: 0;
   padding: 0;
@@ -51,8 +51,8 @@ html, body {
 .nav-cta:hover svg { transform: translateX(3px); }
 @media (max-width: 640px) { .nav-cta { padding: 10px 15px; font-size: 11px; } }
 
-/* ─── SECTIONS (FORCED PADDING) ─── */
-.sec { padding: 80px 0; position: relative; }
+/* ─── SECTIONS ─── */
+.sec { padding: 88px 0; }
 @media (min-width: 700px) { .sec { padding: 120px 0; } }
 @media (min-width: 1000px) { .sec { padding: 148px 0; } }
 .bg-soft { background: var(--soft); }
@@ -62,7 +62,6 @@ html, body {
 @media (min-width: 700px) { .hero { padding: 160px 0 88px; } }
 @media (min-width: 1000px) { .hero { padding: 180px 0 104px; } }
 
-/* 🟢 GRADIENT */
 .hero::before {
   content: ""; position: absolute; top: -25%; left: 50%;
   width: 1400px; height: 1400px; transform: translateX(-50%);
@@ -88,16 +87,33 @@ html, body {
 .hero-ctas { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
 @media (min-width: 1000px) { .hero-ctas { justify-content: flex-start; } }
 
-/* ─── 3D PHONE ─── */
+/* ─── 3D PHONE & MOCK (FIXED SCATTERED) ─── */
 .hero-visual { display: flex; justify-content: center; align-items: center; width: 100%; perspective: 1800px; perspective-origin: 50% 50%; }
-.phone-3d { --tx: 0deg; --ty: 0deg; --lift: 0px; position: relative; display: flex; flex-direction: column; width: 260px; max-width: 72vw; aspect-ratio: 9 / 15; background: #101010; border-radius: 44px; padding: 10px; box-shadow: 0 100px 140px -60px rgba(0,0,0,0.55), 0 40px 80px -30px rgba(15,122,74,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 0 8px rgba(255,255,255,0.03) inset; transform: rotateX(var(--tx)) rotateY(calc(-14deg + var(--ty))) translateY(calc(var(--lift) * -1)); transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); animation: phoneFloat 7s ease-in-out infinite; will-change: transform; }
+.phone-3d { --tx: 0deg; --ty: 0deg; --lift: 0px; position: relative; display: flex; flex-direction: column; width: 260px; max-width: 72vw; aspect-ratio: 9 / 15; background: #101010; border-radius: 44px; padding: 10px; box-shadow: 0 100px 140px -60px rgba(0,0,0,0.55), 0 40px 80px -30px rgba(15,122,74,0.35), 0 0 0 1px rgba(255,255,255,0.08) inset, 0 0 0 8px rgba(255,255,255,0.03) inset; transform: rotateX(var(--tx)) rotateY(calc(-14deg + var(--ty))) translateY(calc(var(--lift) * -1)); transform-style: preserve-3d; transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1); animation: phoneFloat 7s ease-in-out infinite; will-change: transform; overflow: hidden; }
 @media (min-width: 700px) { .phone-3d { width: 280px; } }
 @media (min-width: 1000px) { .phone-3d { width: 320px; aspect-ratio: 9 / 14; } }
 .phone-3d::after { content: ""; position: absolute; top: 6%; bottom: 6%; right: -3px; width: 6px; background: linear-gradient(180deg, rgba(255,255,255,0.25), rgba(255,255,255,0.05)); border-radius: 0 44px 44px 0; transform: translateZ(-2px); filter: blur(1px); pointer-events: none; }
 @keyframes phoneFloat { 0%, 100% { translate: 0 0; } 50% { translate: 0 -12px; } }
 .phone-notch { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 70px; height: 18px; background: #101010; border-radius: var(--r-pill); z-index: 10; }
 
-/* Mock styles omitted for brevity, assume they exist */
+.sf-mock { width: 100%; height: 100%; background: var(--bg); border-radius: 32px; overflow: hidden; display: flex; flex-direction: column; padding-top: 22px; }
+.sf-mock-head { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; background: var(--card); border-bottom: 1px solid var(--line); flex: none; }
+.sf-mock-brand { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; }
+.sf-mock-brand svg { width: 12px; height: 12px; color: var(--ink); }
+.sf-mock-icons { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.sf-mock-icons svg { width: 12px; height: 12px; }
+.sf-mock-banner { position: relative; height: 70px; flex: none; background-size: cover; background-position: center; display: flex; align-items: flex-end; justify-content: center; padding: 8px; }
+.sf-mock-banner::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(0,0,0,0.65)); }
+.sf-mock-banner span { position: relative; z-index: 1; font-family: var(--serif); font-style: italic; font-size: 9px; color: #fff; text-align: center; text-shadow: 0 1px 4px rgba(0,0,0,0.7); line-height: 1.2; max-width: 92%; }
+.sf-mock-section { display: flex; align-items: baseline; justify-content: space-between; padding: 10px 12px 5px; flex: none; }
+.sf-mock-title { font-family: var(--serif); font-size: 12px; font-weight: 400; color: var(--ink); }
+.sf-mock-seeall { font: 700 6.5px/1 var(--font); letter-spacing: 0.14em; color: var(--muted); }
+.sf-mock-grid-5 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 0 10px 12px; flex: 1; overflow: hidden; }
+.sf-mock-card { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sf-mock-media { position: relative; aspect-ratio: 3 / 4; border-radius: 6px; overflow: hidden; background: var(--mat); }
+.sf-mock-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.sf-mock-card b { font-size: 7px; font-weight: 700; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.sf-mock-card span { font-size: 6.5px; font-weight: 600; color: var(--muted); }
 
 /* ─── STATS ─── */
 .hero-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 56px; padding-top: 36px; border-top: 1px solid var(--line); text-align: center; position: relative; z-index: 2; max-width: 640px; margin-left: auto; margin-right: auto; }
@@ -168,8 +184,11 @@ html, body {
 
 .plan { position: relative; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--card); padding: 26px 22px; display: flex; flex-direction: column; gap: 12px; transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease); }
 .plan:hover { transform: translateY(-6px); box-shadow: var(--sh-lift); }
-.plan.pop { border-color: var(--ink); background: var(--ink); color: #fff; box-shadow: 0 24px 48px -36px rgba(0,0,0,0.5); }
-.plan.pop .desc, .plan.pop .p, .plan.pop .p .per, .plan.pop ul li { color: rgba(255,255,255,0.85); }
+
+/* 🟢 FIX: PRO CARD & WHITE PRICE */
+.plan.pop { border-color: var(--ink) !important; background: var(--ink) !important; color: #fff !important; box-shadow: 0 24px 48px -36px rgba(0,0,0,0.5); }
+.plan.pop .desc, .plan.pop .p, .plan.pop .p .per, .plan.pop ul li { color: rgba(255,255,255,0.85) !important; }
+.plan.pop .p > span:first-child { color: #fff !important; }
 .plan.pop ul li::before { background: transparent; box-shadow: inset 0 0 0 2px #fff; }
 .plan.pop .btn { background: #fff !important; color: var(--ink) !important; }
 
