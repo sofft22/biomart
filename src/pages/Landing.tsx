@@ -199,7 +199,6 @@ export default function Landing() {
 
   const wa = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 
-  // 🟢 TEXT-ONLY TICKER
   const audience = ["Hair", "Fashion", "Skincare", "Food", "Shoes", "Boutiques", "Thrift", "Accessories"];
 
   const legalContent = {
@@ -282,7 +281,6 @@ export default function Landing() {
           </div>
         </header>
 
-        {/* 🟢 TEXT-ONLY TICKER */}
         <div className="serve-strip">
           <div className="marquee-track">
             {[...audience, ...audience, ...audience].map((a, i) => (
@@ -323,54 +321,68 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 "HOW IT WORKS" EXACTLY AS SCREENSHOT */}
+        {/* 🟢 "HOW IT WORKS" (PREMIUM STEP INDICATORS) */}
+               {/* 🟢 "HOW IT WORKS" (ICON BADGES) */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">How it works</span>
               <h2 className="h-section">From zero to live in 2 minutes.</h2>
             </div>
-            <div className="steps">
-              <div className="step reveal">
-                <span className="n">1</span>
+            
+            <div className="steps" style={{ position: "relative", marginTop: 48 }}>
+              {/* Connecting line for desktop */}
+              <div style={{ position: "absolute", top: 32, left: "15%", right: "15%", height: 1, borderTop: "1px dashed var(--line)", zIndex: 0 }} className="hide-mobile" />
+              
+              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ 
+                  width: 64, height: 64, borderRadius: 16, 
+                  background: "var(--bg)", border: "1px solid var(--line)", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  margin: "0 auto 24px", color: "var(--green)"
+                }}>
+                  {/* Box Icon */}
+                  <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                  </svg>
+                </div>
                 <h3>Build your catalogue</h3>
                 <p>Add your products, upload photos, set your prices, and organize them effortlessly.</p>
               </div>
-              <div className="step reveal">
-                <span className="n">2</span>
+
+              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ 
+                  width: 64, height: 64, borderRadius: 16, 
+                  background: "var(--bg)", border: "1px solid var(--line)", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  margin: "0 auto 24px", color: "var(--green)"
+                }}>
+                  {/* Link Icon */}
+                  <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                  </svg>
+                </div>
                 <h3>Share your link</h3>
                 <p>Put your unique Biomart link in your Instagram bio, TikTok, or send it directly to customers.</p>
               </div>
-              <div className="step reveal">
-                <span className="n">3</span>
+
+              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
+                <div style={{ 
+                  width: 64, height: 64, borderRadius: 16, 
+                  background: "var(--bg)", border: "1px solid var(--line)", 
+                  display: "flex", alignItems: "center", justifyContent: "center", 
+                  margin: "0 auto 24px", color: "var(--green)"
+                }}>
+                  {/* WhatsApp/Chat Icon */}
+                  <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                  </svg>
+                </div>
                 <h3>Close the sale</h3>
                 <p>Customers browse your store, tap "Order", and it opens WhatsApp with the exact items pre-filled.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="sec" id="features">
-          <div className="wrap">
-            <div className="sh reveal">
-              <span className="eyebrow">Features</span>
-              <h2 className="h-section">Built for modern sellers.</h2>
-            </div>
-            <div className="feat3">
-              <div className="feat reveal">
-                <div className="iconbox">{I.sliders}</div>
-                <h3>Sizes & Variants</h3>
-                <p>Add different sizes or colors. Customers pick exactly what they want, and the price adjusts automatically.</p>
-              </div>
-              <div className="feat reveal">
-                <div className="iconbox">{I.tag}</div>
-                <h3>Discount Pricing</h3>
-                <p>Show a "Compare At" price to display discounts. Cross out the old price and highlight the deal.</p>
-              </div>
-              <div className="feat reveal">
-                <div className="iconbox">{I.bolt}</div>
-                <h3>WhatsApp Native</h3>
-                <p>No complicated checkout. Customers tap "Order" and their WhatsApp opens with the item and total ready to send.</p>
               </div>
             </div>
           </div>
