@@ -12,17 +12,12 @@ const I = {
   tick: <svg className="ic" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>,
   arrow: <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>,
   arrowSm: <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>,
-  sliders: <svg className="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4"/></svg>,
-  tag: <svg className="ic" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8-9-9z"/><path d="M7.5 8.5h.01"/></svg>,
-  bolt: <svg className="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
   whatsapp: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>,
   instagram: <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>,
   tiktok: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>,
   box: <svg className="ic" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>,
   link: <svg className="ic" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>,
-  chat: <svg className="ic" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>,
   wallet: <svg className="ic" viewBox="0 0 24 24"><path d="M19 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M21 10h-6a2 2 0 0 0 0 4h6v-4z"/></svg>,
-  zap: <svg className="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
 };
 
 const SIGNUP_URL = "/signup";
@@ -218,7 +213,6 @@ export default function Landing() {
           </a>
           <div className="nav-links">
             <a href="#how" className="nav-link">How it works</a>
-            <a href="#features" className="nav-link">Features</a>
             <a href="#pricing" className="nav-link">Pricing</a>
             <a href="#faq" className="nav-link">Questions</a>
           </div>
@@ -313,7 +307,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* HOW IT WORKS */}
+        {/* 🟢 HOW IT WORKS (3 STEPS) */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
@@ -321,78 +315,30 @@ export default function Landing() {
               <h2 className="h-section">From zero to live in 2 minutes.</h2>
             </div>
             
-            <div className="steps" style={{ position: "relative", marginTop: 48, gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-              <div style={{ position: "absolute", top: 32, left: "10%", right: "10%", height: 1, borderTop: "1px dashed var(--line)", zIndex: 0 }} className="hide-mobile" />
-              
-              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
-                  {I.box}
-                </div>
-                <h3>Build catalogue</h3>
-                <p>Add your products, upload photos, set prices, and organize them effortlessly.</p>
+            <div className="steps">
+              <div className="step reveal">
+                <div className="step-icon">{I.box}</div>
+                <h3>Build your catalogue</h3>
+                <p>Upload your products, add photos, set prices, and add sizes or colors. Your storefront is generated automatically.</p>
               </div>
 
-              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
-                  {I.link}
-                </div>
+              <div className="step reveal">
+                <div className="step-icon">{I.link}</div>
                 <h3>Share your link</h3>
-                <p>Put your unique Biomart link in your Instagram bio, TikTok, or send it directly to customers.</p>
+                <p>Copy your Biomart link. Put it in your Instagram bio, TikTok, or send it to customers on WhatsApp.</p>
               </div>
 
-              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
-                  {I.chat}
-                </div>
-                <h3>Close the sale</h3>
-                <p>Customers browse your store, tap "Order", and it opens WhatsApp with the exact items pre-filled.</p>
-              </div>
-
-              <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
-                  {I.wallet}
-                </div>
-                <h3>Get paid</h3>
-                <p>Receive your payment directly into your bank account. No middleman fees, no waiting for payouts.</p>
+              <div className="step reveal">
+                <div className="step-icon">{I.whatsapp}</div>
+                <h3>Order & Get Paid</h3>
+                <p>Customers tap 'Order', and WhatsApp opens with the items ready to send. They pay you directly. No middleman fees.</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section className="sec" id="features">
-          <div className="wrap">
-            <div className="sh">
-              <span className="eyebrow">Features</span>
-              <h2 className="h-section">Built for modern sellers.</h2>
-            </div>
-            <div className="feat3" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
-              <div className="feat">
-                <div className="iconbox">{I.sliders}</div>
-                <h3>Sizes & Variants</h3>
-                <p>Add different sizes or colors. Customers pick exactly what they want, and the price adjusts automatically.</p>
-              </div>
-              <div className="feat">
-                <div className="iconbox">{I.tag}</div>
-                <h3>Discount Pricing</h3>
-                <p>Show a "Compare At" price to display discounts. Cross out the old price and highlight the deal.</p>
-              </div>
-              <div className="feat">
-                <div className="iconbox">{I.bolt}</div>
-                <h3>WhatsApp Native</h3>
-                <p>No complicated checkout. Customers tap "Order" and their WhatsApp opens with the item and total ready to send.</p>
-              </div>
-              <div className="feat">
-                <div className="iconbox">{I.zap}</div>
-                <h3>Instant Setup</h3>
-                <p>No coding, no web hosting, no domain names. Your beautiful store is live in 60 seconds.</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* PRICING */}
-        <section className="sec bg-soft" id="pricing">
+        {/* 🟢 PRICING */}
+        <section className="sec" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Pricing</span>
@@ -410,68 +356,69 @@ export default function Landing() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginTop: 40 }}>
-              
-              <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Free</h3>
-                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>Test the waters.</p>
-                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>₦0</p>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 5 products</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 1 photo per product</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> No variants</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> Biomart ad on storefront</li>
+            <div className="plans">
+              {/* FREE */}
+              <div className="plan reveal">
+                <h3>Free</h3>
+                <p className="desc">Test the waters.</p>
+                <div className="p"><span>₦0</span></div>
+                <ul>
+                  <li>5 products</li>
+                  <li>1 photo per product</li>
+                  <li>WhatsApp orders</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Start free</Link>
+                <Link to={SIGNUP_URL} className="btn line">Start free</Link>
               </div>
 
-              <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Starter</h3>
-                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For the casual seller.</p>
-                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>
-                  {billing === "m" ? "₦2,000" : "₦5,500"}
-                  <span style={{ fontSize: 15, color: "var(--muted)", fontWeight: 400 }}>/{billing === "m" ? "month" : "quarter"}</span>
-                </p>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 15 products</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 3 photos per product</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> No variants</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> Biomart ad on storefront</li>
+              {/* STARTER */}
+              <div className="plan reveal">
+                <h3>Starter</h3>
+                <p className="desc">For the casual seller.</p>
+                <div className="p">
+                  <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
+                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+                </div>
+                <ul>
+                  <li>15 products</li>
+                  <li>3 photos per product</li>
+                  <li>WhatsApp orders</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Get Starter</Link>
+                <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
               </div>
 
-              <div style={{ background: "var(--ink)", border: "1px solid var(--ink)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column", position: "relative" }}>
-                <div style={{ position: "absolute", top: -12, left: 32, background: "var(--green)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "6px 12px", borderRadius: 99, letterSpacing: "0.1em" }}>MOST POPULAR</div>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>Pro</h3>
-                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: "0 0 24px" }}>For serious brands.</p>
-                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px", color: "#fff" }}>
-                  {billing === "m" ? "₦5,000" : "₦13,500"}
-                  <span style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>/{billing === "m" ? "month" : "quarter"}</span>
-                </p>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1, color: "#fff" }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Unlimited products</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 10 photos per product</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Product variants</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> No Biomart ad</li>
+              {/* PRO */}
+              <div className="plan pop reveal">
+                <span className="badge">Most Popular</span>
+                <h3>Pro</h3>
+                <p className="desc">For serious brands.</p>
+                <div className="p">
+                  <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
+                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+                </div>
+                <ul>
+                  <li>Unlimited products</li>
+                  <li>10 photos per product</li>
+                  <li>WhatsApp orders</li>
+                  <li>Product variants</li>
+                  <li>No Biomart ad</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn" style={{ width: "100%", textAlign: "center", justifyContent: "center", background: "var(--green)", color: "#fff" }}>Get Pro</Link>
+                <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
               </div>
+            </div>
 
-              <div style={{ background: "var(--soft)", border: "1px dashed var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
-                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Custom E-commerce</h3>
-                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>A full online store.</p>
-                <p style={{ fontSize: 20, fontWeight: 700, margin: "0 0 24px" }}>Custom Quote</p>
-                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Your own domain</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Full cart & checkout</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Paystack / Card payments</li>
-                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Priority support</li>
-                </ul>
-                <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: 8 }}>
+            {/* 🟢 CUSTOM PLAN (STRETCHED) */}
+            <div className="custom-plan-wrapper reveal">
+              <div className="plan custom-plan">
+                <div>
+                  <h3>Custom E-commerce</h3>
+                  <p className="desc">A full online store with your own domain and Paystack integration.</p>
+                  <div className="p" style={{ fontSize: 20 }}>Custom Quote</div>
+                </div>
+                <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn">
                   Contact Sales {I.arrow}
                 </a>
               </div>
@@ -479,7 +426,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="sec" id="faq">
+        <section className="sec bg-soft" id="faq">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Questions</span>
@@ -530,38 +477,32 @@ export default function Landing() {
       <footer>
         <div className="wrap">
           <div className="fgrid">
-            <div>
+            {/* BRAND & SOCIALS */}
+            <div className="fbrand">
               <a href="#top" className="logo">
                 <span className="text-green">{I.logoBag}</span>
                 Biomart
               </a>
               <p className="tag">Your bio link, but it sells.</p>
               
-              {/* CENTERED SOCIAL ICONS */}
-              <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
-                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
-                  {I.whatsapp}
-                </a>
-                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
-                  {I.instagram}
-                </a>
-                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
-                  {I.tiktok}
-                </a>
+              <div className="fsocials">
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer">{I.whatsapp}</a>
+                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer">{I.instagram}</a>
+                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer">{I.tiktok}</a>
               </div>
             </div>
             
+            {/* PRODUCT */}
             <div>
               <h4>Product</h4>
               <ul>
                 <li><a href="#how">How it works</a></li>
-                <li><a href="#features">Features</a></li>
                 <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">Questions</a></li>
               </ul>
             </div>
             
-            {/* HELP COLUMN REMOVED */}
-            
+            {/* LEGAL */}
             <div>
               <h4>Legal</h4>
               <ul>
@@ -571,9 +512,10 @@ export default function Landing() {
               </ul>
             </div>
           </div>
+          
+          {/* COPYRIGHT */}
           <div className="fbot">
             <span>© 2026 Biomart</span>
-            <span>Made in Nigeria</span>
           </div>
         </div>
       </footer>
