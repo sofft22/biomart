@@ -321,8 +321,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 "HOW IT WORKS" (PREMIUM STEP INDICATORS) */}
-               {/* 🟢 "HOW IT WORKS" (ICON BADGES) */}
+        {/* 🟢 "HOW IT WORKS" (ICON BADGES) */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
@@ -331,17 +330,10 @@ export default function Landing() {
             </div>
             
             <div className="steps" style={{ position: "relative", marginTop: 48 }}>
-              {/* Connecting line for desktop */}
               <div style={{ position: "absolute", top: 32, left: "15%", right: "15%", height: 1, borderTop: "1px dashed var(--line)", zIndex: 0 }} className="hide-mobile" />
               
               <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ 
-                  width: 64, height: 64, borderRadius: 16, 
-                  background: "var(--bg)", border: "1px solid var(--line)", 
-                  display: "flex", alignItems: "center", justifyContent: "center", 
-                  margin: "0 auto 24px", color: "var(--green)"
-                }}>
-                  {/* Box Icon */}
+                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
                   <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                     <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
@@ -353,13 +345,7 @@ export default function Landing() {
               </div>
 
               <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ 
-                  width: 64, height: 64, borderRadius: 16, 
-                  background: "var(--bg)", border: "1px solid var(--line)", 
-                  display: "flex", alignItems: "center", justifyContent: "center", 
-                  margin: "0 auto 24px", color: "var(--green)"
-                }}>
-                  {/* Link Icon */}
+                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
                   <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
@@ -370,13 +356,7 @@ export default function Landing() {
               </div>
 
               <div className="step reveal" style={{ position: "relative", zIndex: 1 }}>
-                <div style={{ 
-                  width: 64, height: 64, borderRadius: 16, 
-                  background: "var(--bg)", border: "1px solid var(--line)", 
-                  display: "flex", alignItems: "center", justifyContent: "center", 
-                  margin: "0 auto 24px", color: "var(--green)"
-                }}>
-                  {/* WhatsApp/Chat Icon */}
+                <div style={{ width: 64, height: 64, borderRadius: 16, background: "var(--bg)", border: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px", color: "var(--green)" }}>
                   <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                   </svg>
@@ -388,7 +368,34 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 FIXED PRICING PAGE (Exactly like app) */}
+        {/* 🟢 FEATURES SECTION (RESTORED) */}
+        <section className="sec" id="features">
+          <div className="wrap">
+            <div className="sh reveal">
+              <span className="eyebrow">Features</span>
+              <h2 className="h-section">Built for modern sellers.</h2>
+            </div>
+            <div className="feat3">
+              <div className="feat reveal">
+                <div className="iconbox">{I.sliders}</div>
+                <h3>Sizes & Variants</h3>
+                <p>Add different sizes or colors. Customers pick exactly what they want, and the price adjusts automatically.</p>
+              </div>
+              <div className="feat reveal">
+                <div className="iconbox">{I.tag}</div>
+                <h3>Discount Pricing</h3>
+                <p>Show a "Compare At" price to display discounts. Cross out the old price and highlight the deal.</p>
+              </div>
+              <div className="feat reveal">
+                <div className="iconbox">{I.bolt}</div>
+                <h3>WhatsApp Native</h3>
+                <p>No complicated checkout. Customers tap "Order" and their WhatsApp opens with the item and total ready to send.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 🟢 PRICING SECTION (Fully forced inline styles) */}
         <section className="sec bg-soft" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
@@ -396,90 +403,83 @@ export default function Landing() {
               <h2 className="h-section">Start free. Upgrade when you're ready.</h2>
             </div>
 
-            <div className="switch-wrap reveal">
-              <div className="switch" role="group" aria-label="Billing">
-                <button type="button" aria-pressed={billing === "m"} onClick={() => setBilling("m")}>
+            <div className="switch-wrap reveal" style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
+              <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
+                <button type="button" onClick={() => setBilling("m")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "m" ? "var(--bg)" : "transparent", color: billing === "m" ? "var(--ink)" : "var(--muted)", boxShadow: billing === "m" ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}>
                   Monthly
                 </button>
-                <button type="button" aria-pressed={billing === "q"} onClick={() => setBilling("q")}>
-                  Quarterly <span style={{ fontSize: 10, background: "var(--green)", color: "#fff", padding: "2px 6px", borderRadius: 99, marginLeft: 6 }}>Save 8%</span>
+                <button type="button" onClick={() => setBilling("q")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "q" ? "var(--bg)" : "transparent", color: billing === "q" ? "var(--ink)" : "var(--muted)", boxShadow: billing === "q" ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: 8 }}>
+                  Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
                 </button>
               </div>
             </div>
 
-            <div className="plans" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginTop: 40 }}>
               
               {/* FREE */}
-              <div className="plan reveal">
-                <h3>Free</h3>
-                <p className="desc">Test the waters.</p>
-                <div className="p"><span>₦0</span></div>
-                <ul>
-                  <li>5 products</li>
-                  <li>1 photo per product</li>
-                  <li>WhatsApp orders</li>
-                  <li className="no">No variants</li>
-                  <li className="no">Biomart ad on storefront</li>
+              <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Free</h3>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>Test the waters.</p>
+                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>₦0</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 5 products</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 1 photo per product</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> No variants</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> Biomart ad on storefront</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn line">Start free</Link>
+                <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Start free</Link>
               </div>
 
               {/* STARTER */}
-              <div className="plan reveal">
-                <h3>Starter</h3>
-                <p className="desc">For the casual seller.</p>
-                <div className="p">
-                  <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
-                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-                </div>
-                <ul>
-                  <li>15 products</li>
-                  <li>3 photos per product</li>
-                  <li>WhatsApp orders</li>
-                  <li className="no">No variants</li>
-                  <li className="no">Biomart ad on storefront</li>
+              <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Starter</h3>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For the casual seller.</p>
+                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>
+                  {billing === "m" ? "₦2,000" : "₦5,500"}
+                  <span style={{ fontSize: 15, color: "var(--muted)", fontWeight: 400 }}>/{billing === "m" ? "month" : "quarter"}</span>
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 15 products</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 3 photos per product</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> No variants</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8, color: "var(--muted)", textDecoration: "line-through", opacity: 0.6 }}><span style={{ fontWeight: "bold" }}>✕</span> Biomart ad on storefront</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
+                <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Get Starter</Link>
               </div>
 
               {/* PRO */}
-              <div className="plan pop reveal">
-                <span className="badge">Most Popular</span>
-                <h3>Pro</h3>
-                <p className="desc">For serious brands.</p>
-                <div className="p">
-                  <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
-                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-                </div>
-                <ul>
-                  <li>Unlimited products</li>
-                  <li>10 photos per product</li>
-                  <li>WhatsApp orders</li>
-                  <li className="tick">Product variants (Sizes/Colors)</li>
-                  <li className="tick">No Biomart ad</li>
+              <div style={{ background: "var(--ink)", border: "1px solid var(--ink)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column", position: "relative" }}>
+                <div style={{ position: "absolute", top: -12, left: 32, background: "var(--green)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "6px 12px", borderRadius: 99, letterSpacing: "0.1em" }}>MOST POPULAR</div>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>Pro</h3>
+                <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: "0 0 24px" }}>For serious brands.</p>
+                <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px", color: "#fff" }}>
+                  {billing === "m" ? "₦5,000" : "₦13,500"}
+                  <span style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>/{billing === "m" ? "month" : "quarter"}</span>
+                </p>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1, color: "#fff" }}>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Unlimited products</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> 10 photos per product</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> WhatsApp orders</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Product variants</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> No Biomart ad</li>
                 </ul>
-                <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
+                <Link to={SIGNUP_URL} className="btn" style={{ width: "100%", textAlign: "center", justifyContent: "center", background: "var(--green)", color: "#fff" }}>Get Pro</Link>
               </div>
 
               {/* CUSTOM */}
-              <div className="plan custom-plan reveal" style={{ borderStyle: "dashed", background: "var(--soft)" }}>
-                <h3>Custom E-commerce</h3>
-                <p className="desc">A full online store.</p>
-                <div className="p">
-                  <span style={{ fontSize: 20 }}>Custom Quote</span>
-                </div>
-                <ul>
-                  <li>Your own domain</li>
-                  <li>Full cart & checkout</li>
-                  <li>Paystack / Card payments</li>
-                  <li>Priority support</li>
+              <div style={{ background: "var(--soft)", border: "1px dashed var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
+                <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Custom E-commerce</h3>
+                <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>A full online store.</p>
+                <p style={{ fontSize: 20, fontWeight: 700, margin: "0 0 24px" }}>Custom Quote</p>
+                <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, flex: 1 }}>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Your own domain</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Full cart & checkout</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Paystack / Card payments</li>
+                  <li style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ color: "var(--green)", fontWeight: "bold" }}>✓</span> Priority support</li>
                 </ul>
-                <a
-                  href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")}
-                  className="btn line"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
+                <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center", display: "flex", alignItems: "center", gap: 8 }}>
                   Contact Sales {I.arrow}
                 </a>
               </div>
@@ -487,6 +487,7 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* 🟢 FAQ SECTION (RESTORED & ALIGNED) */}
         <section className="sec" id="faq">
           <div className="wrap">
             <div className="sh reveal">
