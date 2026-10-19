@@ -3,7 +3,6 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const cookie = request.headers.get("Cookie") || "";
     const sid = cookie.match(/sid=([^;]+)/)?.[1];
 
-    // 🟢 NO CACHE HEADERS
     const noCacheHeaders = {
       "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
       "Pragma": "no-cache",
@@ -27,7 +26,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     ).bind(session.user_id).first<any>();
 
     const store = user ? await env.DB.prepare(
-      "SELECT id, user_id, name, slug, whatsapp, tagline, address, instagram, tiktok, cover_url, plan, paid_until, subscription_status FROM stores WHERE user_id = ?"
+      "SELECT id, user_id, name, slug, whatsapp, tagline, address, instagram, tiktok, cover_url, plan, paid_until, subscription_status, categories FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
 
     let products: any[] = [];
@@ -59,12 +58,13 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     }
 
     const planName = store?.plan || "free";
+    
+    // 🟢 EXACT LIMITS
     const limits = {
-      free: { products: 5, images: 1, photos: 1 },
-      starter: { products: 20, images: 3, photos: 3 },
-      pro: { products: 100000, images: 5, photos: 5 },
-      lifetime: { products: 100000, images: 10, photos: 10 },
-    }[planName] || { products: 5, images: 1, photos: 1 };
+      free: { products: 5, images: 1, photos: 1, variants: false },
+      starter: { products: 15, images: 3, photos: 3, variants: false },
+      pro: { products: 100000, images: 10, photos: 10, variants: true },
+    }[planName] || { products: 5, images: 1, photos: 1, variants: false };
 
     return Response.json({
       user,
@@ -75,6 +75,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
         products: limits.products,
         images: limits.images,
         photos: limits.photos,
+        variants: limits.variants,
       },
       plans: {
         free: { name: "Free", price: 0, products: 5, images: 1 },
