@@ -616,176 +616,129 @@ footer .logo { font-size: 24px; }
 .feat p { font-size: 11.5px; color: var(--muted); line-height: 1.45; margin: 0; }
 @media (min-width: 700px) { .feat p { font-size: 14px; } }
 
-/* ─── PRICING ─── */
-.switch-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 48px;
-}
-.switch {
-  display: inline-flex;
-  padding: 5px;
-  border: 1px solid var(--line);
-  border-radius: var(--r-pill);
-  background: var(--card);
-}
-.switch button {
-  padding: 10px 22px;
-  border-radius: var(--r-pill);
-  font: 700 11.5px/1 var(--font);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  transition: all var(--dur) var(--ease);
-}
-.switch button[aria-pressed="true"] { background: var(--ink); color: #fff; }
-
+/* 🟢 LANDING PAGE PRICING CARDS (Matching App UI) */
 .plans {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-}
-@media (min-width: 640px) { .plans { grid-template-columns: repeat(2, 1fr); gap: 18px; } }
-@media (min-width: 1000px) {
-  .plans {
-    grid-template-columns: repeat(6, 1fr);
-    gap: 18px;
-  }
-  .plans > .plan { grid-column: span 2; }
-  .plans > .plan:nth-child(4),
-  .plans > .plan:nth-child(5) {
-    grid-column: span 3;
-  }
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
+  margin-top: 40px;
 }
 
 .plan {
-  position: relative;
+  background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  background: var(--card);
-  padding: 26px 22px;
+  border-radius: 16px;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.plan:hover {
+  border-color: var(--ink);
+}
+
+/* Pro Plan Highlight */
+.plan.pop {
+  border-color: var(--green);
+  background: var(--bg);
+  box-shadow: 0 8px 30px rgba(15, 122, 74, 0.08);
+}
+
+.plan .badge {
+  position: absolute;
+  top: -12px;
+  left: 32px;
+  background: var(--green);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 99px;
+}
+
+.plan h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+
+.plan .desc {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 24px;
+}
+
+.plan .p {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 24px;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.plan .p .per {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.plan ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  font-size: 14px;
+  flex: 1; /* Pushes the button to the bottom */
 }
-.plan:hover { transform: translateY(-6px); box-shadow: var(--sh-lift); }
-.plan.pop {
-  border-color: rgba(15,122,74,0.34);
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgba(15,122,74,0.12), transparent 55%),
-    var(--card);
-  box-shadow: 0 24px 48px -36px rgba(15,122,74,0.5);
-}
-.plan.life { border-color: var(--ink); }
-.plan h3 { font-size: 17px; font-weight: 800; letter-spacing: -0.024em; margin: 0; color: var(--ink); }
-.plan .desc { font-size: 12px; color: var(--muted); margin: -2px 0 0; }
-.plan .p { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
-.plan .p > span:first-child {
-  font-size: 26px;
-  font-weight: 800;
-  letter-spacing: -0.038em;
-  color: var(--ink);
-}
-.plan .per { font-size: 11.5px; color: var(--muted); font-weight: 500; }
-.plan ul { display: grid; gap: 10px; margin: 4px 0 12px; }
+
 .plan ul li {
-  font-size: 12.5px;
-  color: var(--muted);
-  line-height: 1.45;
-  padding-left: 20px;
-  position: relative;
-}
-.plan ul li::before {
-  content: "";
-  position: absolute;
-  left: 0; top: 4px;
-  width: 12px; height: 12px;
-  border-radius: 50%;
-  background: var(--green-soft);
-  box-shadow: inset 0 0 0 2px var(--green);
-}
-.plan ul li.no { color: var(--faint); opacity: 0.55; text-decoration: line-through; }
-.plan ul li.no::before { background: transparent; box-shadow: inset 0 0 0 2px var(--faint); }
-.plan .btn {
-  margin-top: auto;
-  width: 100%;
-  font-size: 10.5px;
-  padding: 12px 14px;
-  letter-spacing: 0.12em;
-  border-radius: var(--r-md);
-}
-
-.badge {
-  position: absolute;
-  top: -10px;
-  left: 22px;
-  padding: 5px 12px;
-  border-radius: var(--r-pill);
-  background: var(--green);
-  color: #fff;
-  font: 800 9px/1 var(--font);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  box-shadow: 0 8px 20px -8px rgba(15,122,74,0.7);
-}
-.badge.alt { background: var(--ink); box-shadow: 0 8px 20px -8px rgba(0,0,0,0.5); }
-
-.custom-plan {
-  border-color: rgba(15,122,74,0.40);
-  background:
-    radial-gradient(120% 90% at 0% 0%, rgba(15,122,74,0.14), transparent 55%),
-    var(--card);
-  box-shadow: 0 24px 48px -36px rgba(15,122,74,0.55);
-}
-.custom-plan h3 { color: var(--green); }
-.custom-plan .p > span:first-child { color: var(--green); }
-.custom-plan .btn {
-  background: var(--green);
-  color: #fff;
-  border-color: var(--green);
-}
-.custom-plan .btn:hover {
-  background: var(--green-deep);
-  border-color: var(--green-deep);
-  transform: translateY(-2px);
-}
-
-/* ─── FAQ ─── */
-.faqgrid { max-width: 860px; margin: 0 auto; }
-.faqgrid details {
-  border-bottom: 1px solid var(--line-soft);
-  padding: 22px 0;
-  transition: padding var(--dur) var(--ease);
-}
-@media (min-width: 700px) { .faqgrid details { padding: 26px 0; } }
-.faqgrid details:first-of-type { border-top: 1px solid var(--line-soft); }
-.faqgrid summary {
-  list-style: none;
-  cursor: pointer;
-  font-size: 15.5px;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.012em;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  transition: color var(--dur) var(--ease);
+  gap: 8px;
+  color: var(--ink);
 }
-@media (min-width: 700px) { .faqgrid summary { font-size: 17px; } }
-.faqgrid summary:hover { color: var(--green); }
-.faqgrid summary::-webkit-details-marker { display: none; }
-.faqgrid summary::after {
-  content: "+";
-  font-size: 24px;
+
+.plan ul li::before {
+  content: "✓";
+  color: var(--green);
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Grey out disabled features */
+.plan ul li.no {
   color: var(--muted);
-  transition: transform var(--dur-slow) var(--spring), color var(--dur) var(--ease);
-  font-weight: 300;
-  line-height: 1;
+  text-decoration: line-through;
+  opacity: 0.6;
 }
-.faqgrid details[open] summary::after { transform: rotate(45deg); color: var(--green); }
-.faqgrid details p { margin: 14px 0 0; font-size: 14.5px; color: var(--muted); line-height: 1.7; }
+
+.plan ul li.no::before {
+  content: "✕";
+  color: var(--muted);
+}
+
+/* Buttons */
+.plan .btn {
+  width: 100%;
+  margin-top: auto;
+  text-align: center;
+  justify-content: center;
+}
+
+/* Custom Plan Special Styling */
+.plan.custom-plan {
+  border-style: dashed;
+  background: var(--soft);
+}
 
 /* ─── FINAL ─── */
 .final {
