@@ -14,6 +14,7 @@ import Settings from "./pages/Settings";
 import Plan from "./pages/Plan";
 import ProductEdit from "./pages/ProductEdit";
 import Storefront from "./pages/Storefront";
+import LegalPage from "./pages/LegalPage"; // 🟢 Import LegalPage
 
 // Admin Pages
 import RequireAuth from "./components/RequireAuth";
@@ -54,13 +55,18 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            {/* Public (No Help Widget) */}
+            {/* Public */}
             <Route path="/" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/store/:slug" element={<StorefrontRoute />} />
 
-            {/* Seller Dashboard — Authed (Widget is inside DashboardLayout) */}
+            {/* 🟢 LEGAL ROUTES */}
+            <Route path="/legal/privacy" element={<LegalPage />} />
+            <Route path="/legal/terms" element={<LegalPage />} />
+            <Route path="/legal/refunds" element={<LegalPage />} />
+
+            {/* Seller dashboard — authed */}
             <Route path="/dashboard" element={<RequireAuth><Overview /></RequireAuth>} />
             <Route path="/dashboard/products" element={<RequireAuth><Dashboard /></RequireAuth>} />
             <Route path="/dashboard/product" element={<RequireAuth><ProductEdit /></RequireAuth>} />
@@ -68,7 +74,7 @@ export default function App() {
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
             <Route path="/plan" element={<RequireAuth><Plan /></RequireAuth>} />
 
-            {/* Admin — Authed + Admin only (No Help Widget) */}
+            {/* Admin — authed + admin only */}
             <Route
               path="/admin"
               element={
