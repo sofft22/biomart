@@ -1,25 +1,33 @@
-export type PlanId = "free" | "starter" | "pro" | "lifetime";
+export type PlanId = "free" | "starter" | "pro";
 
 export interface PlanLimit {
   visible: number;
   photos: number;
 }
 
+// 🟢 CORE LIMITS
 export const PLAN_LIMITS: Record<PlanId, PlanLimit> = {
-  free:     { visible: 5,      photos: 1  },
-  starter:  { visible: 20,     photos: 3  },
-  pro:      { visible: 100000, photos: 5  },
-  lifetime: { visible: 100000, photos: 10 },
+  free:    { visible: 5,      photos: 1  },
+  starter: { visible: 15,     photos: 3  },
+  pro:     { visible: 100000, photos: 10 },
 };
 
-export const PLAN_PRICES: Record<PlanId, number> = {
+// 🟢 MONTHLY PRICES
+export const PLAN_PRICES_MONTHLY: Record<PlanId, number> = {
   free: 0,
   starter: 2000,
-  pro: 4000,
-  lifetime: 40000,
+  pro: 5000,
+};
+
+// 🟢 QUARTERLY PRICES (3 Months)
+export const PLAN_PRICES_QUARTERLY: Record<PlanId, number> = {
+  free: 0,
+  starter: 5500,
+  pro: 13500,
 };
 
 export const PLAN_DAYS = 30;
+export const PLAN_DAYS_QUARTERLY = 90;
 export const GRACE_DAYS = 7;
 
 export function getLimit(plan: string): PlanLimit {
@@ -28,7 +36,6 @@ export function getLimit(plan: string): PlanLimit {
 
 export type PlanStatus =
   | "free"
-  | "lifetime"
   | "active"
   | "expiring"
   | "expired"
@@ -49,12 +56,8 @@ export function getPlanStatus(
     return { status: "free", plan, daysLeft: null, label: "Free" };
   }
 
-  if (plan === "lifetime" || paidUntil == null) {
-    return { status: "lifetime", plan, daysLeft: null, label: "Lifetime" };
-  }
-
   const now = Date.now();
-  const diff = paidUntil - now;
+  const diff = (paidUntil || 0) - now;
   const daysLeft = Math.ceil(diff / 86400000);
 
   if (diff < 0) {
@@ -71,12 +74,7 @@ export function getPlanStatus(
   }
 
   if (daysLeft <= 7) {
-    return {
-      status: "expiring",
-      plan,
-      daysLeft,
-      label: "Expiring soon",
-    };
+    return { status: "expiring", plan, daysLeft, label: "Expiring soon" };
   }
 
   return { status: "active", plan, daysLeft, label: "Active" };
