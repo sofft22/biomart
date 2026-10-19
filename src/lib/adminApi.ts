@@ -22,9 +22,12 @@ export interface AdminStoreDetail {
   bio: string;
   cover_url: string;
   plan: string;
+  paid_until: number | null; // 🟢 Added
   created_at: number;
   productCount: number;
   visitCount: number;
+  payments?: any[]; // 🟢 Added
+  totalPaid?: number; // 🟢 Added
 }
 
 export interface AdminBillingRow {
