@@ -20,8 +20,8 @@ import RequireAdmin from "./components/RequireAdmin";
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminStores from "./pages/admin/AdminStores";
-import AdminBilling from "./pages/admin/AdminBilling";
 import AdminSettings from "./pages/admin/AdminSettings";
+// 🟢 Removed AdminBilling import
 
 function StorefrontRoute() {
   const { slug } = useParams<{ slug: string }>();
@@ -129,7 +129,7 @@ export default function App() {
             >
               <Route index element={<AdminOverview />} />
               <Route path="stores" element={<AdminStores />} />
-              <Route path="billing" element={<AdminBilling />} />
+              {/* 🟢 Removed Billing route */}
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
