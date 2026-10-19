@@ -201,8 +201,6 @@ export default function Landing() {
 
   const wa = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 
-  const audience = ["Hair", "Fashion", "Skincare", "Food", "Shoes", "Boutiques", "Thrift", "Accessories"];
-
   return (
     <>
       <nav className={`nav ${navHidden ? "nav-hidden" : ""}`}>
@@ -269,7 +267,7 @@ export default function Landing() {
 
         <div className="serve-strip">
           <div className="marquee-track">
-            {[...audience, ...audience, ...audience].map((a, i) => (
+            {["Hair", "Fashion", "Skincare", "Food", "Shoes", "Boutiques", "Thrift", "Accessories"].map((a, i) => (
               <div key={i} className="serve-item" style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <span style={{ fontSize: 15, fontWeight: 500, color: "var(--muted)" }}>{a}</span>
                 <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--line)" }} />
@@ -307,7 +305,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 HOW IT WORKS (3 STEPS) */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
@@ -318,7 +315,7 @@ export default function Landing() {
             <div className="steps">
               <div className="step reveal">
                 <div className="step-icon">{I.box}</div>
-                <h3>Build your catalogue</h3>
+                <h3>Build catalogue</h3>
                 <p>Upload your products, add photos, set prices, and add sizes or colors. Your storefront is generated automatically.</p>
               </div>
 
@@ -337,7 +334,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 PRICING */}
         <section className="sec" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
@@ -347,17 +343,16 @@ export default function Landing() {
 
             <div className="switch-wrap reveal" style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
               <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
-                <button type="button" onClick={() => setBilling("m")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "m" ? "var(--bg)" : "transparent", color: billing === "m" ? "var(--ink)" : "var(--muted)", boxShadow: billing === "m" ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}>
+                <button type="button" onClick={() => setBilling("m")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "m" ? "var(--bg)" : "transparent", color: billing === "m" ? "var(--ink)" : "var(--muted)" }}>
                   Monthly
                 </button>
-                <button type="button" onClick={() => setBilling("q")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "q" ? "var(--bg)" : "transparent", color: billing === "q" ? "var(--ink)" : "var(--muted)", boxShadow: billing === "q" ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: 8 }}>
+                <button type="button" onClick={() => setBilling("q")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "q" ? "var(--bg)" : "transparent", color: billing === "q" ? "var(--ink)" : "var(--muted)", display: "flex", alignItems: "center", gap: 8 }}>
                   Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
                 </button>
               </div>
             </div>
 
             <div className="plans">
-              {/* FREE */}
               <div className="plan reveal">
                 <h3>Free</h3>
                 <p className="desc">Test the waters.</p>
@@ -372,7 +367,6 @@ export default function Landing() {
                 <Link to={SIGNUP_URL} className="btn line">Start free</Link>
               </div>
 
-              {/* STARTER */}
               <div className="plan reveal">
                 <h3>Starter</h3>
                 <p className="desc">For the casual seller.</p>
@@ -390,7 +384,6 @@ export default function Landing() {
                 <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
               </div>
 
-              {/* PRO */}
               <div className="plan pop reveal">
                 <span className="badge">Most Popular</span>
                 <h3>Pro</h3>
@@ -410,12 +403,11 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* 🟢 CUSTOM PLAN (STRETCHED) */}
             <div className="custom-plan-wrapper reveal">
               <div className="plan custom-plan">
-                <div>
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <h3>Custom E-commerce</h3>
-                  <p className="desc">A full online store with your own domain and Paystack integration.</p>
+                  <p className="desc">Get a full online store with your own domain, shopping cart, and automated Paystack checkout.</p>
                   <div className="p" style={{ fontSize: 20 }}>Custom Quote</div>
                 </div>
                 <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn">
@@ -477,7 +469,6 @@ export default function Landing() {
       <footer>
         <div className="wrap">
           <div className="fgrid">
-            {/* BRAND & SOCIALS */}
             <div className="fbrand">
               <a href="#top" className="logo">
                 <span className="text-green">{I.logoBag}</span>
@@ -492,7 +483,6 @@ export default function Landing() {
               </div>
             </div>
             
-            {/* PRODUCT */}
             <div>
               <h4>Product</h4>
               <ul>
@@ -502,7 +492,6 @@ export default function Landing() {
               </ul>
             </div>
             
-            {/* LEGAL */}
             <div>
               <h4>Legal</h4>
               <ul>
@@ -513,7 +502,6 @@ export default function Landing() {
             </div>
           </div>
           
-          {/* COPYRIGHT */}
           <div className="fbot">
             <span>© 2026 Biomart</span>
           </div>
