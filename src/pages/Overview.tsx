@@ -8,10 +8,7 @@ import PlanCard from "../components/PlanCard";
 export default function Overview() {
   const { user, store, products, limits, loading } = useAuth();
   const toast = useToast();
-  const [mounted, setMounted] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
-
-  useEffect(() => setMounted(true), []);
 
   if (loading) {
     return (
@@ -28,9 +25,9 @@ export default function Overview() {
 
   const storeUrl = `${location.origin}/store/${store.slug}`;
 
-  // 🟢 CALCULATE REAL NUMBERS
+  // 🟢 CALCULATE REAL NUMBERS FROM PRODUCTS
   const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0);
-  const outOfStock = products.filter(p => !(p as any).inStock && !(p as any).in_stock).length;
+  const totalPhotos = products.reduce((sum, p) => sum + (p.images?.length || 0), 0);
 
   const copyLink = () => {
     navigator.clipboard.writeText(storeUrl);
@@ -45,7 +42,7 @@ export default function Overview() {
         <p className="dash-head-lead">Everything you need to run your store.</p>
       </div>
 
-      {/* ── HERO CARD (Store Value & Products) ── */}
+      {/* ── HERO CARD ── */}
       <div className="ov-hero-card">
         <div className="ov-hero-left">
           <p className="ov-hero-label">Catalogue value</p>
@@ -73,15 +70,13 @@ export default function Overview() {
         </div>
 
         <div className="ov-stat">
-          <p className="ov-stat-label">Out of stock</p>
-          <p className="ov-stat-value" style={{ color: outOfStock > 0 ? "var(--danger)" : "inherit" }}>
-            {outOfStock}
-          </p>
-          <p className="ov-stat-hint">Products needing restock</p>
+          <p className="ov-stat-label">Total photos</p>
+          <p className="ov-stat-value">{totalPhotos}</p>
+          <p className="ov-stat-hint">Images uploaded</p>
         </div>
       </div>
 
-      {/* ── PLAN CARD ── */}
+      {/* ── PLAN CARD (Timer) ── */}
       <PlanCard />
 
       {/* ── STORE LINK ── */}
