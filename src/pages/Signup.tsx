@@ -10,6 +10,8 @@ export default function Signup() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false); // 🟢 New State for Terms
+  
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -19,6 +21,13 @@ export default function Signup() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError("");
+    
+    // 🟢 BLOCK SUBMISSION IF NOT AGREED
+    if (!agreed) {
+      setError("You must agree to the Terms of Service and Privacy Policy to continue.");
+      return;
+    }
+
     setBusy(true);
     try {
       await auth.signup({ storeName, whatsapp, email, password });
@@ -51,7 +60,6 @@ export default function Signup() {
 
       <section className="auth-hero">
         <div className="auth-wrap">
-        
           <h1 className="auth-hero-title">Open your store.</h1>
           <p className="auth-hero-lead">Free to start. Live in 60 seconds.</p>
         </div>
@@ -115,12 +123,40 @@ export default function Signup() {
               />
             </div>
 
+            {/* 🟢 TERMS & CONDITIONS CHECKBOX */}
+            <div className="auth-field" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                id="terms"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                style={{
+                  width: 18,
+                  height: 18,
+                  marginTop: 2,
+                  cursor: "pointer",
+                  accentColor: "var(--green)" // Makes the checkbox green in modern browsers
+                }}
+              />
+              <label htmlFor="terms" style={{ fontSize: 13, lineHeight: 1.5, color: "var(--muted)", cursor: "pointer" }}>
+                I agree to the{" "}
+                <Link to="/legal/terms" target="_blank" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
+                  Terms of Service
+                </Link>{" "}
+                and{" "}
+                <Link to="/legal/privacy" target="_blank" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
+                  Privacy Policy
+                </Link>.
+              </label>
+            </div>
+
             {error && (
               <p className="auth-error" role="alert">{error}</p>
             )}
 
             <div className="auth-submit">
-              <button type="submit" disabled={busy}>
+              {/* 🟢 DISABLE BUTTON IF NOT AGREED */}
+              <button type="submit" disabled={busy || !agreed}>
                 {busy ? "Creating store…" : "Create store"}
               </button>
             </div>
