@@ -1,6 +1,6 @@
 export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) => {
   try {
-    // 1. Get all stores
+    // 1. Get counts from stores
     const storesRes = await env.DB.prepare("SELECT plan FROM stores").all<{ plan: string }>();
     const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, lifetime: 0 };
     let totalStores = 0;
@@ -12,22 +12,22 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
     }
     const payingStores = planCounts.starter + planCounts.pro + planCounts.lifetime;
 
-    // 2. Calculate MRR
-    const prices: Record<string, number> = { free: 0, starter: 2500, pro: 6000, lifetime: 0 };
-    const mrr = Object.entries(planCounts).reduce(
-      (sum, [plan, count]) => sum + (prices[plan] || 0) * count,
-      0
-    );
-
-    // 3. Total Revenue
-    const revenueRes = await env.DB.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments").first<{ total: number }>();
-    const totalRevenue = revenueRes?.total || 0;
-
-    // 4. Total Products
+    // 2. Total Products
     const productsRes = await env.DB.prepare("SELECT COUNT(*) as count FROM products").first<{ count: number }>();
     const totalProducts = productsRes?.count || 0;
 
-    // 5. Build the 7-Day Revenue Chart Data (Replaces Visits)
+    // 3. Total Revenue (Sum of ALL payments)
+    const revenueRes = await env.DB.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments").first<{ total: number }>();
+    const totalRevenue = revenueRes?.total || 0;
+
+    // 🟢 4. MRR CALCULATION (Based on payments in the last 30 days)
+    const thirtyDaysAgo = Date.now() - 30 * 86400000;
+    const mrrRes = await env.DB.prepare(
+      "SELECT COALESCE(SUM(amount), 0) as mrr FROM payments WHERE paid_at >= ?"
+    ).bind(thirtyDaysAgo).first<{ mrr: number }>();
+    const mrr = mrrRes?.mrr || 0;
+
+    // 5. Build the 7-Day Revenue Chart Data
     const chart = [];
     const now = Date.now();
     for (let i = 6; i >= 0; i--) {
@@ -45,7 +45,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
       });
     }
 
-    // 6. Top 3 Paying Stores (Replaces Top Visited)
+    // 6. Top 3 Paying Stores
     const topStoresRes = await env.DB.prepare(
       `SELECT stores.name, stores.slug, SUM(payments.amount) as totalPaid
        FROM payments 
