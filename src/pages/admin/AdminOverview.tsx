@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+// 🟢 FIXED THE IMPORT PATH
 import { adminApi } from "../../lib/adminApi"; 
 
 function sizeFor(value: string): number {
@@ -10,7 +11,7 @@ function sizeFor(value: string): number {
   return 18;
 }
 
-export default function Overview() {
+export default function AdminOverview() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -49,14 +50,14 @@ export default function Overview() {
       <p className="admin-page-eyebrow">Overview</p>
       <h1 className="admin-page-title">The <em>business</em>.</h1>
 
-      {/* MRR HERO CARD */}
+      {/* 1. HERO CARD */}
       <div className="admin-hero green">
         <p className="admin-hero-label">Monthly recurring revenue</p>
         <p className="admin-hero-value">{mrrStr}</p>
-        <p className="admin-hero-hint">From {data.payingStores || 0} paying stores</p>
+        <p className="admin-hero-hint">From payments in the last 30 days</p>
       </div>
 
-      {/* 🟢 REMOVED THE OLD "FREE" CARD, ONLY KEPT THE ESSENTIALS */}
+      {/* 2. EXACTLY 4 CARDS */}
       <div className="admin-stats">
         <div className="admin-stat">
           <p className="admin-stat-label">Total money earned</p>
@@ -76,7 +77,7 @@ export default function Overview() {
         </div>
       </div>
 
-      {/* 🟢 SMOOTH LINE CHART (Replaces Bar Chart) */}
+      {/* 3. LINE CHART */}
       <section className="admin-block">
         <h2 className="admin-block-title">Revenue · Last 7 Days</h2>
         <div style={{ position: "relative", width: "100%", overflow: "hidden", marginTop: 24 }}>
@@ -104,7 +105,7 @@ export default function Overview() {
         </div>
       </section>
 
-      {/* 🟢 TOP 3 PAYING STORES (Replaces Top Visited) */}
+      {/* 4. TOP 3 PAYING STORES */}
       <section className="admin-block">
         <h2 className="admin-block-title">Top paying stores</h2>
         {data.topStores.length === 0 ? (
