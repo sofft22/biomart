@@ -24,6 +24,7 @@ export default function Settings() {
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
   // Password State
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPw, setChangingPw] = useState(false);
@@ -88,20 +89,22 @@ export default function Settings() {
   };
 
   const handleChangePassword = async () => {
-    if (!newPassword || newPassword.length < 8) return toast.show("Password must be at least 8 characters.");
-    if (newPassword !== confirmPassword) return toast.show("Passwords do not match.");
+    if (!currentPassword) return toast.show("Please enter your current password.");
+    if (!newPassword || newPassword.length < 8) return toast.show("New password must be at least 8 characters.");
+    if (newPassword !== confirmPassword) return toast.show("New passwords do not match.");
     
     setChangingPw(true);
     try {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ newPassword })
+        body: JSON.stringify({ currentPassword, newPassword })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       
       toast.show("Password updated successfully");
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
     } catch (err: any) {
@@ -126,7 +129,7 @@ export default function Settings() {
 
       <div style={{ display: "flex", flexDirection: "column", gap: 32, marginTop: 32 }}>
         
-        {/* 🟢 STORE INFO */}
+        {/* STORE INFO */}
         <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Store Information</h2>
           
@@ -157,7 +160,7 @@ export default function Settings() {
           )}
         </section>
 
-        {/* 🟢 STORE BANNER */}
+        {/* STORE BANNER */}
         <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
             <div>
@@ -179,9 +182,7 @@ export default function Settings() {
             )}
             
             <div style={{ position: "absolute", bottom: 16, right: 16, display: "flex", gap: 8 }}>
-              <label style={{ 
-                background: "rgba(255,255,255,0.9)", border: 0, padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" 
-              }}>
+              <label style={{ background: "rgba(255,255,255,0.9)", border: 0, padding: "8px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
                 {uploadingBanner ? "Uploading..." : "Change"}
                 <input type="file" accept="image/*" hidden disabled={uploadingBanner || store.plan === "free"} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUploadBanner(f); e.target.value = ""; }} />
               </label>
@@ -200,11 +201,15 @@ export default function Settings() {
           )}
         </section>
 
-        {/* 🟢 SECURITY */}
+        {/* 🟢 SECURITY (Now with Current Password) */}
         <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Security</h2>
           
           <div style={{ maxWidth: 400, display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Current Password</label>
+              <input className="pe-input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
+            </div>
             <div>
               <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>New Password</label>
               <input className="pe-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
@@ -215,7 +220,7 @@ export default function Settings() {
             </div>
             <button 
               onClick={handleChangePassword} 
-              disabled={changingPw || !newPassword || !confirmPassword}
+              disabled={changingPw || !currentPassword || !newPassword || !confirmPassword}
               className="dash-btn dash-btn-dark"
               style={{ marginTop: 8 }}
             >
@@ -224,7 +229,7 @@ export default function Settings() {
           </div>
         </section>
 
-        {/* 🟢 DANGER ZONE */}
+        {/* DANGER ZONE */}
         <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Danger Zone</h2>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 24 }}>
