@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../lib/api";
-import HelpWidget from "../components/HelpWidget
+import HelpWidget from "../components/HelpWidget";
 
 const I = {
   grid: (
