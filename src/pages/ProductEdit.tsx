@@ -8,7 +8,7 @@ import type { Product } from "../types";
 
 interface Variant {
   label: string;
-  priceDelta: number;
+  priceDelta: number; // 0 means default price
 }
 
 export default function ProductEdit() {
@@ -32,19 +32,15 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // 🟢 DIRECT PLAN CHECK (Bypasses stale cache entirely)
+  // 🟢 DIRECT PLAN CHECK
   const isPro = currentStore?.plan === "pro" || currentStore?.plan === "lifetime";
-  
-  // We use the limits for photos, but fallback to the plan check for variants
   const photoLimit = limits?.photos ?? 1;
   const canUseVariants = isPro;
 
-  // 🟢 FORCE FRESH DATA ON LOAD
   useEffect(() => {
     refresh(true);
   }, [refresh]);
 
-  // Load product data if editing
   useEffect(() => {
     if (!id || !currentStore?.slug) { 
       setLoadingProduct(false); 
@@ -64,7 +60,6 @@ export default function ProductEdit() {
     })();
   }, [id, currentStore?.slug]);
 
-  // Populate form
   useEffect(() => {
     if (!product) return;
     setName(product.name);
@@ -139,7 +134,6 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 ONLY SEND VARIANTS IF THEY ARE PRO
       variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : undefined,
     };
 
@@ -322,9 +316,9 @@ export default function ProductEdit() {
           </button>
         </section>
 
-        {/* 🟢 VARIANTS (Locked for Free/Starter) */}
+        {/* 🟢 VARIANTS (Minimal Lock / Smart Editor) */}
         <section className="pe-section">
-          <div className="pe-section-head" style={{ marginBottom: canUseVariants ? 16 : 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
             {canUseVariants && (
               <button type="button" onClick={addVariant} className="pe-add-variant">
@@ -333,79 +327,108 @@ export default function ProductEdit() {
             )}
           </div>
 
-          {/* Locked State UI */}
           {!canUseVariants ? (
+            // Minimal Locked State
             <div style={{ 
-              background: "var(--soft)", 
-              border: "1px dashed var(--line)", 
-              borderRadius: "16px", 
-              padding: "24px", 
+              borderTop: "1px solid var(--line)", 
+              padding: "16px 0", 
               display: "flex", 
               flexDirection: "column", 
-              alignItems: "center", 
-              textAlign: "center" 
+              gap: 8 
             }}>
-              <div style={{ width: 48, height: 48, background: "var(--bg)", borderRadius: "50%", display: "grid", placeItems: "center", marginBottom: 16, color: "var(--green)" }}>
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-              </div>
-              <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 8px", color: "var(--ink)" }}>
-                Unlock Product Variants
-              </h3>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 20px", maxWidth: 300 }}>
-                Sell different sizes, colors, or styles. Upgrade to Pro to add variants to your products.
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+                Sell different sizes or colors. <Link to="/plan" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>Upgrade to Pro</Link> to unlock variants.
               </p>
-              <Link to="/plan" className="dash-btn dash-btn-dark" style={{ padding: "10px 24px", fontSize: 12 }}>
-                Upgrade to Pro
-              </Link>
             </div>
           ) : (
-            // Unlocked UI
+            // Smart Editor
             variants.length > 0 && (
-              <div className="pe-variants">
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {variants.map((v, i) => {
-                  const finalPrice = numericPrice + (v.priceDelta || 0);
-                  const hasExtra = (v.priceDelta || 0) > 0;
+                  const isCustomPrice = v.priceDelta > 0;
+                  const finalPrice = isCustomPrice ? v.priceDelta : numericPrice;
+                  
                   return (
-                    <div key={i} className="pe-variant">
-                      <div className="pe-variant-main">
-                        <input
-                          className="pe-input"
-                          value={v.label}
-                          onChange={(e) => updateVariant(i, { label: e.target.value })}
-                          placeholder="Size M / Color Red"
-                        />
-                        <div className="pe-variant-extra">
-                          <span className="pe-variant-plus">+</span>
+                    <div key={i} style={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: 8,
+                      background: "var(--bg)",
+                      border: "1px solid var(--line)",
+                      borderRadius: 10,
+                      padding: "8px 12px"
+                    }}>
+                      {/* Name Input */}
+                      <input
+                        className="pe-input"
+                        value={v.label}
+                        onChange={(e) => updateVariant(i, { label: e.target.value })}
+                        placeholder="e.g. Size M / Color Red"
+                        style={{ flex: 1, border: 0, background: "transparent", padding: "4px 0", fontSize: 14 }}
+                      />
+
+                      {/* Price Toggle / Input */}
+                      {!isCustomPrice ? (
+                        <button
+                          type="button"
+                          onClick={() => updateVariant(i, { priceDelta: numericPrice || 1 })}
+                          style={{ 
+                            background: "var(--soft)", 
+                            border: 0, 
+                            padding: "6px 12px", 
+                            borderRadius: 6, 
+                            fontSize: 11, 
+                            fontWeight: 600, 
+                            color: "var(--muted)", 
+                            cursor: "pointer",
+                            whiteSpace: "nowrap"
+                          }}
+                        >
+                          + Price
+                        </button>
+                      ) : (
+                        <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
+                          <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
                           <input
-                            className="pe-input"
                             type="number"
                             inputMode="numeric"
                             value={v.priceDelta || ""}
                             onChange={(e) =>
                               updateVariant(i, { priceDelta: Number(e.target.value) || 0 })
                             }
-                            placeholder="0"
+                            placeholder={String(numericPrice)}
+                            style={{ 
+                              width: 70, 
+                              border: 0, 
+                              background: "transparent", 
+                              padding: "6px 0", 
+                              fontSize: 13, 
+                              fontWeight: 600,
+                              outline: "none"
+                            }}
                           />
+                          <button
+                            type="button"
+                            onClick={() => updateVariant(i, { priceDelta: 0 })}
+                            style={{ background: "transparent", border: 0, cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 4 }}
+                          >
+                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <path d="M6 6l12 12M18 6L6 18" />
+                            </svg>
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => removeVariant(i)}
-                          className="pe-variant-x"
-                          aria-label="Remove variant"
-                        >
-                          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                            <path d="M6 6l12 12M18 6L6 18" />
-                          </svg>
-                        </button>
-                      </div>
-                      <p className="pe-variant-hint">
-                        {hasExtra
-                          ? `${v.label.trim() || "Variant"} · ${naira(finalPrice)}`
-                          : `${v.label.trim() || "Variant"} · same price`}
-                      </p>
+                      )}
+
+                      {/* Remove Button */}
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(i)}
+                        style={{ background: "transparent", border: 0, color: "var(--danger)", cursor: "pointer", padding: 4 }}
+                      >
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M6 6l12 12M18 6L6 18" />
+                        </svg>
+                      </button>
                     </div>
                   );
                 })}
