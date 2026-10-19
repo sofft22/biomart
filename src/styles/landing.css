@@ -639,11 +639,33 @@ footer .logo { font-size: 24px; }
   border-color: var(--ink);
 }
 
-/* Pro Plan Highlight */
+/* 🟢 FIX: Make sure the Pro card is actually dark and highlighted */
 .plan.pop {
-  border-color: var(--green);
-  background: var(--bg);
-  box-shadow: 0 8px 30px rgba(15, 122, 74, 0.08);
+  border: 1px solid var(--ink) !important;
+  background: var(--ink) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.plan.pop .desc,
+.plan.pop .p,
+.plan.pop .p .per,
+.plan.pop ul li {
+  color: #fff !important;
+}
+
+.plan.pop ul li.no {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.plan.pop ul li::before {
+  color: var(--green) !important;
+}
+
+/* Custom Plan Special Styling */
+.plan.custom-plan {
+  border-style: dashed;
+  background: var(--soft);
 }
 
 .plan .badge {
@@ -664,7 +686,7 @@ footer .logo { font-size: 24px; }
   font-size: 20px;
   font-weight: 700;
   margin: 0 0 8px;
-  color: var(--ink);
+  color: inherit;
 }
 
 .plan .desc {
@@ -697,7 +719,7 @@ footer .logo { font-size: 24px; }
   flex-direction: column;
   gap: 12px;
   font-size: 14px;
-  flex: 1; /* Pushes the button to the bottom */
+  flex: 1; 
 }
 
 .plan ul li {
@@ -734,10 +756,16 @@ footer .logo { font-size: 24px; }
   justify-content: center;
 }
 
-/* Custom Plan Special Styling */
-.plan.custom-plan {
-  border-style: dashed;
-  background: var(--soft);
+/* 🟢 FIX: Make sure the Pro button is green/white */
+.plan.pop .btn {
+  background: var(--green) !important;
+  color: #fff !important;
+  border-color: var(--green) !important;
+}
+
+.plan.pop .btn:hover {
+  background: var(--green-lite) !important;
+  border-color: var(--green-lite) !important;
 }
 
 /* 🟢 FAQ SECTION */
