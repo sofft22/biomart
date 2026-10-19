@@ -162,7 +162,6 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
   
-  // 🟢 CHECK IF THEY HAVE A BANNER OR IF THEY ARE ON FREE PLAN
   const isFreePlan = store.plan === "free" || !store.plan;
   const showDefaultBanner = isFreePlan || !store.cover_url;
 
@@ -207,40 +206,8 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 BANNER LOGIC */}
-      {showDefaultBanner ? (
-        // Minimal Biomart Ad Banner (Matches app bg, tight padding)
-        <section style={{ 
-          position: "relative", 
-          width: "100%", 
-          padding: "48px 24px", 
-          background: "var(--bg)", 
-          borderBottom: "1px solid var(--line)",
-          display: "flex", 
-          flexDirection: "column", 
-          alignItems: "center", 
-          justifyContent: "center", 
-          textAlign: "center" 
-        }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <svg viewBox="0 0 60 64" width="20" height="20" fill="none" stroke="var(--green)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
-            <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink)" }}>Biomart</span>
-          </div>
-          
-          <h2 style={{ fontFamily: "var(--serif)", fontSize: "clamp(24px, 4vw, 32px)", fontStyle: "italic", fontWeight: 400, margin: "0 0 8px", color: "var(--ink)" }}>
-            Sell anything on WhatsApp.
-          </h2>
-          
-          <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 400, margin: "0 auto 24px", lineHeight: 1.5 }}>
-            Turn your WhatsApp into a beautiful online store. No coding, no monthly fees to start.
-          </p>
-          
-          <a href="/signup" className="dash-btn dash-btn-dark" style={{ padding: "12px 24px", borderRadius: 8, fontSize: 11, display: "inline-flex", alignItems: "center", gap: 8 }}>
-            Create your free store <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-          </a>
-        </section>
-      ) : (
-        // Actual Uploaded Banner
+      {/* Actual Uploaded Banner (Only shows for Paid plans) */}
+      {!showDefaultBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div className="sf-banner-overlay" />
@@ -253,22 +220,20 @@ export default function Storefront() {
         </section>
       )}
 
-      <section className="sf-section" id="shop-all">
-        <div className="sf-section-head">
+      {/* 🟢 SHOP ALL SECTION */}
+      <section className="sf-section" id="shop-all" style={{ paddingTop: showDefaultBanner ? "120px" : "80px" }}>
+        {/* Title and Sort Side-by-Side */}
+        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
           <div>
             <h2 className="sf-section-title">{query ? `Results for "${query}"` : "Shop all"}</h2>
           </div>
-        </div>
-
-        <div className="sf-filter-bar">
-          <div className="sf-filter-group">
-            <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
-              <option value="new">Sort: Newest</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="name">Name: A-Z</option>
-            </select>
-          </div>
+          
+          <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
+            <option value="new">Sort: Newest</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+            <option value="name">Name: A-Z</option>
+          </select>
         </div>
 
         {paginatedProducts.length === 0 ? (
@@ -298,6 +263,43 @@ export default function Storefront() {
           </>
         )}
       </section>
+
+      {/* 🟢 BIOMART AD BANNER (Placed right above the footer) */}
+      {showDefaultBanner && (
+        <section style={{ 
+          width: "100%", 
+          padding: "80px 24px", 
+          background: "var(--bg)", 
+          borderTop: "1px solid var(--line)",
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          textAlign: "center" 
+        }}>
+          <div style={{ maxWidth: "800px" }}>
+            {/* Brand Wordmark */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, marginBottom: 24, color: "var(--green)" }}>
+              <svg viewBox="0 0 60 64" width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round">
+                <path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" />
+                <path d="M20 26V14A10 10 0 0 1 40 14V26" />
+              </svg>
+              <span style={{ fontSize: 28, fontWeight: 600, letterSpacing: "-0.02em", color: "var(--green)" }}>Biomart</span>
+            </div>
+
+            {/* Main Headline */}
+            <h2 style={{ fontFamily: "var(--font)", fontSize: "clamp(40px, 6vw, 72px)", fontWeight: 700, letterSpacing: "-0.03em", lineHeight: 1.05, color: "var(--ink)", margin: "0 0 32px" }}>
+              Your bio link, but it sells.
+            </h2>
+
+            {/* CTA */}
+            <a href="/signup" className="dash-btn dash-btn-dark" style={{ display: "inline-flex", alignItems: "center", gap: 12, padding: "16px 32px", borderRadius: 12, fontSize: 13, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", textDecoration: "none" }}>
+              CREATE YOUR FREE STORE
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </a>
+          </div>
+        </section>
+      )}
 
       <footer className="sf-footer" id="contact">
         <div className="sf-footer-inner">
@@ -355,7 +357,7 @@ export default function Storefront() {
           onOpenProduct={(p) => handleOpenProduct(p)} 
         />
       )}
-      <CartDrawer open={cartOpen} onClose={() => setCartClosed(false)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
   );
 }
