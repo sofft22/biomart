@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { adminApi, type AdminStoreDetail } from "../lib/adminApi";
 import ResetPasswordModal from "./ResetPasswordModal";
+import { PLAN_PRICES_MONTHLY, PLAN_PRICES_QUARTERLY } from "../lib/plans";
 
 interface Props {
   storeId: string;
@@ -21,8 +22,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   
   // STATE FOR LOGGING PAYMENT
   const [showLog, setShowLog] = useState(false);
-  const [logAmount, setLogAmount] = useState("");
-  const [logPlan, setLogPlan] = useState("starter");
+  const [selectedPlan, setSelectedPlan] = useState("starter"); // default
   const [logging, setLogging] = useState(false);
 
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -40,16 +40,22 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   useEffect(() => { if (bodyRef.current) bodyRef.current.scrollTop = 0; }, [data]);
 
   const handleLogPayment = async () => {
-    if (!logAmount || isNaN(Number(logAmount))) return;
     setLogging(true);
+    
+    // 🟢 AUTO-CALCULATE PRICE FROM PLANS.TS
+    let amount = 0;
+    if (selectedPlan === "starter") amount = PLAN_PRICES_MONTHLY.starter;
+    else if (selectedPlan === "starter_quarterly") amount = PLAN_PRICES_QUARTERLY.starter;
+    else if (selectedPlan === "pro") amount = PLAN_PRICES_MONTHLY.pro;
+    else if (selectedPlan === "pro_quarterly") amount = PLAN_PRICES_QUARTERLY.pro;
+
     try {
       await fetch(`/api/admin/stores/${storeId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ amount: Number(logAmount), plan: logPlan, note: "Manual Upgrade" })
+        body: JSON.stringify({ planId: selectedPlan, amount, note: "Manual Upgrade" })
       });
       setShowLog(false);
-      setLogAmount("");
       load();
     } catch (e) {
       alert("Failed to log payment");
@@ -122,30 +128,24 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
 
                     {showLog && (
                       <div style={{ padding: 20, borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
-                        <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Record payment</p>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
-                          <input 
-                            type="number" 
-                            placeholder="Amount (₦)" 
-                            value={logAmount}
-                            onChange={(e) => setLogAmount(e.target.value)}
-                            className="pe-input"
-                            style={{ width: "100%", padding: "12px 16px" }}
-                          />
+                        <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Select Plan</p>
+                        <div style={{ marginBottom: 16 }}>
+                          {/* 🟢 ONLY DROPDOWN, NO PRICE INPUT */}
                           <select 
-                            value={logPlan}
-                            onChange={(e) => setLogPlan(e.target.value)}
+                            value={selectedPlan}
+                            onChange={(e) => setSelectedPlan(e.target.value)}
                             className="pe-input"
                             style={{ width: "100%", padding: "12px 16px" }}
                           >
-                            <option value="starter">Starter</option>
-                            <option value="pro">Pro</option>
-                            <option value="lifetime">Lifetime</option>
+                            <option value="starter">Starter (Monthly) - ₦{PLAN_PRICES_MONTHLY.starter.toLocaleString()}</option>
+                            <option value="starter_quarterly">Starter (Quarterly) - ₦{PLAN_PRICES_QUARTERLY.starter.toLocaleString()}</option>
+                            <option value="pro">Pro (Monthly) - ₦{PLAN_PRICES_MONTHLY.pro.toLocaleString()}</option>
+                            <option value="pro_quarterly">Pro (Quarterly) - ₦{PLAN_PRICES_QUARTERLY.pro.toLocaleString()}</option>
                           </select>
                         </div>
                         <button 
                           onClick={handleLogPayment} 
-                          disabled={logging || !logAmount}
+                          disabled={logging}
                           className="dash-btn dash-btn-dark" 
                           style={{ width: "100%", padding: "14px", borderRadius: 10 }}
                         >
@@ -206,7 +206,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                     </div>
                   </div>
 
-                  {/* 🟢 ACTIONS AT THE END (Not a fixed footer) */}
+                  {/* ACTIONS AT THE END */}
                   <div style={{ display: "flex", gap: 12, marginTop: 32, paddingBottom: 16 }}>
                     <a href={`/store/${data.slug}`} target="_blank" rel="noopener" className="admin-modal-btn ghost" style={{ flex: 1, textAlign: "center", padding: "14px" }}>
                       Visit Store ↗
@@ -226,3 +226,4 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
     </>
   );
 }
+
