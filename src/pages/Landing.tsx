@@ -256,48 +256,48 @@ export default function Landing() {
 
       <main id="top">
         <header className="hero">
-  <div className="wrap hero-grid">
-    <div className="hero-head">
-      <span className="eyebrow">Storefront for sellers</span>
-      <h1 className="h-hero">Your bio link, but it sells.</h1>
-      
-      <div className="hero-ctas">
-        <Link to={SIGNUP_URL} className="btn btn--lg">
-          Create your store {I.arrow}
-        </Link>
-        <a href="#how" className="link">See how it works</a>
-      </div>
-    </div>
+          <div className="wrap hero-grid">
+            <div className="hero-head">
+              <span className="eyebrow">Storefront for sellers</span>
+              <h1 className="h-hero">Your bio link, but it sells.</h1>
+              
+              <div className="hero-ctas">
+                <Link to={SIGNUP_URL} className="btn btn--lg">
+                  Create your store {I.arrow}
+                </Link>
+                <a href="#how" className="link">See how it works</a>
+              </div>
+            </div>
 
-    <div className="hero-visual">
-      <div className="phone-3d" ref={phoneRef}>
-        <div className="phone-notch" />
-        <StorefrontMock />
-      </div>
-    </div>
-  </div>
+            <div className="hero-visual">
+              <div className="phone-3d" ref={phoneRef}>
+                <div className="phone-notch" />
+                <StorefrontMock />
+              </div>
+            </div>
+          </div>
 
-  <div className="wrap">
-    <div className="hero-stats reveal">
-      <div className="stat">
-        <div className="stat-num"><CountUp to={250} suffix="+" /></div>
-        <div className="stat-label">Stores live</div>
-      </div>
-      <div className="stat">
-        <div className="stat-num"><CountUp to={10000} suffix="+" /></div>
-        <div className="stat-label">Products listed</div>
-      </div>
-      <div className="stat stat-hide-mobile">
-        <div className="stat-num"><CountUp to={50000} suffix="+" /></div>
-        <div className="stat-label">Monthly WhatsApp orders</div>
-      </div>
-      <div className="stat">
-        <div className="stat-num"><CountUp to={60} suffix=" sec" /></div>
-        <div className="stat-label">To setup</div>
-      </div>
-    </div>
-  </div>
-</header>
+          <div className="wrap">
+            <div className="hero-stats reveal">
+              <div className="stat">
+                <div className="stat-num"><CountUp to={250} suffix="+" /></div>
+                <div className="stat-label">Stores live</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num"><CountUp to={5000} suffix="+" /></div>
+                <div className="stat-label">Products listed</div>
+              </div>
+              <div className="stat stat-hide-mobile">
+                <div className="stat-num"><CountUp to={100} suffix="%" /></div>
+                <div className="stat-label">WhatsApp native</div>
+              </div>
+              <div className="stat">
+                <div className="stat-num"><CountUp to={60} suffix=" sec" /></div>
+                <div className="stat-label">To setup</div>
+              </div>
+            </div>
+          </div>
+        </header>
 
         <div className="serve-strip">
           <div className="marquee-track">
@@ -315,7 +315,6 @@ export default function Landing() {
             <div className="sh reveal">
               <span className="eyebrow">Why Biomart</span>
               <h2 className="h-section">Still selling from your DMs?</h2>
-              <p className="lead-lg"></p>
             </div>
             <div className="ba">
               <div className="ba-card no reveal">
@@ -340,63 +339,66 @@ export default function Landing() {
           </div>
         </section>
 
+        {/* 🟢 MEANINGFUL "HOW IT WORKS" */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">How it works</span>
-              <h2 className="h-section">Live in two minutes.</h2>
+              <h2 className="h-section">From zero to live in 2 minutes.</h2>
             </div>
             <div className="steps">
               <div className="step reveal">
                 <span className="n">1</span>
-                <h3>Add products</h3>
-                <p>Photo, name, price.</p>
+                <h3>Build your catalogue</h3>
+                <p>Add your products, upload photos, set your prices, and organize them effortlessly.</p>
               </div>
               <div className="step reveal">
                 <span className="n">2</span>
-                <h3>Share the link</h3>
-                <p>Drop it in your bio.</p>
+                <h3>Share your link</h3>
+                <p>Put your unique Biomart link in your Instagram bio, TikTok, or send it directly to customers.</p>
               </div>
               <div className="step reveal">
                 <span className="n">3</span>
-                <h3>Get orders</h3>
-                <p>WhatsApp opens, message written.</p>
+                <h3>Close the sale</h3>
+                <p>Customers browse your store, tap "Order", and it opens WhatsApp with the exact items pre-filled.</p>
               </div>
             </div>
           </div>
         </section>
 
+        {/* 🟢 MEANINGFUL "FEATURES" */}
         <section className="sec" id="features">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Features</span>
-              <h2 className="h-section">Everything a catalogue needs.</h2>
+              <h2 className="h-section">Built for modern sellers.</h2>
             </div>
             <div className="feat3">
               <div className="feat reveal">
                 <div className="iconbox">{I.sliders}</div>
-                <h3>Sizes and options</h3>
-                <p>Every variant priced automatically.</p>
+                <h3>Sizes & Variants</h3>
+                <p>Add different sizes or colors. Customers pick exactly what they want, and the price adjusts automatically.</p>
               </div>
               <div className="feat reveal">
                 <div className="iconbox">{I.tag}</div>
-                <h3>Discount tag</h3>
-                <p>Cross out the old price.</p>
+                <h3>Discount Pricing</h3>
+                <p>Show a "Compare At" price to display discounts. Cross out the old price and highlight the deal.</p>
               </div>
               <div className="feat reveal">
-                <div className="iconbox">{I.grid}</div>
-                <h3>Categories</h3>
-                <p>Group products. Find fast.</p>
+                <div className="iconbox">{I.bolt}</div>
+                <h3>WhatsApp Native</h3>
+                <p>No complicated checkout. Customers tap "Order" and their WhatsApp opens with the item and total ready to send.</p>
               </div>
             </div>
           </div>
         </section>
 
+        {/* 🟢 FIXED PRICING PAGE */}
         <section className="sec bg-soft" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Pricing</span>
-              <h2 className="h-section">Start free.</h2>
+              <h2 className="h-section">Start free. Upgrade when you're ready.</h2>
             </div>
 
             <div className="switch-wrap reveal">
@@ -405,129 +407,122 @@ export default function Landing() {
                   Monthly
                 </button>
                 <button type="button" aria-pressed={billing === "q"} onClick={() => setBilling("q")}>
-                  Quarterly
+                  Quarterly <span style={{ fontSize: 10, background: "var(--green)", color: "#fff", padding: "2px 6px", borderRadius: 99, marginLeft: 6 }}>Save 8%</span>
                 </button>
               </div>
             </div>
 
-            <div className="plans">
+            <div className="plans" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))" }}>
+              
+              {/* FREE */}
               <div className="plan reveal">
                 <h3>Free</h3>
-                <p className="desc">Try it.</p>
+                <p className="desc">Test the waters.</p>
                 <div className="p"><span>₦0</span></div>
                 <ul>
                   <li>5 products</li>
-                  <li>1 photo each</li>
+                  <li>1 photo per product</li>
                   <li>WhatsApp orders</li>
-                  <li className="no">Sizes and options</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn line">Start free</Link>
               </div>
 
+              {/* STARTER */}
               <div className="plan reveal">
                 <h3>Starter</h3>
-                <p className="desc">Getting going.</p>
+                <p className="desc">For the casual seller.</p>
                 <div className="p">
                   <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
                   <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
                 </div>
                 <ul>
                   <li>15 products</li>
-                  <li>2 photos each</li>
+                  <li>3 photos per product</li>
                   <li>WhatsApp orders</li>
-                  <li className="no">Sizes and options</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
               </div>
 
+              {/* PRO */}
               <div className="plan pop reveal">
-                <span className="badge">Popular</span>
+                <span className="badge">Most Popular</span>
                 <h3>Pro</h3>
-                <p className="desc">Full catalogue.</p>
+                <p className="desc">For serious brands.</p>
                 <div className="p">
-                  <span>{billing === "m" ? "₦4,000" : "₦11,000"}</span>
+                  <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
                   <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
                 </div>
                 <ul>
-                  <li>50 products</li>
-                  <li>5 photos each</li>
+                  <li>Unlimited products</li>
+                  <li>10 photos per product</li>
                   <li>WhatsApp orders</li>
-                  <li>Sizes and options</li>
+                  <li className="tick">Product variants (Sizes/Colors)</li>
+                  <li className="tick">No Biomart ad</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
               </div>
 
-              <div className="plan life reveal">
-                <span className="badge alt">Founding</span>
-                <h3>Lifetime</h3>
-                <p className="desc">Pay once.</p>
+              {/* CUSTOM */}
+              <div className="plan custom-plan reveal" style={{ borderStyle: "dashed", background: "var(--soft)" }}>
+                <h3>Custom E-commerce</h3>
+                <p className="desc">A full online store.</p>
                 <div className="p">
-                  <span>₦40,000</span><span className="per">once</span>
+                  <span style={{ fontSize: 20 }}>Custom Quote</span>
                 </div>
                 <ul>
-                  <li>Unlimited products</li>
-                  <li>10 photos each</li>
-                  <li>WhatsApp orders</li>
-                  <li>Sizes and options</li>
-                </ul>
-                <Link to={SIGNUP_URL} className="btn line">Get Lifetime</Link>
-              </div>
-
-              <div className="plan custom-plan reveal">
-                <h3>Custom</h3>
-                <p className="desc">Full online store.</p>
-                <div className="p">
-                  <span>₦100,000</span><span className="per">from</span>
-                </div>
-                <ul>
-                  <li>Cart and checkout</li>
-                  <li>Payment integration</li>
                   <li>Your own domain</li>
+                  <li>Full cart & checkout</li>
+                  <li>Paystack / Card payments</li>
                   <li>Priority support</li>
                 </ul>
                 <a
-                  href={wa("Hi Biomart, I'd like a quote for a custom online store.")}
-                  className="btn"
+                  href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")}
+                  className="btn line"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Talk to us {I.arrow}
+                  Contact Sales {I.arrow}
                 </a>
               </div>
             </div>
           </div>
         </section>
 
+        {/* 🟢 BETTER FAQ */}
         <section className="sec" id="faq">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Questions</span>
-              <h2 className="h-section">Everything you're wondering.</h2>
+              <h2 className="h-section">Everything you need to know.</h2>
             </div>
             <div className="faqgrid reveal">
               <details>
-                <summary>Do customers need an account?</summary>
-                <p>No. Open link, browse, message.</p>
+                <summary>Do my customers need an account to buy?</summary>
+                <p>No. Your customers simply tap your link, browse your products, and tap "Order". It opens their WhatsApp with the order details pre-filled. They never have to create an account or download an app.</p>
               </details>
               <details>
-                <summary>Do I need a website?</summary>
-                <p>No. Your link is your store.</p>
+                <summary>Do I need to build a website?</summary>
+                <p>Not at all. Biomart is your website. We give you a clean, professional storefront link (like <code>biomart.com/store/your-name</code>) that you can put in your Instagram bio, TikTok, or send directly to customers.</p>
               </details>
               <details>
-                <summary>How do I get paid?</summary>
-                <p>Bank transfer, cash, POS.</p>
+                <summary>How do I collect payments?</summary>
+                <p>Exactly how you do now. The customer messages you on WhatsApp, and you arrange payment via bank transfer, cash, or POS. We don't touch your money, so there are no transaction fees or delays.</p>
               </details>
               <details>
-                <summary>Can I try free?</summary>
-                <p>Yes. 5 products. No card.</p>
+                <summary>Can I try it for free?</summary>
+                <p>Yes. The Free plan lets you add up to 5 products with 1 photo each. You don't need a credit card to start. Upgrade only when you need more space.</p>
               </details>
               <details>
-                <summary>What is Lifetime?</summary>
-                <p>₦40,000 once. Unlimited forever.</p>
+                <summary>What is the difference between Starter and Pro?</summary>
+                <p>Starter is for casual sellers with up to 15 products. Pro is for serious brands: you get unlimited products, 10 photos per product, and you can add Variants (like Sizes and Colors). Pro also removes all Biomart ads from your storefront.</p>
               </details>
               <details>
-                <summary>Full online store?</summary>
-                <p>Yes. From ₦100,000.</p>
+                <summary>What is the Custom E-commerce plan?</summary>
+                <p>If you want a traditional website with a shopping cart, a custom domain, and automated card payments (via Paystack), we build it for you from scratch. Click "Contact Sales" to get a quote.</p>
               </details>
             </div>
           </div>
@@ -535,11 +530,11 @@ export default function Landing() {
 
         <section className="final">
           <div className="panel reveal">
-            <h2 className="h-section">Open your store.</h2>
-            <p className="panel-lead">Free. Two minutes. Live.</p>
+            <h2 className="h-section">Ready to sell?</h2>
+            <p className="panel-lead">Free. 2 minutes. No card required.</p>
             <div className="panel-cta">
               <Link to={SIGNUP_URL} className="btn btn--lg panel-btn">
-                start free {I.arrow}
+                Start for free {I.arrow}
               </Link>
             </div>
           </div>
@@ -598,7 +593,7 @@ export default function Landing() {
           <div className="legal-modal">
             <button
               className="legal-close"
-              onClrick={() => setLegalOpen(null)}
+              onClick={() => setLegalOpen(null)}
               aria-label="Close"
             >
               ×
