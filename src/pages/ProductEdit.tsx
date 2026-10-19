@@ -8,13 +8,13 @@ import type { Product } from "../types";
 
 interface Variant {
   label: string;
-  priceDelta: number; // 0 means default price
+  priceDelta: number; 
 }
 
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { store: currentStore, limits, refresh } = useAuth();
+  const { store: currentStore, refresh } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(!!id);
@@ -32,9 +32,11 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // 🟢 DIRECT PLAN CHECK
-  const isPro = currentStore?.plan === "pro" || currentStore?.plan === "lifetime";
-  const photoLimit = limits?.photos ?? 1;
+  // 🟢 DIRECT PLAN CHECK (No cache issues)
+  const plan = currentStore?.plan || "free";
+  const isPro = plan === "pro" || plan === "lifetime";
+  
+  const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
   const canUseVariants = isPro;
 
   useEffect(() => {
@@ -316,7 +318,7 @@ export default function ProductEdit() {
           </button>
         </section>
 
-        {/* 🟢 VARIANTS (Minimal Lock / Smart Editor) */}
+        {/* 🟢 VARIANTS */}
         <section className="pe-section">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
@@ -328,37 +330,19 @@ export default function ProductEdit() {
           </div>
 
           {!canUseVariants ? (
-            // Minimal Locked State
-            <div style={{ 
-              borderTop: "1px solid var(--line)", 
-              padding: "16px 0", 
-              display: "flex", 
-              flexDirection: "column", 
-              gap: 8 
-            }}>
+            <div style={{ borderTop: "1px solid var(--line)", padding: "16px 0", display: "flex", flexDirection: "column", gap: 8 }}>
               <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
                 Sell different sizes or colors. <Link to="/plan" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>Upgrade to Pro</Link> to unlock variants.
               </p>
             </div>
           ) : (
-            // Smart Editor
             variants.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {variants.map((v, i) => {
                   const isCustomPrice = v.priceDelta > 0;
-                  const finalPrice = isCustomPrice ? v.priceDelta : numericPrice;
                   
                   return (
-                    <div key={i} style={{ 
-                      display: "flex", 
-                      alignItems: "center", 
-                      gap: 8,
-                      background: "var(--bg)",
-                      border: "1px solid var(--line)",
-                      borderRadius: 10,
-                      padding: "8px 12px"
-                    }}>
-                      {/* Name Input */}
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
                       <input
                         className="pe-input"
                         value={v.label}
@@ -367,22 +351,11 @@ export default function ProductEdit() {
                         style={{ flex: 1, border: 0, background: "transparent", padding: "4px 0", fontSize: 14 }}
                       />
 
-                      {/* Price Toggle / Input */}
                       {!isCustomPrice ? (
                         <button
                           type="button"
                           onClick={() => updateVariant(i, { priceDelta: numericPrice || 1 })}
-                          style={{ 
-                            background: "var(--soft)", 
-                            border: 0, 
-                            padding: "6px 12px", 
-                            borderRadius: 6, 
-                            fontSize: 11, 
-                            fontWeight: 600, 
-                            color: "var(--muted)", 
-                            cursor: "pointer",
-                            whiteSpace: "nowrap"
-                          }}
+                          style={{ background: "var(--soft)", border: 0, padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "var(--muted)", cursor: "pointer", whiteSpace: "nowrap" }}
                         >
                           + Price
                         </button>
@@ -393,25 +366,11 @@ export default function ProductEdit() {
                             type="number"
                             inputMode="numeric"
                             value={v.priceDelta || ""}
-                            onChange={(e) =>
-                              updateVariant(i, { priceDelta: Number(e.target.value) || 0 })
-                            }
+                            onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })}
                             placeholder={String(numericPrice)}
-                            style={{ 
-                              width: 70, 
-                              border: 0, 
-                              background: "transparent", 
-                              padding: "6px 0", 
-                              fontSize: 13, 
-                              fontWeight: 600,
-                              outline: "none"
-                            }}
+                            style={{ width: 70, border: 0, background: "transparent", padding: "6px 0", fontSize: 13, fontWeight: 600, outline: "none" }}
                           />
-                          <button
-                            type="button"
-                            onClick={() => updateVariant(i, { priceDelta: 0 })}
-                            style={{ background: "transparent", border: 0, cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 4 }}
-                          >
+                          <button type="button" onClick={() => updateVariant(i, { priceDelta: 0 })} style={{ background: "transparent", border: 0, cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 4 }}>
                             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                               <path d="M6 6l12 12M18 6L6 18" />
                             </svg>
@@ -419,12 +378,7 @@ export default function ProductEdit() {
                         </div>
                       )}
 
-                      {/* Remove Button */}
-                      <button
-                        type="button"
-                        onClick={() => removeVariant(i)}
-                        style={{ background: "transparent", border: 0, color: "var(--danger)", cursor: "pointer", padding: 4 }}
-                      >
+                      <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)", cursor: "pointer", padding: 4 }}>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <path d="M6 6l12 12M18 6L6 18" />
                         </svg>
@@ -446,12 +400,7 @@ export default function ProductEdit() {
             Delete
           </button>
         )}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={saving || uploading}
-          className="pe-save"
-        >
+        <button type="button" onClick={handleSave} disabled={saving || uploading} className="pe-save">
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
       </div>
