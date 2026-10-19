@@ -9,36 +9,6 @@ import {
 import { auth } from "../lib/api";
 import type { MeResponse, Product, Store, User, PlansMap } from "../types";
 
-// ══════════════════════════════════════════════════
-// MOCK — REMOVE WHEN D1 CONNECTED
-// ══════════════════════════════════════════════════
-const MOCK_USER: User = {
-  id: "preview-user",
-  email: "boluwatifedaniel2009@gmail.com",
-  role: "admin",
-};
-
-const MOCK_STORE: Store = {
-  id: "preview-store",
-  user_id: "preview-user",
-  name: "Soft Closet",
-  slug: "soft",
-  whatsapp: "08000000000",
-  plan: "free",
-  subscription_status: "active",
-};
-
-const MOCK_LIMITS: MeResponse["limits"] = {
-  planName: "free",
-  products: 5,
-  photos: 1,
-  sizes: false,
-};
-
-const MOCK_PRODUCTS: Product[] = [];
-const MOCK_PLANS: PlansMap | null = null;
-// ══════════════════════════════════════════════════
-
 interface AuthState {
   loading: boolean;
   user: User | null;
@@ -52,7 +22,7 @@ interface AuthState {
 
 const Ctx = createContext<AuthState | null>(null);
 
-// 🟢 Global cache timestamp
+// 🟢 In-memory cache (Resets on page reload, preventing ghost logins)
 let lastFetchedAt = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
@@ -66,8 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async (force = false) => {
     const now = Date.now();
-    // 🟢 If we have cached data and the user isn't forcing a refresh, skip the DB call
-    if (!force && now - lastFetchedAt < CACHE_TTL && store !== null) {
+    
+    // If cached and not forcing, skip the API call
+    if (!force && now - lastFetchedAt < CACHE_TTL && user !== null) {
       setLoading(false);
       return;
     }
@@ -76,24 +47,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const data = await auth.me();
       setUser(data.user);
       setStore(data.store);
-      setProducts(data.products);
+      setProducts(data.products || []);
       setLimits(data.limits);
       setPlans(data.plans);
-      lastFetchedAt = Date.now(); // Update cache time
+      lastFetchedAt = Date.now();
     } catch {
-      // ══════════════════════════════════════════════
-      // MOCK FALLBACK — REMOVE WHEN D1 CONNECTED
-      // ══════════════════════════════════════════════
-      setUser(MOCK_USER);
-      setStore(MOCK_STORE);
-      setProducts(MOCK_PRODUCTS);
-      setLimits(MOCK_LIMITS);
-      setPlans(MOCK_PLANS);
-      // ══════════════════════════════════════════════
+      // 🟢 NO MOCK FALLBACK. If auth fails, user is genuinely logged out.
+      setUser(null);
+      setStore(null);
+      setProducts([]);
+      setLimits(null);
+      setPlans(null);
     } finally {
       setLoading(false);
     }
-  }, [store]);
+  }, [user]);
 
   useEffect(() => {
     refresh();
