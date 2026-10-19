@@ -162,11 +162,9 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
   
-  // Only show custom banner if they uploaded one. (We remove the ad from the top entirely)
+  // Check plan and banner
+  const isPro = store.plan === "pro" || store.plan === "lifetime";
   const hasCustomBanner = !!store.cover_url;
-
-  // Show ad in the footer ONLY for Free users
-  const isFreePlan = store.plan === "free" || !store.plan;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
 
@@ -223,7 +221,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 SHOP ALL SECTION (Sort side-by-side) */}
+      {/* 🟢 SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
           <div>
@@ -266,11 +264,11 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 FOOTER WITH INTEGRATED BIOMART AD */}
-      <footer className="sf-footer" id="contact" style={{ paddingTop: isFreePlan ? "0" : "80px" }}>
+      {/* 🟢 FOOTER */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: !isPro ? "0" : "80px" }}>
         
-        {/* Ad Section (Only for Free Plan) */}
-        {isFreePlan && (
+        {/* Ad Section (Only for Free & Starter) */}
+        {!isPro && (
           <div style={{ background: "var(--bg)", borderBottom: "1px solid var(--line)", padding: "80px 24px", textAlign: "center" }}>
             <div style={{ maxWidth: "800px", margin: "0 auto" }}>
               {/* Brand Wordmark */}
