@@ -20,6 +20,45 @@ function splitBrandName(name: string): { first: string; second: string } {
   return { first: parts[0], second: parts.slice(1).join(" ") };
 }
 
+function useReveal(deps: unknown[] = []) {
+  useEffect(() => {
+    let mounted = true;
+    const io = ("IntersectionObserver" in window)
+      ? new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add("in");
+                io.unobserve(entry.target);
+              }
+            }
+          },
+          { rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
+        )
+      : null;
+
+    const scan = () => {
+      if (!mounted) return;
+      const els = document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)");
+      if (!io) {
+        els.forEach((el) => el.classList.add("in"));
+        return;
+      }
+      els.forEach((el) => io.observe(el));
+    };
+
+    scan();
+    const mo = new MutationObserver(scan);
+    mo.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      mounted = false;
+      io?.disconnect();
+      mo.disconnect();
+    };
+  }, deps);
+}
+
 export default function Storefront() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { loading, store, products, error } = useStoreContext();
@@ -84,6 +123,8 @@ export default function Storefront() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useReveal([products.length, sort, query, currentPage]);
+
   const filtered = useMemo(() => {
     let list = products;
     if (query.trim()) {
@@ -120,6 +161,10 @@ export default function Storefront() {
   const brand = splitBrandName(store.name);
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
+  
+  // 🟢 CHECK IF THEY HAVE A BANNER OR IF THEY ARE ON FREE PLAN
+  const isFreePlan = store.plan === "free" || !store.plan;
+  const showDefaultBanner = isFreePlan || !store.cover_url;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
 
@@ -162,14 +207,47 @@ export default function Storefront() {
         </div>
       </header>
 
-      {store?.cover_url && (
+      {/* 🟢 BANNER LOGIC */}
+      {showDefaultBanner ? (
+        // Minimal Biomart Ad Banner (Matches app bg, tight padding)
+        <section style={{ 
+          position: "relative", 
+          width: "100%", 
+          padding: "48px 24px", 
+          background: "var(--bg)", 
+          borderBottom: "1px solid var(--line)",
+          display: "flex", 
+          flexDirection: "column", 
+          alignItems: "center", 
+          justifyContent: "center", 
+          textAlign: "center" 
+        }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <svg viewBox="0 0 60 64" width="20" height="20" fill="none" stroke="var(--green)" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+            <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink)" }}>Biomart</span>
+          </div>
+          
+          <h2 style={{ fontFamily: "var(--serif)", fontSize: "clamp(24px, 4vw, 32px)", fontStyle: "italic", fontWeight: 400, margin: "0 0 8px", color: "var(--ink)" }}>
+            Sell anything on WhatsApp.
+          </h2>
+          
+          <p style={{ fontSize: 14, color: "var(--muted)", maxWidth: 400, margin: "0 auto 24px", lineHeight: 1.5 }}>
+            Turn your WhatsApp into a beautiful online store. No coding, no monthly fees to start.
+          </p>
+          
+          <a href="/signup" className="dash-btn dash-btn-dark" style={{ padding: "12px 24px", borderRadius: 8, fontSize: 11, display: "inline-flex", alignItems: "center", gap: 8 }}>
+            Create your free store <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" width="14" height="14"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+        </section>
+      ) : (
+        // Actual Uploaded Banner
         <section className="sf-banner">
-          <img src={store.cover_url} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div className="sf-banner-overlay" />
           <div className="sf-banner-text">
             <h1 className="sf-banner-tagline">{tagline || titleCase(store.name)}</h1>
             <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta">
-              Shop now <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>
         </section>
@@ -182,7 +260,6 @@ export default function Storefront() {
           </div>
         </div>
 
-        {/* 🟢 ONLY SORT DROPDOWN */}
         <div className="sf-filter-bar">
           <div className="sf-filter-group">
             <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
@@ -278,7 +355,7 @@ export default function Storefront() {
           onOpenProduct={(p) => handleOpenProduct(p)} 
         />
       )}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer open={cartOpen} onClose={() => setCartClosed(false)} />
     </div>
   );
 }
