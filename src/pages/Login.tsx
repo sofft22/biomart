@@ -28,6 +28,11 @@ export default function Login() {
     }
   }
 
+  // 🟢 WHATSAPP SUPPORT LINK
+  const whatsappUrl = `https://wa.me/2347072789513?text=${encodeURIComponent(
+    `Hi Biomart, I forgot my password for ${email || "[my email]"}. Please help me reset it.`
+  )}`;
+
   return (
     <div className="auth-shell">
       <header className="auth-header">
@@ -42,16 +47,15 @@ export default function Login() {
             Biomart
           </Link>
           <Link to="/signup" className="auth-header-link">
-            Sign up
+            Create store
           </Link>
         </div>
       </header>
 
       <section className="auth-hero">
         <div className="auth-wrap">
-          <span className="auth-hero-eyebrow">Welcome back</span>
-          <h1 className="auth-hero-title">Log in to your store.</h1>
-          <p className="auth-hero-lead">Pick up right where you left off.</p>
+          <h1 className="auth-hero-title">Welcome back.</h1>
+          <p className="auth-hero-lead">Log in to manage your store.</p>
         </div>
       </section>
 
@@ -83,6 +87,15 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
+              {/* 🟢 FORGOT PASSWORD WHATSAPP LINK */}
+              <a 
+                href={whatsappUrl}
+                target="_blank" 
+                rel="noopener noreferrer"
+                style={{ display: "inline-block", marginTop: 8, fontSize: 13, fontWeight: 600, color: "var(--green)", textDecoration: "none" }}
+              >
+                Forgot password?
+              </a>
             </div>
 
             {error && (
@@ -97,9 +110,9 @@ export default function Login() {
           </form>
 
           <p className="auth-foot">
-            New to Biomart?{" "}
+            Don't have a store?{" "}
             <Link to="/signup" className="auth-foot-link">
-              Create a store
+              Create one
             </Link>
           </p>
         </div>
