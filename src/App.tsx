@@ -4,6 +4,7 @@ import { StoreProvider } from "./context/StoreContext";
 import { CartProvider } from "./context/CartContext";
 import { ToastProvider } from "./components/Toast";
 
+// Pages
 import Landing from "./pages/Landing";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -14,14 +15,13 @@ import Plan from "./pages/Plan";
 import ProductEdit from "./pages/ProductEdit";
 import Storefront from "./pages/Storefront";
 
+// Admin Pages
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./components/RequireAdmin";
-
 import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminStores from "./pages/admin/AdminStores";
 import AdminSettings from "./pages/admin/AdminSettings";
-// 🟢 Removed AdminBilling import
 
 function StorefrontRoute() {
   const { slug } = useParams<{ slug: string }>();
@@ -40,15 +40,9 @@ function NotFound() {
     <div className="nf-shell">
       <div className="nf-inner">
         <span className="nf-eyebrow">404</span>
-        <h1 className="nf-title">
-          Page not <em>found</em>.
-        </h1>
-        <p className="nf-lead">
-          That link doesn't exist anymore. Try heading back to the homepage.
-        </p>
-        <a href="/" className="btn" style={{ marginTop: 32 }}>
-          Back to home
-        </a>
+        <h1 className="nf-title">Page not <em>found</em>.</h1>
+        <p className="nf-lead">That link doesn't exist anymore. Try heading back to the homepage.</p>
+        <a href="/" className="btn" style={{ marginTop: 32 }}>Back to home</a>
       </div>
     </div>
   );
@@ -60,63 +54,21 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <Routes>
-            {/* Public */}
+            {/* Public (No Help Widget) */}
             <Route path="/" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
             <Route path="/store/:slug" element={<StorefrontRoute />} />
 
-            {/* Seller dashboard — authed */}
-            <Route
-              path="/dashboard"
-              element={
-                <RequireAuth>
-                  <Overview />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/dashboard/products"
-              element={
-                <RequireAuth>
-                  <Dashboard />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/dashboard/product"
-              element={
-                <RequireAuth>
-                  <ProductEdit />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/dashboard/product/:id"
-              element={
-                <RequireAuth>
-                  <ProductEdit />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <RequireAuth>
-                  <Settings />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/plan"
-              element={
-                <RequireAuth>
-                  <Plan />
-                </RequireAuth>
-              }
-            />
+            {/* Seller Dashboard — Authed (Widget is inside DashboardLayout) */}
+            <Route path="/dashboard" element={<RequireAuth><Overview /></RequireAuth>} />
+            <Route path="/dashboard/products" element={<RequireAuth><Dashboard /></RequireAuth>} />
+            <Route path="/dashboard/product" element={<RequireAuth><ProductEdit /></RequireAuth>} />
+            <Route path="/dashboard/product/:id" element={<RequireAuth><ProductEdit /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+            <Route path="/plan" element={<RequireAuth><Plan /></RequireAuth>} />
 
-            {/* Admin — authed + admin only, nested routes */}
+            {/* Admin — Authed + Admin only (No Help Widget) */}
             <Route
               path="/admin"
               element={
@@ -129,7 +81,6 @@ export default function App() {
             >
               <Route index element={<AdminOverview />} />
               <Route path="stores" element={<AdminStores />} />
-              {/* 🟢 Removed Billing route */}
               <Route path="settings" element={<AdminSettings />} />
             </Route>
 
