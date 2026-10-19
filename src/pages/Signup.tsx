@@ -10,7 +10,7 @@ export default function Signup() {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [agreed, setAgreed] = useState(false); // 🟢 New State for Terms
+  const [agreed, setAgreed] = useState(false);
   
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -22,7 +22,6 @@ export default function Signup() {
     e.preventDefault();
     setError("");
     
-    // 🟢 BLOCK SUBMISSION IF NOT AGREED
     if (!agreed) {
       setError("You must agree to the Terms of Service and Privacy Policy to continue.");
       return;
@@ -38,6 +37,29 @@ export default function Signup() {
       setBusy(false);
     }
   }
+
+  // 🟢 Reusable Input Style for consistent UI
+  const inputStyle = {
+    width: "100%",
+    padding: "14px 16px",
+    borderRadius: 12,
+    border: "1px solid rgba(26,26,26,0.15)", // Slightly darker border
+    background: "rgba(255,255,255,0.6)", // Subtle off-white background
+    fontSize: 15,
+    color: "var(--ink)",
+    outline: "none",
+    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+  };
+
+  const labelStyle = {
+    display: "block",
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.1em",
+    color: "var(--muted)",
+    marginBottom: 8,
+  };
 
   return (
     <div className="auth-shell">
@@ -67,36 +89,46 @@ export default function Signup() {
 
       <main className="auth-main">
         <div className={`auth-form-wrap ${mounted ? "in" : ""}`}>
-          <form onSubmit={onSubmit} className="auth-form">
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="signup-store">Store name</label>
+          <form onSubmit={onSubmit} className="auth-form" style={{ maxWidth: 440, margin: "0 auto" }}>
+            
+            {/* STORE NAME */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle} htmlFor="signup-store">Store Name</label>
               <input
                 id="signup-store"
                 type="text"
                 maxLength={60}
-                placeholder="Adaeze's Closet"
+                placeholder="e.g. Adaeze's Closet"
                 value={storeName}
                 onChange={(e) => setStoreName(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
               />
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="signup-wa">WhatsApp number</label>
+            {/* WHATSAPP */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle} htmlFor="signup-wa">WhatsApp Number</label>
               <input
                 id="signup-wa"
                 type="tel"
                 inputMode="tel"
                 autoComplete="tel"
-                placeholder="08012345678"
+                placeholder="e.g. 08012345678"
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
               />
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="signup-email">Email</label>
+            {/* EMAIL */}
+            <div style={{ marginBottom: 20 }}>
+              <label style={labelStyle} htmlFor="signup-email">Email Address</label>
               <input
                 id="signup-email"
                 type="email"
@@ -106,11 +138,15 @@ export default function Signup() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
               />
             </div>
 
-            <div className="auth-field">
-              <label className="auth-label" htmlFor="signup-password">Password</label>
+            {/* PASSWORD */}
+            <div style={{ marginBottom: 24 }}>
+              <label style={labelStyle} htmlFor="signup-password">Password</label>
               <input
                 id="signup-password"
                 type="password"
@@ -120,31 +156,33 @@ export default function Signup() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                style={inputStyle}
+                onFocus={(e) => e.target.style.borderColor = "var(--green)"}
+                onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
               />
             </div>
 
-                        {/* 🟢 CUSTOM TERMS & CONDITIONS CHECKBOX */}
+            {/* TERMS & CONDITIONS CHECKBOX */}
             <div 
               onClick={() => setAgreed(!agreed)}
               style={{ 
                 display: "flex", 
                 alignItems: "flex-start", 
                 gap: 12, 
-                marginTop: 16, 
-                marginBottom: 8,
+                marginBottom: 24,
                 cursor: "pointer",
                 userSelect: "none"
               }}
             >
-              {/* The visual box */}
+              {/* Custom Checkbox */}
               <div
                 style={{
                   width: 20,
                   height: 20,
                   flexShrink: 0,
-                  borderRadius: 4,
-                  border: `1.5px solid ${agreed ? "var(--green)" : "var(--line)"}`,
-                  background: agreed ? "var(--green)" : "var(--bg)",
+                  borderRadius: 6,
+                  border: `1.5px solid ${agreed ? "var(--green)" : "rgba(26,26,26,0.2)"}`,
+                  background: agreed ? "var(--green)" : "transparent",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -159,13 +197,13 @@ export default function Signup() {
                 )}
               </div>
 
-              {/* The text */}
+              {/* Text */}
               <span style={{ fontSize: 13, lineHeight: 1.5, color: "var(--muted)" }}>
                 I agree to the{" "}
                 <Link 
                   to="/legal/terms" 
                   target="_blank" 
-                  onClick={(e) => e.stopPropagation()} // Prevents toggling the checkbox when clicking the link
+                  onClick={(e) => e.stopPropagation()} 
                   style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
                 >
                   Terms of Service
@@ -174,7 +212,7 @@ export default function Signup() {
                 <Link 
                   to="/legal/privacy" 
                   target="_blank" 
-                  onClick={(e) => e.stopPropagation()} // Prevents toggling the checkbox when clicking the link
+                  onClick={(e) => e.stopPropagation()} 
                   style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
                 >
                   Privacy Policy
@@ -183,18 +221,19 @@ export default function Signup() {
             </div>
 
             {error && (
-              <p className="auth-error" role="alert">{error}</p>
+              <div style={{ padding: "12px 16px", background: "var(--danger-soft)", color: "var(--danger)", borderRadius: 8, fontSize: 13, fontWeight: 500, marginBottom: 24 }}>
+                {error}
+              </div>
             )}
 
             <div className="auth-submit">
-              {/* 🟢 DISABLE BUTTON IF NOT AGREED */}
-              <button type="submit" disabled={busy || !agreed}>
+              <button type="submit" disabled={busy || !agreed} style={{ height: 54, borderRadius: 12 }}>
                 {busy ? "Creating store…" : "Create store"}
               </button>
             </div>
           </form>
 
-          <p className="auth-foot">
+          <p className="auth-foot" style={{ marginTop: 24 }}>
             Already have an account?{" "}
             <Link to="/login" className="auth-foot-link">
               Log in
