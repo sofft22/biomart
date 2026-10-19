@@ -1,8 +1,8 @@
 export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) => {
   try {
-    // 1. Get counts from stores
+    // 1. Get all stores
     const storesRes = await env.DB.prepare("SELECT plan FROM stores").all<{ plan: string }>();
-    const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0, lifetime: 0 };
+    const planCounts: Record<string, number> = { free: 0, starter: 0, pro: 0 };
     let totalStores = 0;
     
     for (const s of storesRes.results || []) {
@@ -10,22 +10,22 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env }) =
       planCounts[p] = (planCounts[p] || 0) + 1;
       totalStores++;
     }
-    const payingStores = planCounts.starter + planCounts.pro + planCounts.lifetime;
+    const payingStores = planCounts.starter + planCounts.pro;
 
-    // 2. Total Products
-    const productsRes = await env.DB.prepare("SELECT COUNT(*) as count FROM products").first<{ count: number }>();
-    const totalProducts = productsRes?.count || 0;
-
-    // 3. Total Revenue (Sum of ALL payments)
+    // 2. Total Revenue (Sum of ALL payments ever)
     const revenueRes = await env.DB.prepare("SELECT COALESCE(SUM(amount), 0) as total FROM payments").first<{ total: number }>();
     const totalRevenue = revenueRes?.total || 0;
 
-    // 🟢 4. MRR CALCULATION (Based on payments in the last 30 days)
+    // 3. MRR (Raw sum of payments in the last 30 days)
     const thirtyDaysAgo = Date.now() - 30 * 86400000;
     const mrrRes = await env.DB.prepare(
       "SELECT COALESCE(SUM(amount), 0) as mrr FROM payments WHERE paid_at >= ?"
     ).bind(thirtyDaysAgo).first<{ mrr: number }>();
     const mrr = mrrRes?.mrr || 0;
+
+    // 4. Total Products
+    const productsRes = await env.DB.prepare("SELECT COUNT(*) as count FROM products").first<{ count: number }>();
+    const totalProducts = productsRes?.count || 0;
 
     // 5. Build the 7-Day Revenue Chart Data
     const chart = [];
