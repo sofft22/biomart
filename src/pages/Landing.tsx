@@ -466,40 +466,45 @@ export default function Landing() {
         </section>
       </main>
 
-      <footer>
+           <footer>
         <div className="wrap">
           <div className="fgrid">
+            
+            {/* 1. THE BRAND (Takes up full width on mobile) */}
             <div className="fbrand">
               <a href="#top" className="logo">
                 <span className="text-green">{I.logoBag}</span>
                 Biomart
               </a>
               <p className="tag">Your bio link, but it sells.</p>
-              
               <div className="fsocials">
-                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer">{I.whatsapp}</a>
-                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer">{I.instagram}</a>
-                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer">{I.tiktok}</a>
+                <a href={wa("Hi Biomart")}>{I.whatsapp}</a>
+                <a href="...">{I.instagram}</a>
+                <a href="...">{I.tiktok}</a>
               </div>
             </div>
-            
-            <div>
-              <h4>Product</h4>
-              <ul>
-                <li><a href="#how">How it works</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#faq">Questions</a></li>
-              </ul>
+
+            {/* 2. THE WRAPPER FOR PRODUCT AND LEGAL */}
+            <div className="footer-links-wrap">
+              <div>
+                <h4>Product</h4>
+                <ul>
+                  <li><a href="#how">How it works</a></li>
+                  <li><a href="#pricing">Pricing</a></li>
+                  <li><a href="#faq">Questions</a></li>
+                </ul>
+              </div>
+              
+              <div>
+                <h4>Legal</h4>
+                <ul>
+                  <li><Link to="/legal/privacy">Privacy</Link></li>
+                  <li><Link to="/legal/terms">Terms</Link></li>
+                  <li><Link to="/legal/refunds">Refunds</Link></li>
+                </ul>
+              </div>
             </div>
-            
-            <div>
-              <h4>Legal</h4>
-              <ul>
-                <li><Link to="/legal/privacy">Privacy</Link></li>
-                <li><Link to="/legal/terms">Terms</Link></li>
-                <li><Link to="/legal/refunds">Refunds</Link></li>
-              </ul>
-            </div>
+
           </div>
           
           <div className="fbot">
