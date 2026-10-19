@@ -16,12 +16,6 @@ const I = {
       <path d="M3 7l9 4 9-4M12 11v10" />
     </svg>
   ),
-  card: (
-    <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="6" width="18" height="12" rx="2" />
-      <path d="M3 10h18" />
-    </svg>
-  ),
   gear: (
     <svg className="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3" />
@@ -36,10 +30,10 @@ const I = {
   ),
 };
 
+// 🟢 REMOVED BILLING
 const NAV = [
   { to: "/admin", label: "Overview", icon: I.home, end: true },
   { to: "/admin/stores", label: "Stores", icon: I.store, end: true },
-  { to: "/admin/billing", label: "Billing", icon: I.card, end: true },
   { to: "/admin/settings", label: "Settings", icon: I.gear, end: true },
 ];
 
@@ -91,7 +85,8 @@ export default function AdminLayout() {
         @media (max-width: 899px) {
           .dash-tabbar {
             display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
+            /* 🟢 CHANGED TO 3 COLUMNS SINCE BILLING IS GONE */
+            grid-template-columns: repeat(3, 1fr) !important;
             align-items: center !important;
             justify-items: stretch !important;
             position: fixed;
