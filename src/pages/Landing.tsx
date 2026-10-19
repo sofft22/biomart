@@ -15,6 +15,9 @@ const I = {
   sliders: <svg className="ic" viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M13 5v4M4 17h3M11 17h9M7 15v4"/></svg>,
   tag: <svg className="ic" viewBox="0 0 24 24"><path d="M3 12V4h8l9 9-8 8-9-9z"/><path d="M7.5 8.5h.01"/></svg>,
   bolt: <svg className="ic" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>,
+  whatsapp: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>,
+  instagram: <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>,
+  tiktok: <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>,
 };
 
 const SIGNUP_URL = "/signup";
@@ -190,7 +193,6 @@ function StorefrontMock() {
 
 export default function Landing() {
   const [billing, setBilling] = useState<"m" | "q">("m");
-  const [legalOpen, setLegalOpen] = useState<null | "privacy" | "terms" | "refunds">(null);
   const phoneRef = useRef<HTMLDivElement>(null);
 
   useReveal();
@@ -200,21 +202,6 @@ export default function Landing() {
   const wa = (msg: string) => `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`;
 
   const audience = ["Hair", "Fashion", "Skincare", "Food", "Shoes", "Boutiques", "Thrift", "Accessories"];
-
-  const legalContent = {
-    privacy: {
-      title: "Privacy Policy",
-      body: "We collect only what's needed to run your store: your email, store details, and product data. We never sell your data. Payments are handled by third parties. You can delete your account and all data at any time from Settings.",
-    },
-    terms: {
-      title: "Terms of Service",
-      body: "Biomart gives you a storefront link to sell products via WhatsApp. You are responsible for the products you sell and the accuracy of your listings. We provide the platform as-is and may suspend accounts that violate our acceptable use policy.",
-    },
-    refunds: {
-      title: "Refund Policy",
-      body: "Free plan: no charge. Paid plans: cancel anytime, no refunds for partial periods. Lifetime: one-time payment, non-refundable once activated. If you believe you were charged in error, contact support within 14 days.",
-    },
-  };
 
   return (
     <>
@@ -321,7 +308,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 "HOW IT WORKS" (ICON BADGES) */}
         <section className="sec bg-soft" id="how">
           <div className="wrap">
             <div className="sh reveal">
@@ -368,25 +354,24 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 FEATURES SECTION (RESTORED) */}
         <section className="sec" id="features">
           <div className="wrap">
-            <div className="sh reveal">
+            <div className="sh">
               <span className="eyebrow">Features</span>
               <h2 className="h-section">Built for modern sellers.</h2>
             </div>
             <div className="feat3">
-              <div className="feat reveal">
+              <div className="feat">
                 <div className="iconbox">{I.sliders}</div>
                 <h3>Sizes & Variants</h3>
                 <p>Add different sizes or colors. Customers pick exactly what they want, and the price adjusts automatically.</p>
               </div>
-              <div className="feat reveal">
+              <div className="feat">
                 <div className="iconbox">{I.tag}</div>
                 <h3>Discount Pricing</h3>
                 <p>Show a "Compare At" price to display discounts. Cross out the old price and highlight the deal.</p>
               </div>
-              <div className="feat reveal">
+              <div className="feat">
                 <div className="iconbox">{I.bolt}</div>
                 <h3>WhatsApp Native</h3>
                 <p>No complicated checkout. Customers tap "Order" and their WhatsApp opens with the item and total ready to send.</p>
@@ -395,7 +380,6 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 PRICING SECTION (Fully forced inline styles) */}
         <section className="sec bg-soft" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
@@ -416,7 +400,6 @@ export default function Landing() {
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 24, marginTop: 40 }}>
               
-              {/* FREE */}
               <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
                 <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Free</h3>
                 <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>Test the waters.</p>
@@ -431,7 +414,6 @@ export default function Landing() {
                 <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Start free</Link>
               </div>
 
-              {/* STARTER */}
               <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
                 <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Starter</h3>
                 <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For the casual seller.</p>
@@ -449,7 +431,6 @@ export default function Landing() {
                 <Link to={SIGNUP_URL} className="btn line" style={{ width: "100%", textAlign: "center", justifyContent: "center" }}>Get Starter</Link>
               </div>
 
-              {/* PRO */}
               <div style={{ background: "var(--ink)", border: "1px solid var(--ink)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column", position: "relative" }}>
                 <div style={{ position: "absolute", top: -12, left: 32, background: "var(--green)", color: "#fff", fontSize: 10, fontWeight: 800, padding: "6px 12px", borderRadius: 99, letterSpacing: "0.1em" }}>MOST POPULAR</div>
                 <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>Pro</h3>
@@ -468,7 +449,6 @@ export default function Landing() {
                 <Link to={SIGNUP_URL} className="btn" style={{ width: "100%", textAlign: "center", justifyContent: "center", background: "var(--green)", color: "#fff" }}>Get Pro</Link>
               </div>
 
-              {/* CUSTOM */}
               <div style={{ background: "var(--soft)", border: "1px dashed var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
                 <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Custom E-commerce</h3>
                 <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>A full online store.</p>
@@ -487,14 +467,13 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* 🟢 FAQ SECTION (RESTORED & ALIGNED) */}
         <section className="sec" id="faq">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Questions</span>
               <h2 className="h-section">Everything you need to know.</h2>
             </div>
-            <div className="faqgrid reveal">
+            <div className="faqgrid">
               <details>
                 <summary>Do my customers need an account to buy?</summary>
                 <p>No. Your customers simply tap your link, browse your products, and tap "Order". It opens their WhatsApp with the order details pre-filled. They never have to create an account or download an app.</p>
@@ -545,7 +524,21 @@ export default function Landing() {
                 Biomart
               </a>
               <p className="tag">Your bio link, but it sells.</p>
+              
+              {/* 🟢 SOCIAL ICONS ADDED HERE */}
+              <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.whatsapp}
+                </a>
+                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.instagram}
+                </a>
+                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "var(--green-lite)"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.tiktok}
+                </a>
+              </div>
             </div>
+            
             <div>
               <h4>Product</h4>
               <ul>
@@ -554,20 +547,24 @@ export default function Landing() {
                 <li><a href="#pricing">Pricing</a></li>
               </ul>
             </div>
+            
             <div>
               <h4>Help</h4>
               <ul>
                 <li><a href="#faq">Questions</a></li>
-                <li><a href={wa("Hi Biomart, I have a question.")} target="_blank" rel="noopener noreferrer">WhatsApp</a></li>
+                {/* 🟢 CHANGED WHATSAPP TO FEATURES */}
+                <li><a href="#features">Features</a></li>
                 <li><Link to={SIGNUP_URL}>Create store</Link></li>
               </ul>
             </div>
+            
             <div>
               <h4>Legal</h4>
               <ul>
-                <li><button type="button" onClick={() => setLegalOpen("privacy")}>Privacy</button></li>
-                <li><button type="button" onClick={() => setLegalOpen("terms")}>Terms</button></li>
-                <li><button type="button" onClick={() => setLegalOpen("refunds")}>Refunds</button></li>
+                {/* 🟢 ROUTED TO PAGES INSTEAD OF MODAL */}
+                <li><Link to="/legal/privacy">Privacy</Link></li>
+                <li><Link to="/legal/terms">Terms</Link></li>
+                <li><Link to="/legal/refunds">Refunds</Link></li>
               </ul>
             </div>
           </div>
@@ -577,27 +574,6 @@ export default function Landing() {
           </div>
         </div>
       </footer>
-
-      {legalOpen && (
-        <div
-          className="legal-backdrop"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setLegalOpen(null);
-          }}
-        >
-          <div className="legal-modal">
-            <button
-              className="legal-close"
-              onClick={() => setLegalOpen(null)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-            <h2 className="legal-title">{legalContent[legalOpen].title}</h2>
-            <p className="legal-body">{legalContent[legalOpen].body}</p>
-          </div>
-        </div>
-      )}
     </>
   );
 }
