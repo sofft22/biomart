@@ -2502,3 +2502,10 @@ select.pe-select {
   background: linear-gradient(160deg, rgba(15,122,74,0.08), transparent 70%), var(--card);
   border-color: rgba(15,122,74,0.3);
 }
+@media (max-width: 768px) {
+  /* Replace '.help-widget-class' with the actual class of the circle */
+  .help-widget-class {
+    bottom: 80px !important; /* Pushes it above the nav bar */
+    right: 16px !important;
+  }
+}
