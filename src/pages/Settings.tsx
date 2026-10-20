@@ -95,7 +95,7 @@ export default function Settings() {
     
     setChangingPw(true);
     try {
-      const res = await fetch("/api/auth/change-password", {
+     const res = await fetch("/auth/change-password", { // Removed /api/
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword })
