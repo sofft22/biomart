@@ -186,9 +186,6 @@ export default function Dashboard() {
       ) : (
         <div className="pr-list">
           {filtered.map((p) => {
-            // 🟢 Find category label safely
-            const catLabel = categories.find((c) => c.id === p.category_id)?.label || "Uncategorised";
-            
             return (
               <div key={p.id} className="pr-item">
                 <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body">
@@ -201,8 +198,9 @@ export default function Dashboard() {
                   </div>
                   <div className="pr-item-info">
                     <p className="pr-item-name">{p.name}</p>
+                    {/* 🟢 REMOVED CATEGORY LABEL - JUST PRICE AND VIEWS */}
                     <p className="pr-item-meta">
-                      {catLabel} · {formatPrice(p.price)}
+                      {formatPrice(p.price)}
                       {typeof (p as any).views === "number" && (
                         <> · {(p as any).views} {(p as any).views === 1 ? "view" : "views"}</>
                       )}
