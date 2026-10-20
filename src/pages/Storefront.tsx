@@ -162,8 +162,6 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
   
-  // 🟢 THE AD LOGIC: Shows on Free & Starter. Hides on Pro.
-  const isPro = store.plan === "pro" || store.plan === "lifetime";
   const hasCustomBanner = !!store.cover_url;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
@@ -207,14 +205,13 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER */}
+      {/* CUSTOM BANNER - Text removed, Overlay & Button kept */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-          <div className="sf-banner-overlay" />
-          <div className="sf-banner-text">
-            <h1 className="sf-banner-tagline">{tagline || titleCase(store.name)}</h1>
-            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta">
+          <div className="sf-banner-overlay" style={{ background: "rgba(0,0,0,0.3)" }} />
+          <div className="sf-banner-text" style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", height: "100%", paddingBottom: 40 }}>
+            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000" }}>
               Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>
@@ -223,12 +220,18 @@ export default function Storefront() {
 
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
-        <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
+        {/* FIXED: Sort Icon layout - no longer stretches */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
           <div>
-            <h2 className="sf-section-title">{query ? `Results for "${query}"` : "Shop all"}</h2>
+            <h2 className="sf-section-title" style={{ margin: 0 }}>{query ? `Results for "${query}"` : "Shop all"}</h2>
           </div>
           
-          <select className="sf-select" value={sort} onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}>
+          <select 
+            className="sf-select" 
+            value={sort} 
+            onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
+            style={{ width: "auto", minWidth: "150px", maxWidth: "200px" }}
+          >
             <option value="new">Sort: Newest</option>
             <option value="price-asc">Price: Low to High</option>
             <option value="price-desc">Price: High to Low</option>
@@ -264,82 +267,56 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 FOOTER */}
-      <footer className="sf-footer" id="contact">
-        <div className="sf-footer-inner">
+      {/* SMARTER FOOTER - No Ad, No Green, Stacks on Mobile */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
+        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          {/* Ad Section (Only for Free & Starter) */}
-          {!isPro && (
-            <div style={{ 
-              background: "var(--bg)", 
-              border: "1px solid var(--line)", 
-              borderRadius: 16, 
-              padding: "32px", 
-              display: "flex", 
-              flexWrap: "wrap", 
-              alignItems: "center", 
-              justifyContent: "space-between",
-              gap: 24,
-              marginBottom: 48 
-            }}>
-              <div style={{ flex: "1 1 300px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: "var(--green)" }}>
-                  <svg viewBox="0 0 60 64" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" strokeLinecap="round">
-                    <path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" />
-                    <path d="M20 26V14A10 10 0 0 1 40 14V26" />
-                  </svg>
-                  <span style={{ fontSize: 16, fontWeight: 800, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--green)" }}>Biomart</span>
-                </div>
-                <h3 style={{ fontFamily: "var(--font)", fontSize: 24, fontWeight: 700, margin: "0 0 4px", color: "var(--ink)" }}>
-                  Your bio link, but it sells.
-                </h3>
-                <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
-                  Turn your WhatsApp into a beautiful store in 60 seconds.
-                </p>
-              </div>
-              
-              <a href="/signup" className="dash-btn dash-btn-dark" style={{ padding: "14px 24px", fontSize: 12, whiteSpace: "nowrap" }}>
-                Create your free store
-              </a>
-            </div>
-          )}
-
-          <div className="sf-footer-top" style={{ display: "flex", flexWrap: "wrap", gap: "40px", justifyContent: "space-between", alignItems: "flex-start", paddingBottom: "32px" }}>
-            <div className="sf-footer-brand-col" style={{ flex: "1 1 300px" }}>
-              <div className="sf-footer-brand">
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
+            {/* Brand Col */}
+            <div style={{ flex: "1 1 300px" }}>
+              <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
                 {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
                 {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
                 {brand.first && <span className="sf-footer-brand-dot">.</span>}
               </div>
-              <p className="sf-footer-bio">{tagline || "Curated essentials for the modern wardrobe."}</p>
+              <p className="sf-footer-bio" style={{ maxWidth: 300, margin: 0, opacity: 0.7 }}>
+                {tagline || "Curated essentials for the modern wardrobe."}
+              </p>
             </div>
             
-            <div className="sf-footer-col" style={{ flex: "1 1 200px", textAlign: "right" }}>
-              <h4 className="sf-footer-h">Contact</h4>
-              <div className="sf-footer-icons" style={{ justifyContent: "flex-end" }}>
+            {/* Contact Col */}
+            <div style={{ flex: "1 1 200px", textAlign: "left" }}>
+              <h4 className="sf-footer-h" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 16, opacity: 0.6 }}>Contact</h4>
+              <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 {store.whatsapp && (
-                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="WhatsApp">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
+                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.7 }}>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
                   </a>
                 )}
                 {store.instagram && (
-                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="Instagram">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none" /></svg>
+                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.7 }}>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" /></svg>
                   </a>
                 )}
                 {store.tiktok && (
-                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" className="sf-contact-icon" aria-label="TikTok">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="#ffffff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>
+                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.7 }}>
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5.8 20.1a6.34 6.34 0 0 0 10.86-4.43V8.66a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.84-.09" /></svg>
                   </a>
                 )}
               </div>
-              {address && <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" className="sf-contact-address">{address}</a>}
+              {address && (
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ fontSize: 13, color: "inherit", opacity: 0.7, textDecoration: "underline" }}>
+                  {address}
+                </a>
+              )}
             </div>
           </div>
-          <div className="sf-footer-bot">
-            <span className="sf-footer-copyright">© 2026 {titleCase(store.name)}</span>
-            <a href="https://biomart.com" target="_blank" rel="noopener" className="sf-footer-pow">
-              <svg viewBox="0 0 60 64" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+
+          {/* Bottom Bar */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
+            <span>© 2026 {titleCase(store.name)}</span>
+            <a href="https://biomart.com" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
+              <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
               Powered by biomart
             </a>
           </div>
