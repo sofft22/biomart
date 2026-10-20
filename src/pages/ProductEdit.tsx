@@ -101,9 +101,12 @@ export default function ProductEdit() {
     setImages(next);
   };
 
-  const addVariant = () => setVariants((v) => [...v, { label: "", priceDelta: 0 }]);
+  // 🟢 Default new variant price to the main product price
+  const addVariant = () => setVariants((v) => [...v, { label: "", priceDelta: Number(price) || 0 }]);
+  
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
+    
   const removeVariant = (i: number) =>
     setVariants((prev) => prev.filter((_, idx) => idx !== i));
 
@@ -120,6 +123,14 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
     
+    // 🟢 Validate that every variant has a name and a price
+    if (canUseVariants && variants.length > 0) {
+      for (const v of variants) {
+        if (!v.label.trim()) return setError("Every variant must have a name (e.g. Size M)");
+        if (v.priceDelta <= 0) return setError("Every variant must have a price greater than 0");
+      }
+    }
+
     if (wasPrice && numericWas <= numericPrice) {
       return setError("Compare-at price must be higher than price");
     }
@@ -339,8 +350,6 @@ export default function ProductEdit() {
             variants.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {variants.map((v, i) => {
-                  const isCustomPrice = v.priceDelta > 0;
-                  
                   return (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
                       <input
@@ -351,32 +360,18 @@ export default function ProductEdit() {
                         style={{ flex: 1, border: 0, background: "transparent", padding: "4px 0", fontSize: 14 }}
                       />
 
-                      {!isCustomPrice ? (
-                        <button
-                          type="button"
-                          onClick={() => updateVariant(i, { priceDelta: numericPrice || 1 })}
-                          style={{ background: "var(--soft)", border: 0, padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600, color: "var(--muted)", cursor: "pointer", whiteSpace: "nowrap" }}
-                        >
-                          + Price
-                        </button>
-                      ) : (
-                        <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
-                          <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
-                          <input
-                            type="number"
-                            inputMode="numeric"
-                            value={v.priceDelta || ""}
-                            onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })}
-                            placeholder={String(numericPrice)}
-                            style={{ width: 70, border: 0, background: "transparent", padding: "6px 0", fontSize: 13, fontWeight: 600, outline: "none" }}
-                          />
-                          <button type="button" onClick={() => updateVariant(i, { priceDelta: 0 })} style={{ background: "transparent", border: 0, cursor: "pointer", color: "var(--muted)", display: "grid", placeItems: "center", padding: 4 }}>
-                            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                              <path d="M6 6l12 12M18 6L6 18" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
+                      {/* 🟢 PRICE INPUT IS NOW ALWAYS VISIBLE AND COMPULSORY */}
+                      <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px", border: v.priceDelta <= 0 ? "1px solid var(--danger)" : "1px solid transparent" }}>
+                        <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          value={v.priceDelta || ""}
+                          onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })}
+                          placeholder="Price"
+                          style={{ width: 70, border: 0, background: "transparent", padding: "6px 0", fontSize: 13, fontWeight: 600, outline: "none" }}
+                        />
+                      </div>
 
                       <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)", cursor: "pointer", padding: 4 }}>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
