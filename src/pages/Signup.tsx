@@ -38,27 +38,34 @@ export default function Signup() {
     }
   }
 
-  // 🟢 Reusable Input Style for consistent UI
+  // 🟢 REUSABLE STYLES
+  const labelStyle = {
+    display: "block",
+    fontSize: 12, // Slightly bigger font
+    fontWeight: 800, // Bolder
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    color: "var(--ink)", // Darker color
+    marginBottom: 8,
+  };
+
   const inputStyle = {
     width: "100%",
     padding: "14px 16px",
     borderRadius: 12,
-    border: "1px solid rgba(26,26,26,0.15)", // Slightly darker border
-    background: "rgba(255,255,255,0.6)", // Subtle off-white background
+    border: "1px solid rgba(26,26,26,0.15)",
+    background: "rgba(255,255,255,0.6)",
     fontSize: 15,
     color: "var(--ink)",
     outline: "none",
-    transition: "border-color 0.2s ease, box-shadow 0.2s ease",
-  };
-
-  const labelStyle = {
-    display: "block",
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.1em",
-    color: "var(--muted)",
-    marginBottom: 8,
+    transition: "border-color 0.2s ease",
+    // 🟢 PLACEHOLDER STYLE
+    "::placeholder": {
+      fontSize: 14, // Smaller placeholder
+      fontWeight: 400, // Lighter weight
+      color: "var(--muted)", // Lighter color
+      opacity: 0.8,
+    },
   };
 
   return (
@@ -105,6 +112,7 @@ export default function Signup() {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = "var(--green)"}
                 onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
             </div>
 
@@ -123,6 +131,7 @@ export default function Signup() {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = "var(--green)"}
                 onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
             </div>
 
@@ -141,6 +150,7 @@ export default function Signup() {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = "var(--green)"}
                 onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
             </div>
 
@@ -159,35 +169,22 @@ export default function Signup() {
                 style={inputStyle}
                 onFocus={(e) => e.target.style.borderColor = "var(--green)"}
                 onBlur={(e) => e.target.style.borderColor = "rgba(26,26,26,0.15)"}
+                className="auth-input"
               />
             </div>
 
             {/* TERMS & CONDITIONS CHECKBOX */}
             <div 
               onClick={() => setAgreed(!agreed)}
-              style={{ 
-                display: "flex", 
-                alignItems: "flex-start", 
-                gap: 12, 
-                marginBottom: 24,
-                cursor: "pointer",
-                userSelect: "none"
-              }}
+              style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24, cursor: "pointer", userSelect: "none" }}
             >
-              {/* Custom Checkbox */}
               <div
                 style={{
-                  width: 20,
-                  height: 20,
-                  flexShrink: 0,
-                  borderRadius: 6,
+                  width: 20, height: 20, flexShrink: 0, borderRadius: 6,
                   border: `1.5px solid ${agreed ? "var(--green)" : "rgba(26,26,26,0.2)"}`,
                   background: agreed ? "var(--green)" : "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "all 0.2s ease",
-                  marginTop: 2
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all 0.2s ease", marginTop: 2
                 }}
               >
                 {agreed && (
@@ -196,25 +193,13 @@ export default function Signup() {
                   </svg>
                 )}
               </div>
-
-              {/* Text */}
               <span style={{ fontSize: 13, lineHeight: 1.5, color: "var(--muted)" }}>
                 I agree to the{" "}
-                <Link 
-                  to="/legal/terms" 
-                  target="_blank" 
-                  onClick={(e) => e.stopPropagation()} 
-                  style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
-                >
+                <Link to="/legal/terms" target="_blank" onClick={(e) => e.stopPropagation()} style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
                   Terms of Service
                 </Link>{" "}
                 and{" "}
-                <Link 
-                  to="/legal/privacy" 
-                  target="_blank" 
-                  onClick={(e) => e.stopPropagation()} 
-                  style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}
-                >
+                <Link to="/legal/privacy" target="_blank" onClick={(e) => e.stopPropagation()} style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>
                   Privacy Policy
                 </Link>.
               </span>
@@ -227,7 +212,7 @@ export default function Signup() {
             )}
 
             <div className="auth-submit">
-              <button type="submit" disabled={busy || !agreed} style={{ height: 54, borderRadius: 12 }}>
+              <button type="submit" disabled={busy || !agreed} style={{ height: 54, borderRadius: 12, fontWeight: 700 }}>
                 {busy ? "Creating store…" : "Create store"}
               </button>
             </div>
