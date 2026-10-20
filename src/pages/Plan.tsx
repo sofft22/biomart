@@ -25,102 +25,103 @@ export default function Plan() {
         <p className="dash-head-lead">Choose a plan that fits your business.</p>
       </div>
 
-      {/* 🟢 MONTHLY / QUARTERLY TOGGLE */}
-      <div style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
+      {/* MONTHLY / QUARTERLY TOGGLE */}
+      <div className="switch-wrap" style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
         <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
-          <button
-            onClick={() => setIsQuarterly(false)}
-            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: !isQuarterly ? "var(--bg)" : "transparent", color: !isQuarterly ? "var(--ink)" : "var(--muted)", boxShadow: !isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease" }}
+          <button 
+            type="button" 
+            onClick={() => setIsQuarterly(false)} 
+            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: !isQuarterly ? "var(--bg)" : "transparent", color: !isQuarterly ? "var(--ink)" : "var(--muted)", transition: "all 0.2s ease" }}
           >
             Monthly
           </button>
-          <button
-            onClick={() => setIsQuarterly(true)}
-            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: isQuarterly ? "var(--bg)" : "transparent", color: isQuarterly ? "var(--ink)" : "var(--muted)", boxShadow: isQuarterly ? "0 2px 8px rgba(0,0,0,0.05)" : "none", transition: "all 0.2s ease", display: "flex", alignItems: "center", gap: 8 }}
+          <button 
+            type="button" 
+            onClick={() => setIsQuarterly(true)} 
+            style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: isQuarterly ? "var(--bg)" : "transparent", color: isQuarterly ? "var(--ink)" : "var(--muted)", display: "flex", alignItems: "center", gap: 8, transition: "all 0.2s ease" }}
           >
             Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
           </button>
         </div>
       </div>
 
-      {/* 🟢 PRICING GRID */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 24, marginBottom: 40 }}>
+      {/* PRICING GRID - Matches Landing Page exactly */}
+      <div className="plans">
         
         {/* FREE PLAN */}
-        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
-          <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Free</h3>
-          <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For testing the waters.</p>
-          <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>₦0</p>
-          
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
-            <li>✅ 5 products</li>
-            <li>✅ 1 photo per product</li>
-            <li>❌ No variants</li>
-            <li>❌ Shows Biomart ad</li>
+        <div className="plan">
+          <h3>Free</h3>
+          <p className="desc">Test the waters.</p>
+          <div className="p"><span>₦0</span></div>
+          <ul>
+            <li>5 products</li>
+            <li>1 photo per product</li>
+            <li className="no">No variants</li>
+            <li className="no">Biomart ad on storefront</li>
           </ul>
-
-          <button disabled className="dash-btn dash-btn-line" style={{ marginTop: "auto", width: "100%" }}>
+          <button disabled className="btn line" style={{ width: "100%", opacity: currentPlan === "free" ? 0.5 : 1 }}>
             {currentPlan === "free" ? "Current Plan" : "Basic"}
           </button>
         </div>
 
         {/* STARTER PLAN */}
-        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column" }}>
-          <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Starter</h3>
-          <p style={{ fontSize: 13, color: "var(--muted)", margin: "0 0 24px" }}>For the casual seller.</p>
-          <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px" }}>
-            ₦{isQuarterly ? PLAN_PRICES_QUARTERLY.starter.toLocaleString() : PLAN_PRICES_MONTHLY.starter.toLocaleString()}
-            <span style={{ fontSize: 15, color: "var(--muted)", fontWeight: 400 }}>/{isQuarterly ? "3mo" : "mo"}</span>
-          </p>
-          
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14 }}>
-            <li>✅ 15 products</li>
-            <li>✅ 3 photos per product</li>
-            <li>❌ No variants</li>
-            <li>❌ Shows Biomart ad</li>
+        <div className="plan">
+          <h3>Starter</h3>
+          <p className="desc">For the casual seller.</p>
+          <div className="p">
+            <span>₦{isQuarterly ? PLAN_PRICES_QUARTERLY.starter.toLocaleString() : PLAN_PRICES_MONTHLY.starter.toLocaleString()}</span>
+            <span className="per">{isQuarterly ? "/quarter" : "/month"}</span>
+          </div>
+          <ul>
+            <li>15 products</li>
+            <li>3 photos per product</li>
+            <li className="no">No variants</li>
+            <li className="no">Biomart ad on storefront</li>
           </ul>
-
-          <a href={getWhatsAppLink("Starter")} target="_blank" rel="noopener" className="dash-btn dash-btn-line" style={{ marginTop: "auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {currentPlan === "starter" ? "Renew Plan" : "Upgrade to Starter"}
+          <a href={getWhatsAppLink("Starter")} target="_blank" rel="noopener noreferrer" className="btn line" style={{ width: "100%" }}>
+            {currentPlan === "starter" ? "Renew Plan" : "Get Starter"}
           </a>
         </div>
 
         {/* PRO PLAN (Highlighted) */}
-        <div style={{ background: "var(--ink)", border: "1px solid var(--ink)", borderRadius: 16, padding: 32, display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: 16, right: 16, background: "var(--green)", color: "#fff", padding: "4px 12px", borderRadius: 99, fontSize: 11, fontWeight: 700 }}>MOST POPULAR</div>
-          
-          <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px", color: "#fff" }}>Pro</h3>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: "0 0 24px" }}>For serious brands.</p>
-          <p style={{ fontSize: 32, fontWeight: 700, margin: "0 0 24px", color: "#fff" }}>
-            ₦{isQuarterly ? PLAN_PRICES_QUARTERLY.pro.toLocaleString() : PLAN_PRICES_MONTHLY.pro.toLocaleString()}
-            <span style={{ fontSize: 15, color: "rgba(255,255,255,0.6)", fontWeight: 400 }}>/{isQuarterly ? "3mo" : "mo"}</span>
-          </p>
-          
-          <ul style={{ listStyle: "none", padding: 0, margin: "0 0 32px", display: "flex", flexDirection: "column", gap: 12, fontSize: 14, color: "rgba(255,255,255,0.9)" }}>
-            <li>✅ Unlimited products</li>
-            <li>✅ 10 photos per product</li>
-            <li>✅ Product variants</li>
-            <li>✅ No Biomart ad</li>
+        <div className="plan pop">
+          <span className="badge">Most Popular</span>
+          <h3>Pro</h3>
+          <p className="desc">For serious brands.</p>
+          <div className="p">
+            <span>₦{isQuarterly ? PLAN_PRICES_QUARTERLY.pro.toLocaleString() : PLAN_PRICES_MONTHLY.pro.toLocaleString()}</span>
+            <span className="per">{isQuarterly ? "/quarter" : "/month"}</span>
+          </div>
+          <ul>
+            <li>Unlimited products</li>
+            <li>10 photos per product</li>
+            <li>Product variants</li>
+            <li>No Biomart ad</li>
           </ul>
-
-          <a href={getWhatsAppLink("Pro")} target="_blank" rel="noopener" className="dash-btn" style={{ marginTop: "auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "var(--green)", color: "#fff" }}>
-            {currentPlan === "pro" ? "Renew Plan" : "Upgrade to Pro"}
+          <a href={getWhatsAppLink("Pro")} target="_blank" rel="noopener noreferrer" className="btn" style={{ width: "100%" }}>
+            {currentPlan === "pro" ? "Renew Plan" : "Get Pro"}
           </a>
         </div>
 
       </div>
 
-      {/* 🟢 CUSTOM PLAN */}
-      <div style={{ background: "var(--soft)", border: "1px dashed var(--line)", borderRadius: 16, padding: 32, display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 24 }}>
-        <div>
-          <h3 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 8px" }}>Need a custom e-commerce site?</h3>
-          <p style={{ fontSize: 14, color: "var(--muted)", margin: 0, maxWidth: 500 }}>
-            Get a fully custom website with your own domain, advanced checkout, and dedicated support. Let's build it together.
-          </p>
+      {/* CUSTOM PLAN - Matches Landing Page exactly */}
+      <div className="custom-plan-wrapper" style={{ marginTop: 24 }}>
+        <div className="plan custom-plan">
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3>Custom E-commerce</h3>
+            <p className="desc">Get a full online store with your own domain, shopping cart, and automated Paystack checkout.</p>
+            <div className="p" style={{ fontSize: 20 }}>Custom Quote</div>
+          </div>
+          <a 
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hi Biomart, I'd like a quote for a custom e-commerce website.")}`} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="btn"
+          >
+            Contact Sales
+          </a>
         </div>
-        <a href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent("Hi, I'm interested in a Custom E-commerce website.")}`} target="_blank" rel="noopener" className="dash-btn dash-btn-dark" style={{ padding: "14px 24px" }}>
-          Contact Sales
-        </a>
       </div>
 
     </DashboardLayout>
