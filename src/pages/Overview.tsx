@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 import DashboardLayout from "../components/DashboardLayout";
-import PlanCard from "../components/PlanCard"; // 🟢 Brought back the motion/timer
+import PlanCard from "../components/PlanCard";
 
 export default function Overview() {
   const { user, store, products, limits, loading } = useAuth();
@@ -38,37 +38,57 @@ export default function Overview() {
         <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
       </div>
 
-      {/* TWO MAIN CARDS */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, marginBottom: 48 }}>
+      {/* 75/25 GRID - REDUCED HEIGHT */}
+      <div style={{ 
+        display: "grid", 
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", 
+        gap: 20, 
+        marginBottom: 48 
+      }}>
         
-        {/* CARD 1: GREEN - Total Value */}
-        <div style={{ background: "var(--green)", color: "#fff", borderRadius: 24, padding: "48px 32px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "30vh" }}>
-          <p style={{ fontSize: 14, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.8, margin: "0 0 12px" }}>
+        {/* CARD 1: GREEN - 75% Width */}
+        <div style={{ 
+          background: "var(--green)", 
+          color: "#fff", 
+          borderRadius: 20, 
+          padding: "32px", 
+          display: "flex", 
+          flexDirection: "column", 
+          justifyContent: "center" 
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.8, margin: "0 0 8px" }}>
             Catalogue Value
           </p>
-          <p style={{ fontSize: "clamp(40px, 10vw, 64px)", fontWeight: 700, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em" }}>
+          <p style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em" }}>
             ₦{totalValue.toLocaleString()}
           </p>
         </div>
 
-        {/* CARD 2: WHITE - Total Products */}
-        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 24, padding: "48px 32px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: "30vh" }}>
-          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px" }}>
-            Products Listed
+        {/* CARD 2: WHITE - 25% Width */}
+        <div style={{ 
+          background: "var(--bg)", 
+          border: "1px solid var(--line)", 
+          borderRadius: 20, 
+          padding: "32px", 
+          display: "flex", 
+          flexDirection: "column", 
+          justifyContent: "center" 
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 8px" }}>
+            Products
           </p>
-          <p style={{ fontSize: "clamp(40px, 10vw, 64px)", fontWeight: 700, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--ink)" }}>
+          <p style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 700, margin: 0, lineHeight: 1.1, letterSpacing: "-0.02em", color: "var(--ink)" }}>
             {products.length}
-            {productCap < 100000 && <span style={{ fontSize: "clamp(20px, 4vw, 32px)", color: "var(--muted)", fontWeight: 500 }}> / {productCap}</span>}
+            {productCap < 100000 && <span style={{ fontSize: "clamp(18px, 3vw, 24px)", color: "var(--muted)", fontWeight: 500 }}> / {productCap}</span>}
           </p>
           {atCap && (
-            <p style={{ fontSize: 14, color: "var(--danger)", marginTop: 16, fontWeight: 500 }}>
-              Limit reached. <Link to="/plan" style={{ color: "var(--ink)", fontWeight: 700 }}>Upgrade</Link>
+            <p style={{ fontSize: 12, color: "var(--danger)", marginTop: 8, fontWeight: 500 }}>
+              Limit. <Link to="/plan" style={{ color: "var(--ink)", fontWeight: 700 }}>Upgrade</Link>
             </p>
           )}
         </div>
       </div>
 
-      {/* 🟢 BROUGHT BACK: PLAN CARD (Timer & Motion) */}
       <div style={{ marginBottom: 48 }}>
         <PlanCard />
       </div>
@@ -87,37 +107,34 @@ export default function Overview() {
       </div>
 
       {/* QUICK ACTIONS */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 48 }}>
-        <Link to="/dashboard/product" style={{ padding: 24, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
-          {/* 🟢 GREEN ACCENT ICON */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+        <Link to="/dashboard/product" style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: 12, background: "var(--green)", color: "#fff" }}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"><path d="M12 5v14M5 12h14"/></svg>
           </span>
           <span>
             <b style={{ display: "block", fontSize: 16, fontWeight: 600 }}>Add product</b>
-            <small style={{ fontSize: 13, color: "var(--muted)" }}>New item to catalogue</small>
+            <small style={{ fontSize: 13, color: "var(--muted)" }}>New item</small>
           </span>
         </Link>
 
-        <a href={`https://wa.me/?text=${encodeURIComponent("Check out my store: " + storeUrl)}`} target="_blank" rel="noopener" style={{ padding: 24, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
-          {/* 🟢 GREEN ACCENT ICON */}
+        <a href={`https://wa.me/?text=${encodeURIComponent("Check out my store: " + storeUrl)}`} target="_blank" rel="noopener" style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: 12, background: "var(--green)", color: "#fff" }}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>
           </span>
           <span>
-            <b style={{ display: "block", fontSize: 16, fontWeight: 600 }}>Share on WhatsApp</b>
-            <small style={{ fontSize: 13, color: "var(--muted)" }}>Send your store link</small>
+            <b style={{ display: "block", fontSize: 16, fontWeight: 600 }}>Share</b>
+            <small style={{ fontSize: 13, color: "var(--muted)" }}>WhatsApp</small>
           </span>
         </a>
 
-        <Link to="/settings" style={{ padding: 24, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
-          {/* 🟢 GREEN ACCENT ICON */}
+        <Link to="/settings" style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: 12, background: "var(--green)", color: "#fff" }}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M5 5l1.5 1.5M17.5 17.5L19 19M3 12h2M19 12h2M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>
           </span>
           <span>
-            <b style={{ display: "block", fontSize: 16, fontWeight: 600 }}>Store settings</b>
-            <small style={{ fontSize: 13, color: "var(--muted)" }}>Name, WhatsApp, link</small>
+            <b style={{ display: "block", fontSize: 16, fontWeight: 600 }}>Settings</b>
+            <small style={{ fontSize: 13, color: "var(--muted)" }}>Store info</small>
           </span>
         </Link>
       </div>
