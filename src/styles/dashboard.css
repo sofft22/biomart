@@ -2501,11 +2501,9 @@ select.pe-select {
 .plan-card-lifetime {
   background: linear-gradient(160deg, rgba(15,122,74,0.08), transparent 70%), var(--card);
   border-color: rgba(15,122,74,0.3);
-}
-@media (max-width: 768px) {
-  /* Replace '.help-widget-class' with the actual class of the circle */
-  .help-widget-class {
-    bottom: 80px !important; /* Pushes it above the nav bar */
-    right: 16px !important;
+@media (max-width: 899px) {
+  /* Targets buttons with the specific Tailwind 'bottom-6' class */
+  button.fixed.bottom-6 {
+    bottom: 6rem !important; /* Pushes it up above the nav bar */
   }
 }
