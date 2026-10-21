@@ -2502,8 +2502,8 @@ select.pe-select {
   background: linear-gradient(160deg, rgba(15,122,74,0.08), transparent 70%), var(--card);
   border-color: rgba(15,122,74,0.3);
 @media (max-width: 899px) {
-  /* Targets buttons with the specific Tailwind 'bottom-6' class */
   button.fixed.bottom-6 {
-    bottom: 6rem !important; /* Pushes it up above the nav bar */
+    bottom: 6rem !important;
   }
+} /* 👈 MAKE SURE THIS BRACKET IS HERE */
 
