@@ -137,7 +137,7 @@ export default function HelpWidget() {
   const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 🟢 Detect mobile screen size for the button position
+  // 🟢 Detect mobile screen size for the button position and modal layout
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 900);
     checkMobile();
@@ -248,7 +248,8 @@ export default function HelpWidget() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            padding: 24
+            // 🟢 CHANGED: Remove padding on mobile so it touches the screen edges
+            padding: isMobile ? 0 : 24 
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
         >
@@ -256,9 +257,12 @@ export default function HelpWidget() {
             style={{
               background: "var(--bg)",
               width: "100%",
-              maxWidth: 540,
-              maxHeight: "80vh",
-              borderRadius: 20,
+              maxWidth: isMobile ? "100%" : 540, // 🟢 CHANGED: Full width on mobile
+              // 🟢 CHANGED: Full height on mobile, 80vh on desktop
+              height: isMobile ? "100%" : "auto", 
+              maxHeight: isMobile ? "100%" : "80vh",
+              // 🟢 CHANGED: Remove rounded corners on mobile
+              borderRadius: isMobile ? 0 : 20, 
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
