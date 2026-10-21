@@ -134,7 +134,16 @@ export default function HelpWidget() {
   const [search, setSearch] = useState("");
   const [currentMatch, setCurrentMatch] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 🟢 Detect mobile screen size for the button position
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 900);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const filteredGuides = useMemo(() => {
     if (!search.trim()) return GUIDES;
@@ -195,13 +204,13 @@ export default function HelpWidget() {
 
   return (
     <>
-      {/* 🟢 FLOATING ACTION BUTTON */}
+      {/* 🟢 FLOATING ACTION BUTTON - Fixed position on mobile */}
       <button
         onClick={() => setIsOpen(true)}
         style={{
           position: "fixed",
-          bottom: 24,
-          right: 24,
+          bottom: isMobile ? 100 : 24, // Pushes it above the nav bar on mobile
+          right: isMobile ? 16 : 24,
           width: 56,
           height: 56,
           borderRadius: "50%",
