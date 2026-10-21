@@ -168,6 +168,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         @media (min-width: 900px) {
           .dash-tabbar { display: none !important; }
         }
+
+        /* 🟢 FIX: Push the help widget up on mobile so it doesn't cover the tab bar */
+        @media (max-width: 899px) {
+          .dash-shell > div:last-child {
+            bottom: 90px !important;
+            right: 16px !important;
+          }
+        }
       `}</style>
 
       <div className="dash-blobs" aria-hidden="true">
