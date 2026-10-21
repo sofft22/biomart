@@ -2504,7 +2504,8 @@ select.pe-select {
 } /* 👈 ADD THIS BRACKET HERE */
 
 @media (max-width: 899px) {
-  button.fixed.bottom-6 {
-    bottom: 6rem !important; 
+  /* Targets the button by its unique placement classes */
+  .dash-shell button.fixed.right-6 {
+    bottom: 6rem !important;
   }
-} 
+}
