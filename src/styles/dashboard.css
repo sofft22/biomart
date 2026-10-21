@@ -2501,9 +2501,10 @@ select.pe-select {
 .plan-card-lifetime {
   background: linear-gradient(160deg, rgba(15,122,74,0.08), transparent 70%), var(--card);
   border-color: rgba(15,122,74,0.3);
+} /* 👈 ADD THIS BRACKET HERE */
+
 @media (max-width: 899px) {
   button.fixed.bottom-6 {
-    bottom: 6rem !important;
+    bottom: 6rem !important; 
   }
-} /* 👈 MAKE SURE THIS BRACKET IS HERE */
-
+} 
