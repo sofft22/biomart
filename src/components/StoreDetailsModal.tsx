@@ -25,7 +25,18 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   const [selectedPlan, setSelectedPlan] = useState("starter"); // default
   const [logging, setLogging] = useState(false);
 
+  // 🟢 STATE TO DETECT MOBILE
+  const [isMobile, setIsMobile] = useState(false);
+
   const bodyRef = useRef<HTMLDivElement | null>(null);
+
+  // 🟢 DETECT SCREEN SIZE
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const load = () => {
     setLoading(true);
@@ -65,8 +76,23 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
 
   return (
     <>
-      <div className="admin-modal-backdrop" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-        <div className="admin-store-modal" style={{ maxWidth: 560, maxHeight: "90vh", borderRadius: 20 }}>
+      <div 
+        className="admin-modal-backdrop" 
+        onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        // 🟢 Make backdrop padding 0 on mobile so modal touches edges
+        style={{ padding: isMobile ? 0 : 24 }} 
+      >
+        <div 
+          className="admin-store-modal" 
+          style={{ 
+            // 🟢 FULL SCREEN ON MOBILE
+            maxWidth: isMobile ? "100%" : 560, 
+            width: isMobile ? "100%" : "auto",
+            height: isMobile ? "100%" : "auto",
+            maxHeight: isMobile ? "100%" : "90vh", 
+            borderRadius: isMobile ? 0 : 20 
+          }}
+        >
           <button onClick={onClose} aria-label="Close" className="admin-modal-close" style={{ zIndex: 10, top: 16, right: 16 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" width="18" height="18">
               <path d="M6 6l12 12M18 6L6 18" />
