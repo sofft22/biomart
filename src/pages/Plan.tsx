@@ -19,6 +19,11 @@ export default function Plan() {
 
   return (
     <DashboardLayout>
+      {/* ADDED: Inline style just to force the list markers (bullets) to be white on the dark card */}
+      <style>{`
+        .plan.pop ul li::marker { color: #fff !important; }
+      `}</style>
+
       <div className="dash-head" style={{ padding: 0 }}>
         <p className="dash-head-eyebrow">Billing</p>
         <h1 className="dash-title">Upgrade your <em>store</em>.</h1>
@@ -83,22 +88,28 @@ export default function Plan() {
           </a>
         </div>
 
-        {/* PRO PLAN (Highlighted) */}
+        {/* PRO PLAN (Highlighted) - FIXED WITH WHITE TEXT */}
         <div className="plan pop">
           <span className="badge">Most Popular</span>
-          <h3>Pro</h3>
-          <p className="desc">For serious brands.</p>
-          <div className="p">
+          
+          {/* Added style={{ color: "#fff" }} to these elements below */}
+          <h3 style={{ color: "#fff" }}>Pro</h3>
+          <p className="desc" style={{ color: "rgba(255,255,255,0.8)" }}>For serious brands.</p>
+          
+          <div className="p" style={{ color: "#fff" }}>
             <span>₦{isQuarterly ? PLAN_PRICES_QUARTERLY.pro.toLocaleString() : PLAN_PRICES_MONTHLY.pro.toLocaleString()}</span>
-            <span className="per">{isQuarterly ? "/quarter" : "/month"}</span>
+            {/* Made the /month text slightly faded white so it looks premium */}
+            <span className="per" style={{ color: "rgba(255,255,255,0.6)" }}>{isQuarterly ? "/quarter" : "/month"}</span>
           </div>
-          <ul>
+          
+          <ul style={{ color: "#fff" }}>
             <li>Unlimited products</li>
             <li>10 photos per product</li>
             <li>Product variants</li>
             <li>No Biomart ad</li>
           </ul>
-          <a href={getWhatsAppLink("Pro")} target="_blank" rel="noopener noreferrer" className="btn" style={{ width: "100%" }}>
+          
+          <a href={getWhatsAppLink("Pro")} target="_blank" rel="noopener noreferrer" className="btn" style={{ width: "100%", background: "#fff", color: "#000" }}>
             {currentPlan === "pro" ? "Renew Plan" : "Get Pro"}
           </a>
         </div>
