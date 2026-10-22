@@ -207,7 +207,7 @@ export default function Plan() {
         </div>
       </div>
 
-      {/* CUSTOM PLAN */}
+           {/* CUSTOM PLAN */}
       <div className="custom-plan-wrapper" style={{ marginTop: 24 }}>
         <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -219,32 +219,14 @@ export default function Plan() {
               <span>From ₦100,000</span>
             </div>
             
-            {/* Detailed Features */}
-            <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, margin: 0, padding: 0, listStyle: "none" }}>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Your own custom domain (e.g. .com)
-              </li>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Advanced shopping cart & checkout
-              </li>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Automated Paystack payments
-              </li>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Automated order tracking
-              </li>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Custom branding & UI design
-              </li>
-              <li style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--muted)" }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: 2 }}><polyline points="20 6 9 17 4 12"></polyline></svg>
-                Priority lifetime support
-              </li>
+            {/* 🟢 CLEAN BULLET LIST (NO CUSTOM TICKS) */}
+            <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+              <li>Your own custom domain</li>
+              <li>Advanced shopping cart & checkout</li>
+              <li>Automated Paystack payments</li>
+              <li>Automated order tracking</li>
+              <li>Custom branding & UI design</li>
+              <li>Priority lifetime support</li>
             </ul>
           </div>
           
