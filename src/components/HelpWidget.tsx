@@ -204,14 +204,14 @@ export default function HelpWidget() {
 
   const ui = (
     <>
-      {/* 🟢 SMALLER FLOATING ACTION BUTTON (36px) */}
+      {/* 🟢 FLOATING ACTION BUTTON (36px) */}
       <button
         onClick={() => setIsOpen(true)}
         className="flex items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
         style={{
           position: "fixed",
-          bottom: "calc(90px + env(safe-area-inset-bottom)) !important",
-          right: "16px !important",
+          bottom: "calc(90px + env(safe-area-inset-bottom))",
+          right: 16,
           width: 36,
           height: 36,
           background: "var(--ink)",
