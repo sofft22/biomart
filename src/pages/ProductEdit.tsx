@@ -181,10 +181,11 @@ export default function ProductEdit() {
 
   return (
     <DashboardLayout>
+      {/* 🟢 SPACER TO PUSH CONTENT ABOVE THE TAB BAR WITHOUT MAKING IT STICKY */}
       <style>{`
         @media (max-width: 899px) {
-          .pe-actions {
-            margin-bottom: 90px !important; 
+          .pe-mobile-spacer {
+            height: 90px;
           }
         }
       `}</style>
@@ -397,6 +398,9 @@ export default function ProductEdit() {
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
       </div>
+
+      {/* 🟢 THE SPACER THAT PREVENTS THE TAB BAR FROM COVERING THE BUTTON */}
+      <div className="pe-mobile-spacer" />
     </DashboardLayout>
   );
 }
