@@ -469,18 +469,9 @@ export default function Landing() {
       {/* 🟢 FOOTER */}
       <footer>
         <div className="wrap">
-          <div
-            className="fgrid"
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "flex-start",
-              justifyContent: "space-between",
-              gap: 32,
-            }}
-          >
-            {/* Brand (side-by-side with links on mobile) */}
-            <div className="fbrand" style={{ flex: "1 1 220px", minWidth: 0 }}>
+          <div className="fgrid">
+            {/* Brand */}
+            <div className="fbrand">
               <a href="#top" className="logo">
                 <span className="text-green">{I.logoBag}</span>
                 Biomart
@@ -488,40 +479,29 @@ export default function Landing() {
               <p className="tag">Your bio link, but it sells.</p>
 
               <div className="fsocials">
-                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer">{I.whatsapp}</a>
-                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer">{I.instagram}</a>
-                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer">{I.tiktok}</a>
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">{I.whatsapp}</a>
+                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{I.instagram}</a>
+                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer" aria-label="TikTok">{I.tiktok}</a>
               </div>
             </div>
 
-            {/* Product & Legal (side-by-side on mobile, next to brand) */}
-            <div
-              className="footer-links-wrap"
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                gap: 32,
-                flex: "1 1 260px",
-                justifyContent: "space-between",
-              }}
-            >
-              <div>
-                <h4>Product</h4>
-                <ul>
-                  <li><a href="#how">How it works</a></li>
-                  <li><a href="#pricing">Pricing</a></li>
-                  <li><a href="#faq">Questions</a></li>
-                </ul>
-              </div>
+            {/* Link columns */}
+            <div className="fcol">
+              <h4>Product</h4>
+              <ul>
+                <li><a href="#how">How it works</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">Questions</a></li>
+              </ul>
+            </div>
 
-              <div>
-                <h4>Legal</h4>
-                <ul>
-                  <li><Link to="/legal/privacy">Privacy</Link></li>
-                  <li><Link to="/legal/terms">Terms</Link></li>
-                  <li><Link to="/legal/refunds">Refunds</Link></li>
-                </ul>
-              </div>
+            <div className="fcol">
+              <h4>Legal</h4>
+              <ul>
+                <li><Link to="/legal/privacy">Privacy</Link></li>
+                <li><Link to="/legal/terms">Terms</Link></li>
+                <li><Link to="/legal/refunds">Refunds</Link></li>
+              </ul>
             </div>
           </div>
 
