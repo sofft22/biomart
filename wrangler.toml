@@ -7,5 +7,5 @@ directory = "functions"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "biostore"
+database_name = "biomart"
 database_id = "5bb5d503-dd75-4587-946e-af588a5be405"
