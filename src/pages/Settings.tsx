@@ -23,12 +23,6 @@ export default function Settings() {
   const [bannerUrl, setBannerUrl] = useState<string>((store as any)?.cover_url ?? "");
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  // Password State
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [changingPw, setChangingPw] = useState(false);
-
   useEffect(() => {
     if (!store) return;
     setName(store.name ?? "");
@@ -86,43 +80,6 @@ export default function Settings() {
     } catch (err) {
       toast.show(err instanceof Error ? err.message : "Could not remove");
     }
-  };
-
-  const handleChangePassword = async () => {
-    if (!currentPassword) return toast.show("Please enter your current password.");
-    if (!newPassword || newPassword.length < 8) return toast.show("New password must be at least 8 characters.");
-    if (newPassword !== confirmPassword) return toast.show("New passwords do not match.");
-    
-    setChangingPw(true);
-    try {
-      // 🟢 THE FIX: Safely parse the response to avoid JSON crashes on 405/500 errors
-      const res = await fetch("/auth/change-password", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ currentPassword, newPassword })
-      });
-
-      if (!res.ok) {
-        let errorMessage = "Failed to update password.";
-        try {
-          const data = await res.json();
-          if (data.error) errorMessage = data.error;
-        } catch (e) {
-          // If the server sends an empty body (like a 405 error), catch it here
-          console.error("Server returned non-JSON response. Status:", res.status);
-        }
-        throw new Error(errorMessage);
-      }
-
-      await res.json();
-      toast.show("Password updated successfully");
-      setCurrentPassword("");
-      setNewPassword("");
-      setConfirmPassword("");
-    } catch (err: any) {
-      toast.show(err.message || "Failed to update password");
-    }
-    setChangingPw(false);
   };
 
   return (
@@ -211,34 +168,6 @@ export default function Settings() {
               <Link to="/plan" style={{ color: "var(--green)", fontWeight: 600, textDecoration: "underline" }}>Upgrade to Starter</Link> to upload a custom banner and remove the Biomart ad.
             </p>
           )}
-        </section>
-
-        {/* SECURITY */}
-        <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Security</h2>
-          
-          <div style={{ maxWidth: 400, display: "flex", flexDirection: "column", gap: 16 }}>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Current Password</label>
-              <input className="pe-input" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} placeholder="Enter current password" />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>New Password</label>
-              <input className="pe-input" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Confirm New Password</label>
-              <input className="pe-input" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-type new password" />
-            </div>
-            <button 
-              onClick={handleChangePassword} 
-              disabled={changingPw || !currentPassword || !newPassword || !confirmPassword}
-              className="dash-btn dash-btn-dark"
-              style={{ marginTop: 8 }}
-            >
-              {changingPw ? "Updating..." : "Update Password"}
-            </button>
-          </div>
         </section>
 
         {/* DANGER ZONE */}
