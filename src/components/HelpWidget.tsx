@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const GUIDES = [
   {
@@ -112,13 +113,21 @@ const GUIDES = [
 
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query.trim()) return <>{text}</>;
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, "gi");
+  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
   const parts = text.split(regex);
   return (
     <>
       {parts.map((part, i) =>
         part.toLowerCase() === query.toLowerCase() ? (
-          <mark key={i} style={{ background: "#ffe58f", color: "inherit", padding: "0 2px", borderRadius: 2 }}>
+          <mark
+            key={i}
+            style={{
+              background: "#ffe58f",
+              color: "inherit",
+              padding: "0 2px",
+              borderRadius: 2,
+            }}
+          >
             {part}
           </mark>
         ) : (
@@ -193,13 +202,18 @@ export default function HelpWidget() {
     }
   }, [currentMatch, totalMatches, filteredGuides, search]);
 
-  return (
+  const ui = (
     <>
-      {/* 🟢 FLOATING ACTION BUTTON — responsive offsets via Tailwind */}
+      {/* 🟢 FLOATING ACTION BUTTON */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-[100px] right-4 sm:bottom-6 sm:right-6 z-90 flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
+        className="flex items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
         style={{
+          position: "fixed",
+          bottom: "calc(100px + env(safe-area-inset-bottom))",
+          right: 16,
+          width: 56,
+          height: 56,
           background: "var(--ink)",
           color: "var(--bg)",
           border: "none",
@@ -209,14 +223,23 @@ export default function HelpWidget() {
         }}
         aria-label="Help"
       >
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          viewBox="0 0 24 24"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <circle cx="12" cy="12" r="10" />
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
           <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
       </button>
 
-      {/* 🟢 MINIMAL HELP MODAL — full screen on mobile like ProductModal */}
+      {/* 🟢 FULL-SCREEN MODAL ON MOBILE, CENTERED CARD ON DESKTOP */}
       {isOpen && (
         <div
           className="fixed inset-0 flex items-stretch justify-center bg-black/50 sm:items-center"
@@ -288,7 +311,14 @@ export default function HelpWidget() {
                       padding: "2px 4px",
                     }}
                   >
-                    <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600, marginRight: 4 }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted)",
+                        fontWeight: 600,
+                        marginRight: 4,
+                      }}
+                    >
                       {totalMatches > 0 ? `${currentMatch + 1}/${totalMatches}` : "0/0"}
                     </span>
                     <button
@@ -344,15 +374,42 @@ export default function HelpWidget() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
                   {filteredGuides.map((g) => (
                     <div key={g.id} id={`guide-${g.id}`} style={{ scrollMarginTop: 20 }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--green)", margin: "0 0 4px" }}>
+                      <p
+                        style={{
+                          fontSize: 10,
+                          fontWeight: 700,
+                          textTransform: "uppercase",
+                          letterSpacing: "0.05em",
+                          color: "var(--green)",
+                          margin: "0 0 4px",
+                        }}
+                      >
                         {g.category}
                       </p>
-                      <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 12px", color: "var(--ink)" }}>
+                      <h3
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 600,
+                          margin: "0 0 12px",
+                          color: "var(--ink)",
+                        }}
+                      >
                         <Highlight text={g.title} query={search} />
                       </h3>
-                      <ul style={{ paddingLeft: 20, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <ul
+                        style={{
+                          paddingLeft: 20,
+                          margin: 0,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 8,
+                        }}
+                      >
                         {g.steps.map((step, idx) => (
-                          <li key={idx} style={{ fontSize: 13, lineHeight: 1.6, color: "var(--muted)" }}>
+                          <li
+                            key={idx}
+                            style={{ fontSize: 13, lineHeight: 1.6, color: "var(--muted)" }}
+                          >
                             <Highlight text={step} query={search} />
                           </li>
                         ))}
@@ -360,9 +417,18 @@ export default function HelpWidget() {
                     </div>
                   ))}
 
-                  {/* 🟢 SUPPORT LINK AT THE BOTTOM OF THE LIST */}
-                  <div style={{ padding: "32px 0 16px", textAlign: "center", borderTop: "1px dashed var(--line)", marginTop: 16 }}>
-                    <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Still stuck?</p>
+                  {/* 🟢 SUPPORT LINK */}
+                  <div
+                    style={{
+                      padding: "32px 0 16px",
+                      textAlign: "center",
+                      borderTop: "1px dashed var(--line)",
+                      marginTop: 16,
+                    }}
+                  >
+                    <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
+                      Still stuck?
+                    </p>
                     <a
                       href="https://wa.me/2347072789513?text=Hi Biomart,%20I%20need%20help%20with%20my%20store."
                       target="_blank"
@@ -383,7 +449,13 @@ export default function HelpWidget() {
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--line)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "var(--soft)")}
                     >
-                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ color: "var(--green)" }}>
+                      <svg
+                        viewBox="0 0 24 24"
+                        width="18"
+                        height="18"
+                        fill="currentColor"
+                        style={{ color: "var(--green)" }}
+                      >
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
                       </svg>
                       Chat with Support
@@ -397,4 +469,9 @@ export default function HelpWidget() {
       )}
     </>
   );
+
+  // 🟢 Portal to document.body so `.dash-shell > div:last-child { ... !important }`
+  // from DashboardLayout can never shift/override the FAB or modal.
+  if (typeof document === "undefined") return ui;
+  return createPortal(ui, document.body);
 }
