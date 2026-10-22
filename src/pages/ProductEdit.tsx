@@ -181,11 +181,20 @@ export default function ProductEdit() {
 
   return (
     <DashboardLayout>
-      {/* 🟢 SPACER TO PUSH CONTENT ABOVE THE TAB BAR WITHOUT MAKING IT STICKY */}
       <style>{`
         @media (max-width: 899px) {
-          .pe-mobile-spacer {
-            height: 90px;
+          /* 1. Stop the button from floating */
+          .pe-actions {
+            position: static !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            border-top: none !important;
+            padding: 0 !important;
+            margin-top: 24px !important;
+          }
+          /* 2. Add space to the bottom so you can scroll past the nav bar */
+          .dash-main {
+            padding-bottom: 120px !important;
           }
         }
       `}</style>
@@ -398,9 +407,6 @@ export default function ProductEdit() {
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
       </div>
-
-      {/* 🟢 THE SPACER THAT PREVENTS THE TAB BAR FROM COVERING THE BUTTON */}
-      <div className="pe-mobile-spacer" />
     </DashboardLayout>
   );
 }
