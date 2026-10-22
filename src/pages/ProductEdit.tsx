@@ -182,37 +182,11 @@ export default function ProductEdit() {
 
   return (
     <DashboardLayout>
-      {/* 🟢 ADDED STYLES TO FIX MOBILE BUTTONS */}
+      {/* 🟢 Pushes the bottom buttons up so they clear the mobile tab bar */}
       <style>{`
         @media (max-width: 899px) {
-          /* Add padding to the bottom of the form so the sticky buttons don't cover inputs */
-          .pe-form { padding-bottom: 100px !important; }
-          
-          /* Make the action buttons stick to the bottom of the screen, above the tab bar */
-          .pe-actions {
-            position: fixed !important;
-            bottom: 64px !important; /* Sits right above the 52px tab bar */
-            left: 0 !important;
-            right: 0 !important;
-            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) !important;
-            background: var(--bg) !important;
-            border-top: 1px solid var(--line) !important;
-            display: flex !important;
-            gap: 12px !important;
-            z-index: 40 !important;
-            margin: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.05) !important;
-          }
-
-          .pe-actions .pe-save {
-            flex: 1 !important;
-            margin: 0 !important;
-          }
-          
-          .pe-actions .pe-delete {
-            flex: 0 0 auto !important;
-            margin: 0 !important;
+          .pe-mobile-spacer {
+            height: 80px;
           }
         }
       `}</style>
@@ -421,6 +395,7 @@ export default function ProductEdit() {
         {error && <p className="pe-error">{error}</p>}
       </div>
 
+      {/* 🟢 ACTIONS AT THE END */}
       <div className="pe-actions">
         {product && (
           <button type="button" onClick={handleDelete} className="pe-delete">
@@ -431,6 +406,9 @@ export default function ProductEdit() {
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
       </div>
+
+      {/* 🟢 SPACER: Pushes the page up so the tab bar doesn't cover the buttons on mobile */}
+      <div className="pe-mobile-spacer" />
     </DashboardLayout>
   );
 }
