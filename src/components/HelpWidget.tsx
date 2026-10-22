@@ -134,16 +134,7 @@ export default function HelpWidget() {
   const [search, setSearch] = useState("");
   const [currentMatch, setCurrentMatch] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
-  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // 🟢 Detect mobile screen size for the button position and modal layout
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 900);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const filteredGuides = useMemo(() => {
     if (!search.trim()) return GUIDES;
@@ -190,9 +181,9 @@ export default function HelpWidget() {
     for (let i = 0; i < filteredGuides.length; i++) {
       const g = filteredGuides[i];
       const hasTitle = g.title.toLowerCase().includes(q);
-      const stepMatches = g.steps.filter(s => s.toLowerCase().includes(q)).length;
+      const stepMatches = g.steps.filter((s) => s.toLowerCase().includes(q)).length;
       const matchesInGuide = (hasTitle ? 1 : 0) + stepMatches;
-      
+
       if (currentMatch >= currentCount && currentMatch < currentCount + matchesInGuide) {
         const el = document.getElementById(`guide-${g.id}`);
         if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -204,29 +195,18 @@ export default function HelpWidget() {
 
   return (
     <>
-      {/* 🟢 FLOATING ACTION BUTTON - Fixed position on mobile */}
+      {/* 🟢 FLOATING ACTION BUTTON — responsive offsets via Tailwind */}
       <button
         onClick={() => setIsOpen(true)}
+        className="fixed bottom-[100px] right-4 sm:bottom-6 sm:right-6 z-90 flex h-14 w-14 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105"
         style={{
-          position: "fixed",
-          bottom: isMobile ? 100 : 24, // Pushes it above the nav bar on mobile
-          right: isMobile ? 16 : 24,
-          width: 56,
-          height: 56,
-          borderRadius: "50%",
           background: "var(--ink)",
           color: "var(--bg)",
           border: "none",
           boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
           cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           zIndex: 90,
-          transition: "transform 0.2s ease"
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         aria-label="Help"
       >
         <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -236,44 +216,46 @@ export default function HelpWidget() {
         </svg>
       </button>
 
-      {/* 🟢 MINIMAL HELP MODAL */}
+      {/* 🟢 MINIMAL HELP MODAL — full screen on mobile like ProductModal */}
       {isOpen && (
         <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(4px)",
-            zIndex: 100,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            // 🟢 CHANGED: Remove padding on mobile so it touches the screen edges
-            padding: isMobile ? 0 : 24 
+          className="fixed inset-0 flex items-stretch justify-center bg-black/50 sm:items-center"
+          style={{ backdropFilter: "blur(4px)", zIndex: 100 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsOpen(false);
           }}
-          onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false); }}
         >
           <div
+            className="relative flex h-full w-full flex-col overflow-hidden sm:h-auto sm:max-h-[80vh] sm:max-w-[540px] sm:rounded-[20px]"
             style={{
               background: "var(--bg)",
-              width: "100%",
-              maxWidth: isMobile ? "100%" : 540, // 🟢 CHANGED: Full width on mobile
-              // 🟢 CHANGED: Full height on mobile, 80vh on desktop
-              height: isMobile ? "100%" : "auto", 
-              maxHeight: isMobile ? "100%" : "80vh",
-              // 🟢 CHANGED: Remove rounded corners on mobile
-              borderRadius: isMobile ? 0 : 20, 
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              boxShadow: "0 24px 64px -12px rgba(0,0,0,0.4)"
+              boxShadow: "0 24px 64px -12px rgba(0,0,0,0.4)",
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Search Header */}
-            <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid var(--line)", background: "var(--bg)", zIndex: 10 }}>
+            <div
+              className="shrink-0"
+              style={{
+                padding: "16px 16px 12px",
+                borderBottom: "1px solid var(--line)",
+                background: "var(--bg)",
+                zIndex: 10,
+              }}
+            >
               <div style={{ position: "relative" }}>
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ position: "absolute", left: 12, top: 12, color: "var(--muted)" }}>
-                  <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
+                <svg
+                  viewBox="0 0 24 24"
+                  width="18"
+                  height="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  style={{ position: "absolute", left: 12, top: 12, color: "var(--muted)" }}
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="M20 20l-3.5-3.5" />
                 </svg>
                 <input
                   type="text"
@@ -288,20 +270,60 @@ export default function HelpWidget() {
                     border: "1px solid var(--line)",
                     background: "var(--soft)",
                     fontSize: 14,
-                    outline: "none"
+                    outline: "none",
                   }}
                 />
-                
+
                 {search.trim() && (
-                  <div style={{ position: "absolute", right: 8, top: 8, display: "flex", alignItems: "center", gap: 4, background: "var(--bg)", borderRadius: 6, padding: "2px 4px" }}>
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 8,
+                      top: 8,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "var(--bg)",
+                      borderRadius: 6,
+                      padding: "2px 4px",
+                    }}
+                  >
                     <span style={{ fontSize: 12, color: "var(--muted)", fontWeight: 600, marginRight: 4 }}>
                       {totalMatches > 0 ? `${currentMatch + 1}/${totalMatches}` : "0/0"}
                     </span>
-                    <button onClick={handlePrevMatch} disabled={totalMatches === 0} style={{ background: "none", border: 0, cursor: totalMatches > 0 ? "pointer" : "default", color: totalMatches > 0 ? "var(--ink)" : "var(--line)", display: "grid", placeItems: "center", padding: 2 }}>
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 15l-6-6-6 6"/></svg>
+                    <button
+                      onClick={handlePrevMatch}
+                      disabled={totalMatches === 0}
+                      style={{
+                        background: "none",
+                        border: 0,
+                        cursor: totalMatches > 0 ? "pointer" : "default",
+                        color: totalMatches > 0 ? "var(--ink)" : "var(--line)",
+                        display: "grid",
+                        placeItems: "center",
+                        padding: 2,
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M18 15l-6-6-6 6" />
+                      </svg>
                     </button>
-                    <button onClick={handleNextMatch} disabled={totalMatches === 0} style={{ background: "none", border: 0, cursor: totalMatches > 0 ? "pointer" : "default", color: totalMatches > 0 ? "var(--ink)" : "var(--line)", display: "grid", placeItems: "center", padding: 2 }}>
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 9l6 6 6-6"/></svg>
+                    <button
+                      onClick={handleNextMatch}
+                      disabled={totalMatches === 0}
+                      style={{
+                        background: "none",
+                        border: 0,
+                        cursor: totalMatches > 0 ? "pointer" : "default",
+                        color: totalMatches > 0 ? "var(--ink)" : "var(--line)",
+                        display: "grid",
+                        placeItems: "center",
+                        padding: 2,
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
                     </button>
                   </div>
                 )}
@@ -309,7 +331,11 @@ export default function HelpWidget() {
             </div>
 
             {/* Guide List */}
-            <div ref={containerRef} style={{ flex: 1, overflowY: "auto", padding: "16px 24px" }}>
+            <div
+              ref={containerRef}
+              className="flex-1 overflow-y-auto"
+              style={{ padding: "16px 24px" }}
+            >
               {filteredGuides.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "40px 0", color: "var(--muted)" }}>
                   <p>No results found for "{search}".</p>
@@ -334,7 +360,7 @@ export default function HelpWidget() {
                     </div>
                   ))}
 
-                  {/* 🟢 MINIMAL WHATSAPP SUPPORT LINK AT THE BOTTOM OF THE LIST */}
+                  {/* 🟢 SUPPORT LINK AT THE BOTTOM OF THE LIST */}
                   <div style={{ padding: "32px 0 16px", textAlign: "center", borderTop: "1px dashed var(--line)", marginTop: 16 }}>
                     <p style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>Still stuck?</p>
                     <a
@@ -352,10 +378,10 @@ export default function HelpWidget() {
                         padding: "10px 20px",
                         background: "var(--soft)",
                         borderRadius: 99,
-                        transition: "background 0.2s ease"
+                        transition: "background 0.2s ease",
                       }}
-                      onMouseEnter={(e) => e.currentTarget.style.background = "var(--line)"}
-                      onMouseLeave={(e) => e.currentTarget.style.background = "var(--soft)"}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--line)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "var(--soft)")}
                     >
                       <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style={{ color: "var(--green)" }}>
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
