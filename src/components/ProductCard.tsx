@@ -97,34 +97,31 @@ export const ProductCard = memo(function ProductCard({
             <div className="pc-no-image">No image</div>
           )}
           
-          {/* 🟢 ATTACHED TO BOTTOM EDGE */}
+          {/* 🟢 FLAT, DARK, SQUARE INDICATORS ON THE BOTTOM EDGE */}
           {hasSecondImage && (
             <div 
-              className="pc-dots" 
               style={{
                 position: "absolute",
-                bottom: 10, // Pushed to the very bottom
+                bottom: 0, // Exactly on the bottom edge
                 left: 0,
                 right: 0,
                 display: "flex",
                 justifyContent: "center",
-                alignItems: "center",
-                gap: 4,
+                alignItems: "flex-end", // Align to bottom
+                gap: 3,
                 zIndex: 10,
-                pointerEvents: "none" // Allows clicking through to the image
+                pointerEvents: "none",
+                paddingBottom: 4 // Slight padding so it doesn't touch the very pixel edge
               }}
             >
               {images.map((_, i) => (
                 <span 
                   key={i} 
-                  className={`pc-dot ${i === activeIdx ? 'on' : ''}`}
                   style={{
-                    width: i === activeIdx ? 16 : 6,
-                    height: 6,
-                    borderRadius: 99,
-                    background: i === activeIdx ? "#fff" : "rgba(255,255,255,0.5)",
+                    height: 2, // Flat and thin
+                    width: i === activeIdx ? 12 : 6, // Slightly wider when active
+                    background: i === activeIdx ? "#1A1A1A" : "rgba(26,26,26,0.3)", // Dark when active, semi-dark when inactive
                     transition: "all 0.3s ease",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
                   }}
                 />
               ))}
