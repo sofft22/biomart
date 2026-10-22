@@ -32,7 +32,6 @@ export default function ProductEdit() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // 🟢 DIRECT PLAN CHECK (No cache issues)
   const plan = currentStore?.plan || "free";
   const isPro = plan === "pro" || plan === "lifetime";
   
@@ -182,11 +181,11 @@ export default function ProductEdit() {
 
   return (
     <DashboardLayout>
-      {/* 🟢 Pushes the bottom buttons up so they clear the mobile tab bar */}
+      {/* 🟢 FORCE SPACE ABOVE THE TAB BAR ON MOBILE */}
       <style>{`
         @media (max-width: 899px) {
-          .pe-mobile-spacer {
-            height: 80px;
+          .pe-actions {
+            margin-bottom: 100px !important; /* Pushes the buttons above the tab bar */
           }
         }
       `}</style>
@@ -406,9 +405,6 @@ export default function ProductEdit() {
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
       </div>
-
-      {/* 🟢 SPACER: Pushes the page up so the tab bar doesn't cover the buttons on mobile */}
-      <div className="pe-mobile-spacer" />
     </DashboardLayout>
   );
 }
