@@ -96,10 +96,37 @@ export const ProductCard = memo(function ProductCard({
           ) : (
             <div className="pc-no-image">No image</div>
           )}
+          
+          {/* 🟢 ATTACHED TO BOTTOM EDGE */}
           {hasSecondImage && (
-            <div className="pc-dots">
+            <div 
+              className="pc-dots" 
+              style={{
+                position: "absolute",
+                bottom: 10, // Pushed to the very bottom
+                left: 0,
+                right: 0,
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 4,
+                zIndex: 10,
+                pointerEvents: "none" // Allows clicking through to the image
+              }}
+            >
               {images.map((_, i) => (
-                <span key={i} className={`pc-dot ${i === activeIdx ? 'on' : ''}`} />
+                <span 
+                  key={i} 
+                  className={`pc-dot ${i === activeIdx ? 'on' : ''}`}
+                  style={{
+                    width: i === activeIdx ? 16 : 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: i === activeIdx ? "#fff" : "rgba(255,255,255,0.5)",
+                    transition: "all 0.3s ease",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                  }}
+                />
               ))}
             </div>
           )}
