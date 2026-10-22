@@ -95,14 +95,26 @@ export default function Settings() {
     
     setChangingPw(true);
     try {
-    const res = await fetch("/auth/change-password", {
+      // 🟢 THE FIX: Safely parse the response to avoid JSON crashes on 405/500 errors
+      const res = await fetch("/auth/change-password", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ currentPassword, newPassword })
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      
+
+      if (!res.ok) {
+        let errorMessage = "Failed to update password.";
+        try {
+          const data = await res.json();
+          if (data.error) errorMessage = data.error;
+        } catch (e) {
+          // If the server sends an empty body (like a 405 error), catch it here
+          console.error("Server returned non-JSON response. Status:", res.status);
+        }
+        throw new Error(errorMessage);
+      }
+
+      await res.json();
       toast.show("Password updated successfully");
       setCurrentPassword("");
       setNewPassword("");
@@ -201,7 +213,7 @@ export default function Settings() {
           )}
         </section>
 
-        {/* 🟢 SECURITY (Now with Current Password) */}
+        {/* SECURITY */}
         <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Security</h2>
           
