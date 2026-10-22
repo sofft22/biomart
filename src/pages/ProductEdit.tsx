@@ -101,7 +101,6 @@ export default function ProductEdit() {
     setImages(next);
   };
 
-  // 🟢 Default new variant price to the main product price
   const addVariant = () => setVariants((v) => [...v, { label: "", priceDelta: Number(price) || 0 }]);
   
   const updateVariant = (i: number, patch: Partial<Variant>) =>
@@ -123,7 +122,6 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add at least one photo");
     
-    // 🟢 Validate that every variant has a name and a price
     if (canUseVariants && variants.length > 0) {
       for (const v of variants) {
         if (!v.label.trim()) return setError("Every variant must have a name (e.g. Size M)");
@@ -184,6 +182,41 @@ export default function ProductEdit() {
 
   return (
     <DashboardLayout>
+      {/* 🟢 ADDED STYLES TO FIX MOBILE BUTTONS */}
+      <style>{`
+        @media (max-width: 899px) {
+          /* Add padding to the bottom of the form so the sticky buttons don't cover inputs */
+          .pe-form { padding-bottom: 100px !important; }
+          
+          /* Make the action buttons stick to the bottom of the screen, above the tab bar */
+          .pe-actions {
+            position: fixed !important;
+            bottom: 64px !important; /* Sits right above the 52px tab bar */
+            left: 0 !important;
+            right: 0 !important;
+            padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) !important;
+            background: var(--bg) !important;
+            border-top: 1px solid var(--line) !important;
+            display: flex !important;
+            gap: 12px !important;
+            z-index: 40 !important;
+            margin: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.05) !important;
+          }
+
+          .pe-actions .pe-save {
+            flex: 1 !important;
+            margin: 0 !important;
+          }
+          
+          .pe-actions .pe-delete {
+            flex: 0 0 auto !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
+
       <button onClick={() => nav("/dashboard/products")} className="pe-back">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M19 12H5M12 19l-7-7 7-7" />
@@ -329,7 +362,7 @@ export default function ProductEdit() {
           </button>
         </section>
 
-        {/* 🟢 VARIANTS */}
+        {/* VARIANTS */}
         <section className="pe-section">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
@@ -360,7 +393,6 @@ export default function ProductEdit() {
                         style={{ flex: 1, border: 0, background: "transparent", padding: "4px 0", fontSize: 14 }}
                       />
 
-                      {/* 🟢 PRICE INPUT IS NOW ALWAYS VISIBLE AND COMPULSORY */}
                       <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px", border: v.priceDelta <= 0 ? "1px solid var(--danger)" : "1px solid transparent" }}>
                         <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
                         <input
