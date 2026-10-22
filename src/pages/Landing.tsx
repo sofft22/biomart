@@ -469,25 +469,42 @@ export default function Landing() {
       {/* 🟢 FOOTER */}
       <footer>
         <div className="wrap">
-          <div className="fgrid">
-            
-            {/* BRAND (Spans full width on mobile) */}
-            <div className="fbrand">
+          <div
+            className="fgrid"
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              gap: 32,
+            }}
+          >
+            {/* Brand (side-by-side with links on mobile) */}
+            <div className="fbrand" style={{ flex: "1 1 220px", minWidth: 0 }}>
               <a href="#top" className="logo">
                 <span className="text-green">{I.logoBag}</span>
                 Biomart
               </a>
               <p className="tag">Your bio link, but it sells.</p>
-              
+
               <div className="fsocials">
                 <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer">{I.whatsapp}</a>
                 <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer">{I.instagram}</a>
                 <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer">{I.tiktok}</a>
               </div>
             </div>
-            
-            {/* PRODUCT & LEGAL (Side-by-side on mobile) */}
-            <div className="footer-links-wrap">
+
+            {/* Product & Legal (side-by-side on mobile, next to brand) */}
+            <div
+              className="footer-links-wrap"
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 32,
+                flex: "1 1 260px",
+                justifyContent: "space-between",
+              }}
+            >
               <div>
                 <h4>Product</h4>
                 <ul>
@@ -496,7 +513,7 @@ export default function Landing() {
                   <li><a href="#faq">Questions</a></li>
                 </ul>
               </div>
-              
+
               <div>
                 <h4>Legal</h4>
                 <ul>
@@ -506,9 +523,8 @@ export default function Landing() {
                 </ul>
               </div>
             </div>
-
           </div>
-          
+
           <div className="fbot">
             <span>© 2026 Biomart</span>
           </div>
