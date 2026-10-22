@@ -467,49 +467,70 @@ export default function Landing() {
       </main>
 
       {/* 🟢 FOOTER */}
-      <footer>
-        <div className="wrap">
-          <div className="fgrid">
-            {/* Brand */}
-            <div className="fbrand">
-              <a href="#top" className="logo">
-                <span className="text-green">{I.logoBag}</span>
-                Biomart
-              </a>
-              <p className="tag">Your bio link, but it sells.</p>
+<footer>
+  <div className="wrap">
+    <div className="fgrid">
+      {/* Brand */}
+      <div className="fbrand">
+        <a href="#top" className="logo">
+          <span className="text-green">{I.logoBag}</span>
+          Biomart
+        </a>
+        <p className="tag">Your bio link, but it sells.</p>
 
-              <div className="fsocials">
-                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">{I.whatsapp}</a>
-                <a href="https://instagram.com/biomart" target="_blank" rel="noopener noreferrer" aria-label="Instagram">{I.instagram}</a>
-                <a href="https://tiktok.com/@biomart" target="_blank" rel="noopener noreferrer" aria-label="TikTok">{I.tiktok}</a>
-              </div>
-            </div>
-
-            {/* Link columns */}
-            <div className="fcol">
-              <h4>Product</h4>
-              <ul>
-                <li><a href="#how">How it works</a></li>
-                <li><a href="#pricing">Pricing</a></li>
-                <li><a href="#faq">Questions</a></li>
-              </ul>
-            </div>
-
-            <div className="fcol">
-              <h4>Legal</h4>
-              <ul>
-                <li><Link to="/legal/privacy">Privacy</Link></li>
-                <li><Link to="/legal/terms">Terms</Link></li>
-                <li><Link to="/legal/refunds">Refunds</Link></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="fbot">
-            <span>© 2026 Biomart</span>
-          </div>
+        <div className="fsocials">
+          <a
+            href={wa("Hi Biomart")}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="WhatsApp"
+          >
+            {I.whatsapp}
+          </a>
+          <a
+            href={wa("Hi Biomart")}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram"
+          >
+            {I.instagram}
+          </a>
+          <a
+            href={wa("Hi Biomart")}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok"
+          >
+            {I.tiktok}
+          </a>
         </div>
-      </footer>
+      </div>
+
+      {/* Link columns */}
+      <div className="fcol">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#how">How it works</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#faq">Questions</a></li>
+        </ul>
+      </div>
+
+      <div className="fcol">
+        <h4>Legal</h4>
+        <ul>
+          <li><Link to="/legal/privacy">Privacy</Link></li>
+          <li><Link to="/legal/terms">Terms</Link></li>
+          <li><Link to="/legal/refunds">Refunds</Link></li>
+        </ul>
+      </div>
+    </div>
+
+    <div className="fbot">
+      <span>© 2026 Biomart</span>
+    </div>
+  </div>
+</footer>
     </>
   );
 }
