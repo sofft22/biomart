@@ -352,75 +352,77 @@ export default function Landing() {
               </div>
             </div>
 
-           <div className="plans">
-  <div className="plan reveal">
-    <h3>Free</h3>
-    <p className="desc">Test the waters.</p>
-    <div className="p"><span>₦0</span></div>
-    <ul>
-      <li>5 products</li>
-      <li>1 photo per product</li>
-      <li className="no">No variants</li>
-      <li className="no">Biomart ad on storefront</li>
-    </ul>
-    <Link to={SIGNUP_URL} className="btn line">Start free</Link>
-  </div>
+            <div className="plans">
+              <div className="plan reveal">
+                <h3>Free</h3>
+                <p className="desc">Test the waters.</p>
+                <div className="p"><span>₦0</span></div>
+                <ul>
+                  <li>5 products</li>
+                  <li>1 photo per product</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
+                </ul>
+                <Link to={SIGNUP_URL} className="btn line">Start free</Link>
+              </div>
 
-  <div className="plan reveal">
-    <h3>Starter</h3>
-    <p className="desc">For the casual seller.</p>
-    <div className="p">
-      <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
-      <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-    </div>
-    <ul>
-      <li>15 products</li>
-      <li>3 photos per product</li>
-      <li className="no">No variants</li>
-      <li className="no">Biomart ad on storefront</li>
-    </ul>
-    <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
-  </div>
+              <div className="plan reveal">
+                <h3>Starter</h3>
+                <p className="desc">For the casual seller.</p>
+                <div className="p">
+                  <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
+                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+                </div>
+                <ul>
+                  <li>15 products</li>
+                  <li>3 photos per product</li>
+                  <li className="no">No variants</li>
+                  <li className="no">Biomart ad on storefront</li>
+                </ul>
+                <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
+              </div>
 
-  <div className="plan pop reveal">
-    <span className="badge">Most Popular</span>
-    <h3>Pro</h3>
-    <p className="desc">For serious brands.</p>
-    <div className="p">
-      <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
-      <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-    </div>
-    <ul>
-      <li>Unlimited products</li>
-      <li>10 photos per product</li>
-      <li>Product variants</li>
-      <li>No Biomart ad</li>
-    </ul>
-    <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
-  </div>
-</div>
+              <div className="plan pop reveal">
+                <span className="badge">Most Popular</span>
+                <h3>Pro</h3>
+                <p className="desc">For serious brands.</p>
+                <div className="p">
+                  <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
+                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+                </div>
+                <ul>
+                  <li>Unlimited products</li>
+                  <li>10 photos per product</li>
+                  <li>Product variants</li>
+                  <li>No Biomart ad</li>
+                </ul>
+                <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
+              </div>
+            </div>
 
-<div className="custom-plan-wrapper reveal">
-  <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <h3>Custom E-commerce</h3>
-      <p className="desc">Get a full online store built from scratch, tailored exactly to your brand's needs.</p>
-      <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦100,000</span></div>
-      
-      <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
-        <li>Your own custom domain</li>
-        <li>Advanced shopping cart & checkout</li>
-        <li>Automated Paystack payments</li>
-        <li>Automated order tracking</li>
-        <li>Custom branding & UI design</li>
-        <li>Priority lifetime support</li>
-      </ul>
-    </div>
-    <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
-      Contact Sales {I.arrow}
-    </a>
-  </div>
-</div>
+            <div className="custom-plan-wrapper reveal">
+              <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <h3>Custom E-commerce</h3>
+                  <p className="desc">Get a full online store built from scratch, tailored exactly to your brand's needs.</p>
+                  <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦100,000</span></div>
+                  
+                  <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+                    <li>Your own custom domain</li>
+                    <li>Advanced shopping cart & checkout</li>
+                    <li>Automated Paystack payments</li>
+                    <li>Automated order tracking</li>
+                    <li>Custom branding & UI design</li>
+                    <li>Priority lifetime support</li>
+                  </ul>
+                </div>
+                <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
+                  Contact Sales {I.arrow}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="sec bg-soft" id="faq">
           <div className="wrap">
@@ -471,70 +473,70 @@ export default function Landing() {
       </main>
 
       {/* 🟢 FOOTER */}
-<footer>
-  <div className="wrap">
-    <div className="fgrid">
-      {/* Brand */}
-      <div className="fbrand">
-        <a href="#top" className="logo">
-          <span className="text-green">{I.logoBag}</span>
-          Biomart
-        </a>
-        <p className="tag">Your bio link, but it sells.</p>
+      <footer>
+        <div className="wrap">
+          <div className="fgrid">
+            {/* Brand */}
+            <div className="fbrand">
+              <a href="#top" className="logo">
+                <span className="text-green">{I.logoBag}</span>
+                Biomart
+              </a>
+              <p className="tag">Your bio link, but it sells.</p>
 
-        <div className="fsocials">
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp"
-          >
-            {I.whatsapp}
-          </a>
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram"
-          >
-            {I.instagram}
-          </a>
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="TikTok"
-          >
-            {I.tiktok}
-          </a>
+              <div className="fsocials">
+                <a
+                  href={wa("Hi Biomart")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="WhatsApp"
+                >
+                  {I.whatsapp}
+                </a>
+                <a
+                  href={wa("Hi Biomart")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Instagram"
+                >
+                  {I.instagram}
+                </a>
+                <a
+                  href={wa("Hi Biomart")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="TikTok"
+                >
+                  {I.tiktok}
+                </a>
+              </div>
+            </div>
+
+            {/* Link columns */}
+            <div className="fcol">
+              <h4>Product</h4>
+              <ul>
+                <li><a href="#how">How it works</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#faq">Questions</a></li>
+              </ul>
+            </div>
+
+            <div className="fcol">
+              <h4>Legal</h4>
+              <ul>
+                <li><Link to="/legal/privacy">Privacy</Link></li>
+                <li><Link to="/legal/terms">Terms</Link></li>
+                <li><Link to="/legal/refunds">Refunds</Link></li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="fbot">
+            <span>© 2026 Biomart</span>
+          </div>
         </div>
-      </div>
-
-      {/* Link columns */}
-      <div className="fcol">
-        <h4>Product</h4>
-        <ul>
-          <li><a href="#how">How it works</a></li>
-          <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#faq">Questions</a></li>
-        </ul>
-      </div>
-
-      <div className="fcol">
-        <h4>Legal</h4>
-        <ul>
-          <li><Link to="/legal/privacy">Privacy</Link></li>
-          <li><Link to="/legal/terms">Terms</Link></li>
-          <li><Link to="/legal/refunds">Refunds</Link></li>
-        </ul>
-      </div>
-    </div>
-
-    <div className="fbot">
-      <span>© 2026 Biomart</span>
-    </div>
-  </div>
-</footer>
+      </footer>
     </>
   );
 }
