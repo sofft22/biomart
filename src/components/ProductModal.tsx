@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { naira } from '../lib/format';
 import type { Product, Store } from '../types';
 
@@ -20,6 +20,7 @@ const CHARCOAL = '#1A1A1A';
 const BRAND_GREEN = '#0F7A4A';
 const MUTED = 'rgba(26,26,26,0.5)';
 
+// 🟢 Fisher-Yates Shuffle for truly random products
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -43,6 +44,7 @@ export function ProductModal({
   const [mainImgLoaded, setMainImgLoaded] = useState(false);
   const [addedFlash, setAddedFlash] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false); // 🟢 Fullscreen Image State
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -66,25 +68,26 @@ export function ProductModal({
 
   const canAdd = !hasVariants || selectedVariantLabel !== null;
 
+  // 🟢 PREMIUM SHUFFLE LOGIC
   const pairs = useMemo(() => {
     if (!products || products.length === 0) return [];
+    
+    // 1. Get all other products
     const others = products.filter((p) => p.id !== product.id);
-    const same = shuffle(others.filter((p) => p.category_id === product.category_id));
-    const rest = shuffle(others.filter((p) => p.category_id !== product.category_id));
-    const pick: Product[] = [];
-    for (const p of same.slice(0, 2)) pick.push(p);
-    for (const p of rest) {
-      if (pick.length >= 4) break;
-      pick.push(p);
-    }
-    if (pick.length < 4) {
-      for (const p of same.slice(2)) {
-        if (pick.length >= 4) break;
-        pick.push(p);
-      }
-    }
-    return shuffle(pick);
-  }, [products, product.id, product.category_id]);
+    
+    // 2. Shuffle everything completely
+    const shuffled = shuffle(others);
+    
+    // 3. Pick the first 4 unique ones (no duplicates since we filtered out the current ID)
+    return shuffled.slice(0, 4);
+  }, [products, product.id]);
+
+  // Prevent background scrolling when zoomed
+  useEffect(() => {
+    if (isZoomed) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isZoomed]);
 
   const goToImage = (i: number) => {
     if (i === activeImage) return;
@@ -93,9 +96,10 @@ export function ProductModal({
   };
 
   const handleImageTap = () => {
-    if (images.length <= 1) return;
-    const next = (activeImage + 1) % images.length;
-    goToImage(next);
+    if (images.length > 1) {
+      const next = (activeImage + 1) % images.length;
+      goToImage(next);
+    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -122,18 +126,14 @@ export function ProductModal({
     setTimeout(() => setAddedFlash(false), 1400);
   };
 
-  // 🟢 ORDER: Opens WhatsApp immediately with the exact requested format
   const handleOrder = () => {
     if (!canAdd) return;
-    
-    // Add to cart silently first
     onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
     
     const phone = store.whatsapp.replace(/\D/g, "");
     const lineTotal = displayPrice * qty;
     const formattedLineTotal = naira(lineTotal);
     
-    // 🟢 EXACT FORMAT: No leading spaces, spaced lines, Product x Qty = Amount, Total at bottom
     const text = `Hello ${store.name},
     
 I want to order:
@@ -144,10 +144,7 @@ Total: ${formattedLineTotal}
     
 How do I proceed with the payment and delivery process?`;
     
-    // Open WhatsApp directly
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
-    
-    // Close the modal
     onClose();
   };
 
@@ -168,438 +165,299 @@ How do I proceed with the payment and delivery process?`;
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 sm:items-center"
-      onClick={onClose}
-    >
+    <>
       <div
-        ref={modalScrollRef}
-        onClick={(e) => e.stopPropagation()}
-        className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
-        style={{ 
-          backgroundColor: 'var(--bg)', 
-          color: 'var(--ink)' 
-        }}
+        className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 sm:items-center"
+        onClick={onClose}
       >
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-[10px] transition-colors duration-300"
-          style={{ backgroundColor: 'var(--bg)', color: CHARCOAL }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = BRAND_GREEN)}
-          onMouseLeave={(e) => (e.currentTarget.style.color = CHARCOAL)}
+        <div
+          ref={modalScrollRef}
+          onClick={(e) => e.stopPropagation()}
+          className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
+          style={{ backgroundColor: 'var(--bg)', color: 'var(--ink)' }}
         >
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            className="h-[16px] w-[16px]"
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors duration-300"
+            style={{ backgroundColor: 'rgba(255,255,255,0.8)', color: CHARCOAL }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = BRAND_GREEN)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = CHARCOAL)}
           >
-            <path d="M6 6l12 12M18 6L6 18" />
-          </svg>
-        </button>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="h-5 w-5">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
+          </button>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2">
-          {/* ═══ IMAGE COLUMN ═══ */}
-          <div style={{ backgroundColor: 'var(--bg)' }}>
-            <button
-              onClick={handleImageTap}
-              className="relative block aspect-[4/5] w-full overflow-hidden cursor-pointer"
-              style={{ touchAction: 'pan-y', backgroundColor: 'var(--mat)' }}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              aria-label={images.length > 1 ? 'Next image' : product.name}
-            >
-              {!mainImgLoaded && (
-                <div
-                  className="absolute inset-0 animate-pulse"
-                  style={{ backgroundColor: 'var(--mat)' }}
-                />
-              )}
-              {currentImage && (
-                <img
-                  key={currentImage}
-                  src={currentImage}
-                  alt={mainAlt}
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  onLoad={() => setMainImgLoaded(true)}
-                  draggable={false}
-                  className={`h-full w-full object-cover transition-opacity duration-500 ${
-                    mainImgLoaded ? 'opacity-100' : 'opacity-0'
-                  }`}
-                />
-              )}
+          {/* ═══ PREMIUM MOBILE LAYOUT ═══ */}
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            
+            {/* IMAGE COLUMN */}
+            <div style={{ backgroundColor: 'var(--bg)' }}>
+              {/* 🟢 CLICK TO ZOOM IMAGE */}
+              <div
+                className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in group"
+                style={{ backgroundColor: 'var(--mat)' }}
+                onClick={() => setIsZoomed(true)}
+              >
+                {!mainImgLoaded && (
+                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'var(--mat)' }} />
+                )}
+                {currentImage && (
+                  <img
+                    key={currentImage}
+                    src={currentImage}
+                    alt={mainAlt}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    onLoad={() => setMainImgLoaded(true)}
+                    draggable={false}
+                    className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                      mainImgLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                )}
 
+                {/* Swipe Indicators (Mobile) */}
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:hidden">
+                    {images.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all ${
+                          i === activeImage ? 'w-5 bg-charcoal' : 'w-1.5 bg-charcoal/40'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Thumbnails — desktop */}
               {images.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:hidden">
-                  {images.map((_, i) => (
-                    <span
+                <div className="hidden gap-2 p-4 sm:flex">
+                  {images.map((src, i) => (
+                    <button
                       key={i}
-                      className={`h-1.5 rounded-full transition-all ${
-                        i === activeImage
-                          ? 'w-5 bg-charcoal'
-                          : 'w-1.5 bg-charcoal/40'
-                      }`}
-                    />
+                      onClick={(e) => { e.stopPropagation(); goToImage(i); }}
+                      className="aspect-square w-16 overflow-hidden transition-colors"
+                      style={{
+                        border: i === activeImage ? `1px solid ${CHARCOAL}` : `1px solid var(--line)`,
+                      }}
+                    >
+                      <img src={src} alt="thumbnail" className="h-full w-full object-cover" />
+                    </button>
                   ))}
                 </div>
               )}
-            </button>
+            </div>
 
-            {/* Thumbnails — desktop */}
-            {images.length > 1 && (
-              <div className="hidden gap-2 p-4 sm:flex">
-                {images.map((src, i) => (
-                  <button
-                    key={i}
-                    onClick={() => goToImage(i)}
-                    className="aspect-square w-16 overflow-hidden transition-colors"
-                    style={{
-                      border:
-                        i === activeImage
-                          ? `1px solid ${CHARCOAL}`
-                          : `1px solid var(--line)`,
-                    }}
-                    aria-label={`View image ${i + 1} of ${images.length}`}
-                  >
-                    <img
-                      src={src}
-                      alt={`${product.name} — thumbnail ${i + 1}`}
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* ═══ CONTENT COLUMN ═══ */}
-          <div className="p-6 sm:p-12" style={{ backgroundColor: 'var(--bg)' }}>
-            
-            <h2
-              className="text-[22px] leading-[1.25] tracking-[-0.01em] sm:text-[28px]"
-              style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
-            >
-              {product.name}
-            </h2>
-
-            <div className="mt-3 flex items-baseline gap-3 sm:mt-4 sm:gap-4">
-              <p
-                className="text-[18px] leading-none tracking-[-0.01em] sm:text-[22px]"
-                style={{ color: CHARCOAL, fontWeight: 500 }}
+            {/* CONTENT COLUMN */}
+            <div className="flex flex-col p-6 sm:p-10" style={{ backgroundColor: 'var(--bg)' }}>
+              
+              <h2
+                className="text-[26px] leading-[1.15] tracking-[-0.02em] sm:text-[32px]"
+                style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
               >
-                {naira(displayPrice)}
-              </p>
-              {displayCompare && (
-                <p
-                  className="text-[12px] line-through sm:text-[13px]"
-                  style={{ color: MUTED, fontWeight: 400 }}
-                >
-                  {naira(displayCompare)}
+                {product.name}
+              </h2>
+
+              <div className="mt-4 flex items-baseline gap-3">
+                <p className="text-[20px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
+                  {naira(displayPrice)}
+                </p>
+                {displayCompare && (
+                  <p className="text-[14px] line-through opacity-50" style={{ color: CHARCOAL }}>
+                    {naira(displayCompare)}
+                  </p>
+                )}
+              </div>
+
+              {product.description && (
+                <p className="mt-6 text-[15px] leading-[1.7] opacity-70" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                  {product.description}
+                </p>
+              )}
+
+              {/* VARIANTS */}
+              {hasVariants && product.in_stock && (
+                <div className="mt-8">
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                    Select Option {selectedVariantLabel ? '' : '· Required'}
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {variants.map((v) => {
+                      const active = selectedVariantLabel === v.label;
+                      return (
+                        <button
+                          key={v.label}
+                          onClick={() => setSelectedVariantLabel(v.label)}
+                          className="rounded-[8px] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] transition-all duration-300"
+                          style={{
+                            border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
+                            backgroundColor: active ? CHARCOAL : 'transparent',
+                            color: active ? '#fff' : CHARCOAL,
+                          }}
+                        >
+                          {v.label}
+                          {v.priceDelta > 0 && (
+                            <span className="ml-2" style={{ color: active ? '#fff' : BRAND_GREEN }}>
+                              +{naira(v.priceDelta)}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* QUANTITY & ACTIONS */}
+              {product.in_stock && (
+                <div className="mt-auto pt-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                      Quantity
+                    </span>
+                    <div className="inline-flex items-stretch overflow-hidden rounded-[8px]" style={{ border: `1px solid var(--line)` }}>
+                      <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-11 w-11 items-center justify-center text-lg hover:bg-black/5 transition-colors">
+                        −
+                      </button>
+                      <span className="flex h-11 w-12 items-center justify-center text-[15px] font-semibold border-x" style={{ borderColor: 'var(--line)' }}>
+                        {qty}
+                      </span>
+                      <button onClick={() => setQty(qty + 1)} className="flex h-11 w-11 items-center justify-center text-lg hover:bg-black/5 transition-colors">
+                        +
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-8">
+                    <button
+                      onClick={handleAdd}
+                      disabled={!canAdd}
+                      className="w-full rounded-[10px] py-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300"
+                      style={{
+                        backgroundColor: canAdd ? (addedFlash ? BRAND_GREEN : CHARCOAL) : 'rgba(26,26,26,0.1)',
+                        color: canAdd ? '#fff' : MUTED,
+                        cursor: canAdd ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      {addedFlash ? 'Added ✓' : 'Add to Bag'}
+                    </button>
+
+                    <button
+                      onClick={handleOrder}
+                      disabled={!canAdd}
+                      className="flex w-full items-center justify-center gap-2 rounded-[10px] py-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 shadow-md"
+                      style={{
+                        backgroundColor: canAdd ? BRAND_GREEN : 'rgba(15,122,74,0.3)',
+                        color: '#fff',
+                        cursor: canAdd ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
+                      </svg>
+                      Order Now
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-6 border-t" style={{ borderColor: 'var(--line)' }}>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                      Share
+                    </span>
+                    <button onClick={handleShareWhatsApp} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>
+                    </button>
+                    <button onClick={handleCopyLink} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" strokeLinecap="round" /></svg>
+                    </button>
+                    {copied && <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: BRAND_GREEN }}>Copied!</span>}
+                  </div>
+                </div>
+              )}
+
+              {!product.in_stock && (
+                <p className="mt-8 rounded-[10px] py-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] border opacity-50">
+                  Sold Out
                 </p>
               )}
             </div>
+          </div>
 
-            {product.description && (
-              <p
-                className="mt-6 text-[14px] leading-[1.75] sm:mt-7 sm:text-[14.5px]"
-                style={{ color: 'rgba(26,26,26,0.7)', textTransform: 'capitalize' }}
-              >
-                {product.description}
-              </p>
-            )}
-
-            {hasVariants && product.in_stock && (
-              <div className="mt-10">
-                <p
-                  className="mb-3 text-[10.5px] font-bold uppercase tracking-[0.2em]"
-                  style={{ color: MUTED }}
-                >
-                  Choose {selectedVariantLabel ? '' : '· required'}
-                </p>
-                <div className="flex flex-wrap gap-2.5">
-                  {variants.map((v) => {
-                    const active = selectedVariantLabel === v.label;
-                    return (
-                      <button
-                        key={v.label}
-                        onClick={() => setSelectedVariantLabel(v.label)}
-                        className="rounded-[8px] px-5 py-2.5 text-[11px] font-bold tracking-[0.14em] transition-colors duration-300"
-                        style={{
-                          border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
-                          backgroundColor: active ? CHARCOAL : 'transparent',
-                          color: active ? 'var(--bg)' : CHARCOAL,
-                          textTransform: 'capitalize'
-                        }}
-                      >
-                        {v.label}
-                        {v.priceDelta > 0 && (
-                          <span
-                            className="ml-2"
-                            style={{
-                              color: active ? 'var(--bg)' : BRAND_GREEN,
-                              fontWeight: 600,
-                            }}
-                          >
-                            +{naira(v.priceDelta)}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* ═══ FREQUENTLY BOUGHT TOGETHER (Premium Shuffled) ═══ */}
+          {pairs.length > 0 && (
+            <div className="px-6 py-12 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
+              <h3 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
+                Frequently Bought Together
+              </h3>
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+                {pairs.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setActiveImage(0);
+                      setSelectedVariantLabel(null);
+                      setMainImgLoaded(false);
+                      onOpenProduct(p);
+                      modalScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="group text-left flex flex-col cursor-pointer"
+                  >
+                    {/* 🟢 EXACT PRODUCT CARD STYLING */}
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}>
+                      {p.image_url && (
+                        <img
+                          src={p.image_url}
+                          alt={`${p.name}`}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-3 flex flex-col gap-1 w-full">
+                      <p className="text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                        {p.name}
+                      </p>
+                      <div className="flex items-baseline gap-1 mt-0">
+                        <span className="text-[14px] font-extrabold tracking-tight" style={{ color: CHARCOAL }}>
+                          {naira(p.price)}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
               </div>
-            )}
-
-            {product.in_stock && (
-              <>
-                <div className="mt-8 flex items-center gap-4">
-                  <span
-                    className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
-                    style={{ color: MUTED }}
-                  >
-                    Qty
-                  </span>
-                  <div
-                    className="inline-flex items-stretch overflow-hidden rounded-[8px]"
-                    style={{ border: `1px solid var(--line)` }}
-                  >
-                    <button
-                      onClick={() => setQty(Math.max(1, qty - 1))}
-                      className="flex h-10 w-10 items-center justify-center transition-colors duration-200"
-                      style={{ color: CHARCOAL }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'var(--line)')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'transparent')
-                      }
-                    >
-                      −
-                    </button>
-                    <span
-                      className="flex h-10 w-10 items-center justify-center text-[14px]"
-                      style={{
-                        color: CHARCOAL,
-                        borderLeft: `1px solid var(--line)`,
-                        borderRight: `1px solid var(--line)`,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {qty}
-                    </span>
-                    <button
-                      onClick={() => setQty(qty + 1)}
-                      className="flex h-10 w-10 items-center justify-center transition-colors duration-200"
-                      style={{ color: CHARCOAL }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'var(--line)')
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = 'transparent')
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                <div className="mt-8 grid grid-cols-2 gap-3">
-                  <button
-                    onClick={handleAdd}
-                    disabled={!canAdd}
-                    className="w-full rounded-[10px] py-4 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-colors duration-300"
-                    style={{
-                      backgroundColor: canAdd
-                        ? addedFlash
-                          ? BRAND_GREEN
-                          : CHARCOAL
-                        : 'rgba(26,26,26,0.3)',
-                      color: 'var(--bg)',
-                      cursor: canAdd ? 'pointer' : 'not-allowed',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (canAdd && !addedFlash)
-                        e.currentTarget.style.backgroundColor = BRAND_GREEN;
-                    }}
-                    onMouseLeave={(e) => {
-                      if (canAdd && !addedFlash)
-                        e.currentTarget.style.backgroundColor = CHARCOAL;
-                    }}
-                  >
-                    {addedFlash ? 'Added ✓' : 'Add to bag'}
-                  </button>
-
-                  <button
-                    onClick={handleOrder}
-                    disabled={!canAdd}
-                    className="flex w-full items-center justify-center gap-2 rounded-[10px] py-4 text-[10.5px] font-bold uppercase tracking-[0.2em] transition-all duration-300"
-                    style={{
-                      backgroundColor: canAdd ? BRAND_GREEN : 'rgba(15,122,74,0.3)',
-                      color: '#fff',
-                      cursor: canAdd ? 'pointer' : 'not-allowed',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (canAdd)
-                        e.currentTarget.style.backgroundColor = '#0A5D38';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (canAdd)
-                        e.currentTarget.style.backgroundColor = BRAND_GREEN;
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
-                    </svg>
-                    Order
-                  </button>
-                </div>
-
-                <div
-                  className="mt-10 flex items-center gap-4 pt-7"
-                  style={{ borderTop: `1px solid var(--line)` }}
-                >
-                  <span
-                    className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
-                    style={{ color: MUTED }}
-                  >
-                    Share
-                  </span>
-
-                  <button
-                    onClick={handleShareWhatsApp}
-                    aria-label="Share on WhatsApp"
-                    className="flex h-9 w-9 items-center justify-center rounded-[8px] transition-colors duration-300"
-                    style={{ border: `1px solid var(--line)`, color: CHARCOAL }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = BRAND_GREEN;
-                      e.currentTarget.style.color = BRAND_GREEN;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--line)';
-                      e.currentTarget.style.color = CHARCOAL;
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
-                    </svg>
-                  </button>
-
-                  <button
-                    onClick={handleCopyLink}
-                    aria-label="Copy link"
-                    className="flex h-9 w-9 items-center justify-center rounded-[8px] transition-colors duration-300"
-                    style={{ border: `1px solid var(--line)`, color: CHARCOAL }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = BRAND_GREEN;
-                      e.currentTarget.style.color = BRAND_GREEN;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--line)';
-                      e.currentTarget.style.color = CHARCOAL;
-                    }}
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-4 w-4">
-                      <rect x="9" y="9" width="11" height="11" rx="2" />
-                      <path d="M5 15V5a2 2 0 0 1 2-2h10" strokeLinecap="round" />
-                    </svg>
-                  </button>
-
-                  <span
-                    className="text-[10.5px] font-bold uppercase tracking-[0.2em] transition-opacity duration-300"
-                    style={{
-                      color: BRAND_GREEN,
-                      opacity: copied ? 1 : 0,
-                    }}
-                  >
-                    Copied
-                  </span>
-                </div>
-              </>
-            )}
-
-            {!product.in_stock && (
-              <p
-                className="mt-6 rounded-[10px] py-4 text-center text-[10.5px] font-bold uppercase tracking-[0.2em]"
-                style={{
-                  border: `1px solid var(--line)`,
-                  backgroundColor: 'var(--bg)',
-                  color: MUTED,
-                }}
-              >
-                Sold out
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ COMPLETE THE LOOK ═══ */}
-        {pairs.length > 0 && (
-          <div
-            className="px-6 py-14 sm:px-12 sm:py-20"
-            style={{
-              borderTop: `1px solid var(--line)`,
-              backgroundColor: 'var(--bg)',
-            }}
-          >
-            <h3
-              className="text-[22px] leading-tight tracking-[-0.01em] sm:text-[28px]"
-              style={{ color: CHARCOAL, fontWeight: 400, fontFamily: 'var(--serif)', textTransform: 'capitalize' }}
-            >
-              Complete the look
-            </h3>
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
-              {pairs.map((p) => (
-                <button
-                  key={p.id}
-                  onClick={() => {
-                    setActiveImage(0);
-                    setSelectedVariantLabel(null);
-                    setMainImgLoaded(false);
-                    onOpenProduct(p);
-                    modalScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="group text-left"
-                >
-                  <div
-                    className="aspect-[4/5] overflow-hidden"
-                    style={{ backgroundColor: 'var(--mat)' }}
-                  >
-                    {p.image_url && (
-                      <img
-                        src={p.image_url}
-                        alt={`${p.name} — biomart`}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                      />
-                    )}
-                  </div>
-                  <p
-                    className="mt-3 line-clamp-1 text-[13px] leading-[1.35] tracking-[-0.005em]"
-                    style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
-                  >
-                    {p.name}
-                  </p>
-                  <p
-                    className="mt-1 text-[13px]"
-                    style={{ color: MUTED, fontWeight: 400 }}
-                  >
-                    {naira(p.price)}
-                  </p>
-                </button>
-              ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* 🟢 FULLSCREEN ZOOM OVERLAY */}
+      {isZoomed && currentImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
+            onClick={() => setIsZoomed(false)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8">
+              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+            </svg>
+          </button>
+          <img 
+            src={currentImage} 
+            alt={mainAlt} 
+            className="max-h-full max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()} 
+          />
+        </div>
+      )}
+    </>
   );
 }
 
