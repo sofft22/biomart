@@ -20,18 +20,12 @@ function splitBrandName(name: string): { first: string; second: string } {
   return { first: parts[0], second: parts.slice(1).join(" ") };
 }
 
-// 🟢 SMART STACKING HELPER
 function renderHeroTitle(title: string) {
   if (!title) return null;
   const firstSpaceIdx = title.indexOf(" ");
-  
-  if (firstSpaceIdx === -1) {
-    return <span>{title}</span>;
-  }
-  
+  if (firstSpaceIdx === -1) return <span>{title}</span>;
   const line1 = title.substring(0, firstSpaceIdx);
   const line2 = title.substring(firstSpaceIdx + 1);
-  
   return (
     <span style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <span>{line1}</span>
@@ -163,7 +157,6 @@ export default function Storefront() {
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleOpenProduct = (p: Product) => setOpenProduct(p);
-  
   const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
     cart.add(product, qty, variant, unitPrice);
   };
@@ -238,7 +231,12 @@ export default function Storefront() {
                   margin: 0, 
                   textShadow: "0 4px 20px rgba(0,0,0,0.5)", 
                   maxWidth: "900px",
-                  animation: "sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both" // 🟢 MOTION
+                  // 🟢 FIXED MOTION
+                  animationName: "sf-slide-up",
+                  animationDuration: "1s",
+                  animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                  animationFillMode: "both",
+                  animationDelay: "0.1s"
                 }}
               >
                 {renderHeroTitle(heroTitle)}
@@ -251,7 +249,12 @@ export default function Storefront() {
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
                 fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16,
-                animation: "sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both" // 🟢 MOTION
+                // 🟢 FIXED MOTION
+                animationName: "sf-slide-up",
+                animationDuration: "1s",
+                animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                animationFillMode: "both",
+                animationDelay: "0.3s"
               }}
             >
               SHOP NOW 
@@ -362,8 +365,14 @@ export default function Storefront() {
               {paginatedProducts.map((p, i) => (
                 <div 
                   key={p.id} 
-                  // 🟢 ADDED CSS MOTION (Staggered fade-up)
-                  style={{ animation: `sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) ${Math.min(i * 0.05, 0.4)}s both` }}
+                  // 🟢 FIXED MOTION (Explicit properties)
+                  style={{ 
+                    animationName: "sf-rise",
+                    animationDuration: "0.8s",
+                    animationTimingFunction: "cubic-bezier(0.22, 1, 0.36, 1)",
+                    animationFillMode: "both",
+                    animationDelay: `${Math.min(i * 0.05, 0.4)}s`
+                  }}
                 >
                   <ProductCard 
                     product={p} 
@@ -387,15 +396,15 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 NEW SPLIT FOOTER (Desktop 3-col, Mobile centered) */}
+      {/* 🟢 PREMIUM EDITORIAL FOOTER (Left-aligned Mobile, 3-col Desktop) */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
           <div className="sf-footer-top" style={{ display: "grid", gap: "48px", paddingBottom: "64px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             
             {/* Brand Column */}
-            <div className="sf-footer-brand-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-              <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
+            <div className="sf-footer-brand-col" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
+              <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
                 {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
               </div>
@@ -404,7 +413,41 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* 3 Columns (Hidden on mobile, flex on desktop) */}
+            {/* Mobile Links Grid (2 columns) */}
+            <div className="sf-footer-mobile-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", width: "100%" }}>
+              <div>
+                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Navigation</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <a href="#shop-all" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Signature Treats</a>
+                  <a href="#shop-all" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Categories</a>
+                </div>
+              </div>
+              <div>
+                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Socials</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
+                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
+                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
+                </div>
+              </div>
+              <div>
+                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Legal</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <a href="#" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Terms & Conditions</a>
+                  <a href="#" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Privacy Policy</a>
+                </div>
+              </div>
+              {address && (
+                <div>
+                  <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Location</h4>
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.5, display: "block" }}>
+                    {address}
+                  </a>
+                </div>
+              )}
+            </div>
+
+            {/* Desktop Links Grid (3 columns) */}
             <div className="sf-footer-desktop-cols" style={{ display: "none" }}>
               <div>
                 <h4 className="sf-footer-h" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Navigation</h4>
@@ -429,26 +472,6 @@ export default function Storefront() {
                 </div>
               </div>
             </div>
-
-            {/* Mobile Centered Contact/Location (Hidden on desktop) */}
-            <div className="sf-footer-mobile-links" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
-              <div style={{ textAlign: "center" }}>
-                <h4 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>Contact</h4>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>WhatsApp</a>}
-                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>Instagram</a>}
-                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>TikTok</a>}
-                </div>
-              </div>
-              {address && (
-                <div style={{ textAlign: "center" }}>
-                  <h4 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>Location</h4>
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
-                    {address}
-                  </a>
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Bottom Bar */}
@@ -469,12 +492,12 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* CSS overrides to handle responsive layout without touching global styles */}
+          {/* CSS Overrides for Responsive Footer */}
           <style>{`
             @media (min-width: 768px) {
               .sf-footer-top {
                 grid-template-columns: 1fr 2fr !important;
-                text-align: left !important;
+                gap: 80px !important;
               }
               .sf-footer-brand-col {
                 align-items: flex-start !important;
@@ -483,13 +506,13 @@ export default function Storefront() {
               .sf-footer-brand {
                 justify-content: flex-start !important;
               }
+              .sf-footer-mobile-grid {
+                display: none !important;
+              }
               .sf-footer-desktop-cols {
                 display: grid !important;
                 grid-template-columns: repeat(3, 1fr);
                 gap: 32px;
-              }
-              .sf-footer-mobile-links {
-                display: none !important;
               }
             }
           `}</style>
