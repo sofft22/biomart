@@ -10,19 +10,10 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     
     if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
 
-    // 🟢 ADDED 'categories' to the select query so the frontend gets it
+    // 🟢 Fetch the categories as a plain string directly from the database
     const store = await env.DB.prepare(
       "SELECT id, name, slug, tagline, address, whatsapp, instagram, tiktok, cover_url, gallery_urls, plan, categories FROM stores WHERE user_id = ?"
     ).bind(session.user_id).first<any>();
-
-    if (store && store.categories) {
-      // Ensure categories are parsed as an array before sending
-      try {
-        store.categories = typeof store.categories === 'string' ? JSON.parse(store.categories) : store.categories;
-      } catch (e) {
-        store.categories = [];
-      }
-    }
 
     return Response.json({ store });
   } catch (e: any) {
@@ -60,10 +51,10 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
     if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
     
-    // 🟢 SAVE CATEGORIES
+    // 🟢 Save categories as a plain string (comma-separated)
     if ("categories" in body) { 
       updates.push("categories = ?"); 
-      values.push(Array.isArray(body.categories) ? JSON.stringify(body.categories) : null); 
+      values.push(body.categories || null); 
     }
 
     if ("gallery_urls" in body) { 
