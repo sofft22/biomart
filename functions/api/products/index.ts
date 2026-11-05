@@ -1,81 +1,61 @@
-export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
+import { getLimit } from "../../lib/plans";
+import { purgeStoreCache } from "../../utils/purge";
+
+export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
   try {
     const cookie = request.headers.get("Cookie") || "";
     const sid = cookie.match(/sid=([^;]+)/)?.[1];
-    if (!sid) return Response.json({ error: "You need to log in." }, { status: 401 });
+    if (!sid) return Response.json({ error: "Not logged in" }, { status: 401 });
 
     const session = await env.DB.prepare(
       "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
     ).bind(sid, Date.now()).first<{ user_id: string }>();
-    
-    if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
+    if (!session) return Response.json({ error: "Session expired" }, { status: 401 });
 
-    const store = await env.DB.prepare(
-      "SELECT * FROM stores WHERE user_id = ?"
-    ).bind(session.user_id).first<any>();
-
-    return Response.json({ store });
-  } catch (e: any) {
-    return Response.json({ error: e.message }, { status: 500 });
-  }
-};
-
-export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
-  try {
-    const cookie = request.headers.get("Cookie") || "";
-    const sid = cookie.match(/sid=([^;]+)/)?.[1];
-    if (!sid) return Response.json({ error: "You need to log in." }, { status: 401 });
-
-    const session = await env.DB.prepare(
-      "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
-    ).bind(sid, Date.now()).first<{ user_id: string }>();
-    
-    if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
-
-    const store = await env.DB.prepare("SELECT id FROM stores WHERE user_id = ?")
-      .bind(session.user_id).first<{ id: string }>();
-      
-    if (!store) return Response.json({ error: "Store not found." }, { status: 404 });
+    // 🟢 Select slug as well so we can purge the cache
+    const store = await env.DB.prepare("SELECT id, plan, slug FROM stores WHERE user_id = ?")
+      .bind(session.user_id).first<{ id: string; plan: string; slug: string }>();
+    if (!store) return Response.json({ error: "No store" }, { status: 404 });
 
     const body = await request.json() as any;
-    const updates: string[] = [];
-    const values: any[] = [];
-
-    if ("name" in body) { updates.push("name = ?"); values.push(String(body.name || "").trim()); }
-    if ("slug" in body) { updates.push("slug = ?"); values.push(String(body.slug || "").trim()); } // 🟢 SAVE SLUG
-    if ("bio" in body) { updates.push("bio = ?"); values.push(body.bio || null); }
-    if ("tagline" in body) { updates.push("tagline = ?"); values.push(body.tagline || null); }
-    if ("hero_title" in body) { updates.push("hero_title = ?"); values.push(body.hero_title || null); }
-    if ("address" in body) { updates.push("address = ?"); values.push(body.address || null); }
-    if ("whatsapp" in body) { updates.push("whatsapp = ?"); values.push(String(body.whatsapp || "").trim()); }
-    if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram || null); }
-    if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
-    if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
-    if ("categories" in body) { updates.push("categories = ?"); values.push(body.categories || null); }
-
-    if ("gallery_urls" in body) { 
-      updates.push("gallery_urls = ?"); 
-      values.push(Array.isArray(body.gallery_urls) ? JSON.stringify(body.gallery_urls) : null); 
+    
+    // CHECK PLAN LIMITS
+    const plan = store.plan ?? "free";
+    const limit = getLimit(plan);
+    
+    const images = JSON.stringify(body.images || [body.image_url].filter(Boolean));
+    const imageCount = (body.images || [body.image_url].filter(Boolean)).length;
+    
+    if (imageCount > limit.photos) {
+      return Response.json({ error: `Your plan allows ${limit.photos} photos per product. Upgrade for more.` }, { status: 403 });
     }
 
-    if (updates.length === 0) return Response.json({ ok: true });
+    const id = crypto.randomUUID();
 
-    values.push(store.id);
+    await env.DB.prepare(
+      `INSERT INTO products (id, store_id, name, price, compare_at_price, description, category, in_stock, images, variants, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      id,
+      store.id,
+      body.name || "",
+      body.price || 0,
+      body.compare_at_price ?? null,
+      body.description || "",
+      body.category || "",
+      body.inStock === false ? 0 : 1,
+      images,
+      body.variants ? JSON.stringify(body.variants) : null,
+      Date.now()
+    ).run();
 
-    try {
-      await env.DB.prepare(`UPDATE stores SET ${updates.join(", ")} WHERE id = ?`)
-        .bind(...values)
-        .run();
-    } catch (dbError: any) {
-      // 🟢 CATCH UNIQUE CONSTRAINT ERROR FOR SLUG
-      if (dbError.message.includes("UNIQUE constraint failed")) {
-        return Response.json({ error: "That store link is already taken. Please choose another one." }, { status: 400 });
-      }
-      throw dbError;
+    // 🟢 PURGE CACHE AFTER CREATING PRODUCT
+    if (store.slug) {
+      await purgeStoreCache(store.slug, env, request.url);
     }
 
-    return Response.json({ ok: true });
+    return Response.json({ id, ...body, views: 0 });
   } catch (e: any) {
-    return Response.json({ error: "Database error: " + e.message }, { status: 500 });
+    return Response.json({ error: e.message }, { status: 500 });
   }
 };
