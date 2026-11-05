@@ -18,7 +18,7 @@ interface Props {
 
 const CHARCOAL = '#1A1A1A';
 const BRAND_GREEN = '#0F7A4A';
-const ASH_GREY = '#6B6B6B'; // 🟢 Ash price color
+const ASH_GREY = '#6B6B6B';
 const MUTED = 'rgba(26,26,26,0.5)';
 
 function shuffle<T>(arr: T[]): T[] {
@@ -62,7 +62,10 @@ export function ProductModal({
 
   const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
   const priceDelta = selectedVariant?.priceDelta ?? 0;
+  
+  // 🟢 Base price + the variant's exact price delta (if any)
   const displayPrice = product.price + priceDelta;
+  
   const displayCompare =
     product.compare_at_price != null ? product.compare_at_price + priceDelta : null;
 
@@ -180,7 +183,7 @@ How do I proceed with the payment and delivery process?`;
             <div style={{ backgroundColor: 'var(--bg)' }}>
               <div
                 className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in group"
-                style={{ backgroundColor: 'var(--bg)' }} // 🟢 Matches Modal Background
+                style={{ backgroundColor: 'var(--bg)' }}
                 onClick={() => setIsZoomed(true)}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
@@ -247,7 +250,6 @@ How do I proceed with the payment and delivery process?`;
               </h2>
 
               <div className="mt-4 flex items-baseline gap-3">
-                {/* 🟢 ASH PRICE COLOR */}
                 <p className="text-[20px] font-semibold tracking-tight" style={{ color: ASH_GREY }}>
                   {naira(displayPrice)}
                 </p>
@@ -264,6 +266,7 @@ How do I proceed with the payment and delivery process?`;
                 </p>
               )}
 
+              {/* VARIANTS */}
               {hasVariants && product.in_stock && (
                 <div className="mt-8">
                   <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
@@ -272,6 +275,9 @@ How do I proceed with the payment and delivery process?`;
                   <div className="flex flex-wrap gap-2.5">
                     {variants.map((v) => {
                       const active = selectedVariantLabel === v.label;
+                      // 🟢 Calculate the absolute price for this specific variant
+                      const variantTotalPrice = product.price + v.priceDelta;
+                      
                       return (
                         <button
                           key={v.label}
@@ -284,11 +290,10 @@ How do I proceed with the payment and delivery process?`;
                           }}
                         >
                           {v.label}
-                          {v.priceDelta > 0 && (
-                            <span className="ml-2" style={{ color: active ? '#fff' : BRAND_GREEN }}>
-                              +{naira(v.priceDelta)}
-                            </span>
-                          )}
+                          {/* 🟢 Show the absolute price, not the + delta */}
+                          <span className="ml-2 opacity-60" style={{ color: active ? '#fff' : CHARCOAL }}>
+                            {naira(variantTotalPrice)}
+                          </span>
                         </button>
                       );
                     })}
@@ -296,6 +301,7 @@ How do I proceed with the payment and delivery process?`;
                 </div>
               )}
 
+              {/* QUANTITY & ACTIONS */}
               {product.in_stock && (
                 <div className="mt-auto pt-8">
                   <div className="flex items-center gap-4 mb-6">
@@ -369,7 +375,7 @@ How do I proceed with the payment and delivery process?`;
             </div>
           </div>
 
-          {/* ═══ FREQUENTLY BOUGHT TOGETHER ═══ */}
+          {/* FREQUENTLY BOUGHT TOGETHER */}
           {pairs.length > 0 && (
             <div className="px-6 py-12 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
               <h3 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
@@ -388,7 +394,7 @@ How do I proceed with the payment and delivery process?`;
                     }}
                     className="group text-left flex flex-col cursor-pointer"
                   >
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}> {/* 🟢 Matches Background */}
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}>
                       {p.image_url && (
                         <img
                           src={p.image_url}
@@ -403,7 +409,6 @@ How do I proceed with the payment and delivery process?`;
                         {p.name}
                       </p>
                       <div className="flex items-baseline gap-1 mt-0">
-                        {/* 🟢 ASH GREY PRICE */}
                         <span className="text-[14px] font-extrabold tracking-tight" style={{ color: ASH_GREY }}>
                           {naira(p.price)}
                         </span>
@@ -417,7 +422,7 @@ How do I proceed with the payment and delivery process?`;
         </div>
       </div>
 
-      {/* ═══ FULLSCREEN ZOOM OVERLAY ═══ */}
+      {/* FULLSCREEN ZOOM OVERLAY */}
       {isZoomed && currentImage && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10"
