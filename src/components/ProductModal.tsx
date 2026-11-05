@@ -18,9 +18,9 @@ interface Props {
 
 const CHARCOAL = '#1A1A1A';
 const BRAND_GREEN = '#0F7A4A';
+const ASH_GREY = '#6B6B6B'; // 🟢 Ash price color
 const MUTED = 'rgba(26,26,26,0.5)';
 
-// 🟢 Fisher-Yates Shuffle for truly random products
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -44,7 +44,7 @@ export function ProductModal({
   const [mainImgLoaded, setMainImgLoaded] = useState(false);
   const [addedFlash, setAddedFlash] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [isZoomed, setIsZoomed] = useState(false); // 🟢 Fullscreen Image State
+  const [isZoomed, setIsZoomed] = useState(false);
 
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -68,21 +68,13 @@ export function ProductModal({
 
   const canAdd = !hasVariants || selectedVariantLabel !== null;
 
-  // 🟢 PREMIUM SHUFFLE LOGIC
   const pairs = useMemo(() => {
     if (!products || products.length === 0) return [];
-    
-    // 1. Get all other products
     const others = products.filter((p) => p.id !== product.id);
-    
-    // 2. Shuffle everything completely
     const shuffled = shuffle(others);
-    
-    // 3. Pick the first 4 unique ones (no duplicates since we filtered out the current ID)
     return shuffled.slice(0, 4);
   }, [products, product.id]);
 
-  // Prevent background scrolling when zoomed
   useEffect(() => {
     if (isZoomed) document.body.style.overflow = 'hidden';
     else document.body.style.overflow = 'unset';
@@ -93,13 +85,6 @@ export function ProductModal({
     if (i === activeImage) return;
     setMainImgLoaded(false);
     setActiveImage(i);
-  };
-
-  const handleImageTap = () => {
-    if (images.length > 1) {
-      const next = (activeImage + 1) % images.length;
-      goToImage(next);
-    }
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -189,19 +174,19 @@ How do I proceed with the payment and delivery process?`;
             </svg>
           </button>
 
-          {/* ═══ PREMIUM MOBILE LAYOUT ═══ */}
           <div className="grid grid-cols-1 sm:grid-cols-2">
             
             {/* IMAGE COLUMN */}
             <div style={{ backgroundColor: 'var(--bg)' }}>
-              {/* 🟢 CLICK TO ZOOM IMAGE */}
               <div
                 className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in group"
-                style={{ backgroundColor: 'var(--mat)' }}
+                style={{ backgroundColor: 'var(--bg)' }} // 🟢 Matches Modal Background
                 onClick={() => setIsZoomed(true)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
               >
                 {!mainImgLoaded && (
-                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'var(--mat)' }} />
+                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'var(--bg)' }} />
                 )}
                 {currentImage && (
                   <img
@@ -219,7 +204,6 @@ How do I proceed with the payment and delivery process?`;
                   />
                 )}
 
-                {/* Swipe Indicators (Mobile) */}
                 {images.length > 1 && (
                   <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:hidden">
                     {images.map((_, i) => (
@@ -234,7 +218,6 @@ How do I proceed with the payment and delivery process?`;
                 )}
               </div>
 
-              {/* Thumbnails — desktop */}
               {images.length > 1 && (
                 <div className="hidden gap-2 p-4 sm:flex">
                   {images.map((src, i) => (
@@ -264,11 +247,12 @@ How do I proceed with the payment and delivery process?`;
               </h2>
 
               <div className="mt-4 flex items-baseline gap-3">
-                <p className="text-[20px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
+                {/* 🟢 ASH PRICE COLOR */}
+                <p className="text-[20px] font-semibold tracking-tight" style={{ color: ASH_GREY }}>
                   {naira(displayPrice)}
                 </p>
                 {displayCompare && (
-                  <p className="text-[14px] line-through opacity-50" style={{ color: CHARCOAL }}>
+                  <p className="text-[14px] line-through opacity-40" style={{ color: ASH_GREY }}>
                     {naira(displayCompare)}
                   </p>
                 )}
@@ -280,7 +264,6 @@ How do I proceed with the payment and delivery process?`;
                 </p>
               )}
 
-              {/* VARIANTS */}
               {hasVariants && product.in_stock && (
                 <div className="mt-8">
                   <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
@@ -313,7 +296,6 @@ How do I proceed with the payment and delivery process?`;
                 </div>
               )}
 
-              {/* QUANTITY & ACTIONS */}
               {product.in_stock && (
                 <div className="mt-auto pt-8">
                   <div className="flex items-center gap-4 mb-6">
@@ -387,7 +369,7 @@ How do I proceed with the payment and delivery process?`;
             </div>
           </div>
 
-          {/* ═══ FREQUENTLY BOUGHT TOGETHER (Premium Shuffled) ═══ */}
+          {/* ═══ FREQUENTLY BOUGHT TOGETHER ═══ */}
           {pairs.length > 0 && (
             <div className="px-6 py-12 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
               <h3 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
@@ -406,8 +388,7 @@ How do I proceed with the payment and delivery process?`;
                     }}
                     className="group text-left flex flex-col cursor-pointer"
                   >
-                    {/* 🟢 EXACT PRODUCT CARD STYLING */}
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}>
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}> {/* 🟢 Matches Background */}
                       {p.image_url && (
                         <img
                           src={p.image_url}
@@ -422,7 +403,8 @@ How do I proceed with the payment and delivery process?`;
                         {p.name}
                       </p>
                       <div className="flex items-baseline gap-1 mt-0">
-                        <span className="text-[14px] font-extrabold tracking-tight" style={{ color: CHARCOAL }}>
+                        {/* 🟢 ASH GREY PRICE */}
+                        <span className="text-[14px] font-extrabold tracking-tight" style={{ color: ASH_GREY }}>
                           {naira(p.price)}
                         </span>
                       </div>
@@ -435,7 +417,7 @@ How do I proceed with the payment and delivery process?`;
         </div>
       </div>
 
-      {/* 🟢 FULLSCREEN ZOOM OVERLAY */}
+      {/* ═══ FULLSCREEN ZOOM OVERLAY ═══ */}
       {isZoomed && currentImage && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10"
