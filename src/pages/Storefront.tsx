@@ -199,6 +199,7 @@ export default function Storefront() {
 
   const brand = splitBrandName(store.name);
   const tagline = (store as any).tagline || "";
+  const heroTitle = (store as any).hero_title || ""; // 🟢 LOAD NEW FIELD
   const address = (store as any).address || "";
   const hasCustomBanner = !!store.cover_url;
 
@@ -206,12 +207,12 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* 🟢 PREMIUM HEADER */}
+      {/* 🟢 PREMIUM HEADER (No Truncation) */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0 }}>
-            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(16px, 4vw, 20px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(16px, 4vw, 20px)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{titleCase(brand.second)}</span>}
+            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
           </button>
           <div className="sf-head-actions" style={{ flexShrink: 0 }}>
             <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
@@ -222,40 +223,44 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER */}
+      {/* 🟢 HERO BANNER WITH FULL DARK OVERLAY & MASSIVE SERIF FONT */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "65vh" }}>
+        <section className="sf-banner" style={{ minHeight: "70vh" }}>
           <img 
             src={store.cover_url!} 
             alt="Banner" 
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} 
           />
           
-          <div 
-            style={{ 
-              position: "absolute", inset: 0, 
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.85) 100%)" 
-            }} 
-          />
+          {/* Full dark overlay for the premium look */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
           
           <div 
             className="sf-banner-text" 
             style={{ 
               position: "relative", display: "flex", flexDirection: "column", 
-              justifyContent: "flex-end", alignItems: "center", height: "100%", 
-              paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
+              justifyContent: "center", alignItems: "center", height: "100%", 
+              paddingBottom: "60px", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
           >
-            {tagline && (
-              <h2 
+            {/* Massive Serif Hero Title */}
+            {heroTitle && (
+              <h1 
                 style={{ 
-                  color: "#fff", fontSize: "clamp(1rem, 3vw, 1.4rem)", fontWeight: 500, 
-                  textAlign: "center", letterSpacing: "0.15em", textTransform: "uppercase", 
-                  margin: 0, textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "600px" 
+                  fontFamily: "'Playfair Display', 'Georgia', serif", // 🟢 Premium Serif Font
+                  color: "#fff", 
+                  fontSize: "clamp(3rem, 8vw, 5rem)", // 🟢 MASSIVE size
+                  fontWeight: 600, 
+                  textAlign: "center", 
+                  lineHeight: 1.1,
+                  letterSpacing: "-0.02em",
+                  margin: 0, 
+                  textShadow: "0 4px 20px rgba(0,0,0,0.5)", 
+                  maxWidth: "900px" 
                 }}
               >
-                {tagline}
-              </h2>
+                {heroTitle}
+              </h1>
             )}
             
             <button 
@@ -263,7 +268,7 @@ export default function Storefront() {
               className="sf-banner-cta" 
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
-                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0
+                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16
               }}
             >
               SHOP THE COLLECTION 
@@ -275,10 +280,10 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 SHOP ALL SECTION */}
-      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "60px" : "100px" }}>
+      {/* 🟢 SHOP ALL SECTION (More Spacing) */}
+      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
         
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button 
@@ -352,7 +357,7 @@ export default function Storefront() {
         </div>
 
         {searchOpen && (
-          <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
+          <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <input 
               type="search" 
@@ -370,7 +375,8 @@ export default function Storefront() {
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
           <>
-            <div className="sf-grid-all">
+            {/* 🟢 INCREASED GAP BETWEEN PRODUCTS */}
+            <div className="sf-grid-all" style={{ gap: "32px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <ProductCard 
                   key={p.id} 
@@ -384,7 +390,7 @@ export default function Storefront() {
             </div>
             
             {totalPages > 1 && (
-              <div className="sf-pagination" style={{ marginTop: 40 }}>
+              <div className="sf-pagination" style={{ marginTop: 56 }}>
                 <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
                 <span>Page {currentPage} of {totalPages}</span>
                 <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollTo("shop-all"); }}>Next</button>
@@ -394,8 +400,8 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 PREMIUM FOOTER WITH BACK TO TOP */}
-      <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
+      {/* 🟢 PREMIUM FOOTER */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
             <div style={{ flex: "1 1 300px" }}>
