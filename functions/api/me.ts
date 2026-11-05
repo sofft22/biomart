@@ -25,8 +25,9 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       "SELECT id, email, role FROM users WHERE id = ?"
     ).bind(session.user_id).first<any>();
 
+    // 🟢 FIX: Changed to SELECT * so it grabs hero_title and any future columns
     const store = user ? await env.DB.prepare(
-      "SELECT id, user_id, name, slug, whatsapp, tagline, address, instagram, tiktok, cover_url, plan, paid_until, subscription_status, categories FROM stores WHERE user_id = ?"
+      "SELECT * FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
 
     let products: any[] = [];
