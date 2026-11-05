@@ -57,7 +57,7 @@ export default function Storefront() {
   const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
+  const [itemsPerPage, setItemsPerPage] = useState(10); // 🟢 10 per page
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
@@ -71,16 +71,7 @@ export default function Storefront() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) setItemsPerPage(20);
-      else if (window.innerWidth >= 768) setItemsPerPage(15);
-      else setItemsPerPage(12);
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  // 🟢 Removed the resize listener that was changing itemsPerPage. It stays at 10.
 
   useEffect(() => {
     if (!slug) return;
@@ -203,15 +194,12 @@ export default function Storefront() {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
   const scrollToShopAll = () => document.getElementById("shop-all")?.scrollIntoView({ behavior: "smooth" });
 
-  // 🟢 FOOLPROOF PAGINATION SCROLL
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    
-    // Wait 50ms for React to update the DOM with the new products
     setTimeout(() => {
       const section = document.getElementById("shop-all");
       if (section) {
-        const yOffset = -80; // Offset for the fixed header
+        const yOffset = -80; 
         const y = section.getBoundingClientRect().top + window.scrollY + yOffset;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
