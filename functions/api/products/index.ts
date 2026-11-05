@@ -1,4 +1,5 @@
 import { getLimit } from "../../lib/plans";
+import { purgeStoreCache } from "../../utils/purge"; // 🟢 IMPORT THE PURGE HELPER
 
 export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
   try {
@@ -11,8 +12,10 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
     ).bind(sid, Date.now()).first<{ user_id: string }>();
     if (!session) return Response.json({ error: "Session expired" }, { status: 401 });
 
-    const store = await env.DB.prepare("SELECT id, plan FROM stores WHERE user_id = ?")
-      .bind(session.user_id).first<{ id: string; plan: string }>();
+    // 🟢 ADDED slug TO THE SELECT QUERY
+    const store = await env.DB.prepare("SELECT id, plan, slug FROM stores WHERE user_id = ?")
+      .bind(session.user_id).first<{ id: string; plan: string; slug: string }>();
+      
     if (!store) return Response.json({ error: "No store" }, { status: 404 });
 
     const body = await request.json() as any;
@@ -46,6 +49,11 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       body.variants ? JSON.stringify(body.variants) : null,
       Date.now()
     ).run();
+
+    // 🟢 PURGE THE CACHE AFTER SUCCESSFUL CREATION
+    if (store.slug) {
+      await purgeStoreCache(store.slug, env);
+    }
 
     return Response.json({ id, ...body, views: 0 });
   } catch (e: any) {
