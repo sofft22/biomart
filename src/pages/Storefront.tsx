@@ -70,7 +70,6 @@ export default function Storefront() {
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   
-  // 🟢 NEW: Category State
   const [activeCategory, setActiveCategory] = useState<string>("All");
 
   const [headerHidden, setHeaderHidden] = useState(false);
@@ -128,27 +127,20 @@ export default function Storefront() {
 
   useReveal([products.length, sort, query, currentPage, activeCategory]);
 
-  // 🟢 Extract categories from the store settings (Comma-separated string)
+  // 🟢 FIXED: Added optional chaining (?.) to prevent crash if store is null
   const categoriesList = useMemo(() => {
-    const raw = (store as any).categories || "";
-    if (!raw.trim()) return [];
-    // Split by comma, trim whitespace, and filter out empty strings
+    const raw = (store as any)?.categories || "";
+    if (!raw || !raw.trim()) return [];
     return raw.split(",").map((c: string) => c.trim()).filter(Boolean);
   }, [store]);
 
   const filtered = useMemo(() => {
     let list = products;
     
-    // 🟢 Filter by Category (if not "All")
     if (activeCategory !== "All") {
-      const catLower = activeCategory.toLowerCase();
-      list = list.filter((p) => 
-        p.name.toLowerCase().includes(catLower) || 
-        (p.description || "").toLowerCase().includes(catLower)
-      );
+      list = list.filter((p) => (p as any).category === activeCategory);
     }
 
-    // Filter by Search Query
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
@@ -276,23 +268,17 @@ export default function Storefront() {
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
         
-        {/* 🟢 NEW: Category Pills (Horizontal Scroll on Mobile) */}
+        {/* Category Pills */}
         {categoriesList.length > 0 && (
           <div className="no-scrollbar" style={{ display: "flex", overflowX: "auto", gap: "10px", marginBottom: "24px", paddingBottom: "4px" }}>
             <button
               onClick={() => { setActiveCategory("All"); setCurrentPage(1); }}
               style={{
-                padding: "8px 16px",
-                borderRadius: "100px",
-                fontSize: "13px",
-                fontWeight: 500,
-                whiteSpace: "nowrap",
-                border: "1px solid",
+                padding: "8px 16px", borderRadius: "100px", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap", border: "1px solid",
                 borderColor: activeCategory === "All" ? "var(--text)" : "rgba(0,0,0,0.1)",
                 background: activeCategory === "All" ? "var(--text)" : "transparent",
                 color: activeCategory === "All" ? "var(--bg)" : "var(--text)",
-                cursor: "pointer",
-                transition: "all 0.2s"
+                cursor: "pointer", transition: "all 0.2s"
               }}
             >
               All
@@ -302,17 +288,11 @@ export default function Storefront() {
                 key={cat}
                 onClick={() => { setActiveCategory(cat); setCurrentPage(1); }}
                 style={{
-                  padding: "8px 16px",
-                  borderRadius: "100px",
-                  fontSize: "13px",
-                  fontWeight: 500,
-                  whiteSpace: "nowrap",
-                  border: "1px solid",
+                  padding: "8px 16px", borderRadius: "100px", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap", border: "1px solid",
                   borderColor: activeCategory === cat ? "var(--text)" : "rgba(0,0,0,0.1)",
                   background: activeCategory === cat ? "var(--text)" : "transparent",
                   color: activeCategory === cat ? "var(--bg)" : "var(--text)",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
+                  cursor: "pointer", transition: "all 0.2s"
                 }}
               >
                 {cat}
@@ -321,7 +301,7 @@ export default function Storefront() {
           </div>
         )}
 
-        {/* 🟢 UPDATED: Sort & Title Layout */}
+        {/* Title & Sort Layout */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 16, marginBottom: 24 }}>
           <div style={{ flex: "1 1 auto", minWidth: 0 }}>
             <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -329,25 +309,53 @@ export default function Storefront() {
             </h2>
           </div>
           
-          {/* Shrunk Sort Dropdown for Mobile */}
-          <select 
-            className="sf-select" 
-            value={sort} 
-            onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
-            style={{ 
-              width: "auto", 
-              minWidth: "120px", 
-              maxWidth: "140px", 
-              padding: "8px 12px", 
-              fontSize: "12px", 
-              flex: "0 0 auto" 
-            }}
-          >
-            <option value="new">Newest</option>
-            <option value="price-asc">Price: Low</option>
-            <option value="price-desc">Price: High</option>
-            <option value="name">Name: A-Z</option>
-          </select>
+          {/* 🟢 CUSTOM SORT DROPDOWN WITH ICON */}
+          <div style={{ position: "relative", flex: "0 0 auto" }}>
+            <select 
+              value={sort} 
+              onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
+              style={{ 
+                appearance: "none", // Hides default browser arrow
+                WebkitAppearance: "none",
+                MozAppearance: "none",
+                background: "transparent",
+                border: "1px solid var(--green-lite, #34d399)",
+                borderRadius: "100px",
+                padding: "8px 36px 8px 16px", // Extra padding on right for the arrow
+                fontSize: "13px",
+                fontWeight: 600,
+                color: "var(--text)",
+                cursor: "pointer",
+                outline: "none"
+              }}
+            >
+              <option value="new">Newest</option>
+              <option value="price-asc">Price: Low</option>
+              <option value="price-desc">Price: High</option>
+              <option value="name">A-Z</option>
+            </select>
+            {/* Custom Chevron Icon */}
+            <svg 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              style={{ 
+                position: "absolute", 
+                right: "12px", 
+                top: "50%", 
+                transform: "translateY(-50%)", 
+                width: "14px", 
+                height: "14px", 
+                pointerEvents: "none", 
+                color: "var(--text)" 
+              }}
+            >
+              <path d="M6 9l6 6 6-6" />
+            </svg>
+          </div>
         </div>
 
         {paginatedProducts.length === 0 ? (
