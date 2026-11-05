@@ -62,11 +62,8 @@ export function ProductModal({
 
   const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
   
-  // 🟢 FIX: The variant price is the absolute price, NOT a delta to add.
-  // If a variant is selected, we use its exact price. Otherwise, we use the base product price.
   const displayPrice = selectedVariant ? selectedVariant.priceDelta : product.price;
   
-  // For the "compare at" price, we don't touch it if a variant is selected.
   const displayCompare = !selectedVariant && product.compare_at_price != null 
     ? product.compare_at_price 
     : null;
@@ -111,7 +108,6 @@ export function ProductModal({
 
   const handleAdd = () => {
     if (!canAdd) return;
-    // 🟢 FIX: We pass the absolute price as the final argument so the cart knows the exact cost.
     onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
     setAddedFlash(true);
     setTimeout(() => setAddedFlash(false), 1400);
@@ -185,7 +181,7 @@ How do I proceed with the payment and delivery process?`;
             {/* IMAGE COLUMN */}
             <div style={{ backgroundColor: 'var(--bg)' }}>
               <div
-                className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in group"
+                className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in"
                 style={{ backgroundColor: 'var(--bg)' }}
                 onClick={() => setIsZoomed(true)}
                 onTouchStart={handleTouchStart}
@@ -204,7 +200,8 @@ How do I proceed with the payment and delivery process?`;
                     decoding="async"
                     onLoad={() => setMainImgLoaded(true)}
                     draggable={false}
-                    className={`h-full w-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+                    // 🟢 REMOVED group-hover:scale-105 to fix the blurriness
+                    className={`h-full w-full object-cover transition-opacity duration-500 ${
                       mainImgLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
                   />
@@ -291,7 +288,6 @@ How do I proceed with the payment and delivery process?`;
                           }}
                         >
                           <span>{v.label}</span>
-                          {/* 🟢 DISPLAYS THE EXACT PRICE ENTERED FOR THE VARIANT */}
                           <span style={{ color: active ? 'rgba(255,255,255,0.7)' : MUTED, fontSize: 11 }}>
                             {naira(v.priceDelta)}
                           </span>
