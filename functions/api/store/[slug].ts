@@ -10,15 +10,9 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
       return Response.json({ error: "Store not found" }, { status: 404 });
     }
 
-    // 🟢 CRITICAL FIX: Parse categories so frontend gets an Array, not a string
-    if (store.categories) {
-      try {
-        store.categories = typeof store.categories === 'string' ? JSON.parse(store.categories) : store.categories;
-      } catch (e) {
-        store.categories = [];
-      }
-    } else {
-      store.categories = [];
+    // 🟢 FIX: Just pass the string as-is. Our frontend is smart enough to split it.
+    if (!store.categories) {
+      store.categories = "";
     }
 
     const { results } = await env.DB.prepare(
