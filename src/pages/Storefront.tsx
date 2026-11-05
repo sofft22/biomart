@@ -59,6 +59,28 @@ function useReveal(deps: unknown[] = []) {
   }, deps);
 }
 
+// 🟢 HELPER TO SMARTLY SPLIT TEXT INTO TWO LINES
+function renderHeroTitle(title: string) {
+  if (!title) return null;
+  const firstSpaceIdx = title.indexOf(" ");
+  
+  // If there is no space, or it's just one word, keep it on one line
+  if (firstSpaceIdx === -1) {
+    return <span>{title}</span>;
+  }
+  
+  // If there is a space, split it into two lines exactly at the first space
+  const line1 = title.substring(0, firstSpaceIdx);
+  const line2 = title.substring(firstSpaceIdx + 1);
+  
+  return (
+    <span style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+      <span>{line1}</span>
+      <span>{line2}</span>
+    </span>
+  );
+}
+
 export default function Storefront() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { loading, store, products, error } = useStoreContext();
@@ -69,7 +91,6 @@ export default function Storefront() {
   const [sort, setSort] = useState<SortKey>("new");
   const [query, setQuery] = useState("");
   
-  // UI States for Toolbar
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [categoryOpen, setCategoryOpen] = useState(false);
@@ -85,7 +106,6 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -199,7 +219,7 @@ export default function Storefront() {
 
   const brand = splitBrandName(store.name);
   const tagline = (store as any).tagline || "";
-  const heroTitle = (store as any).hero_title || ""; // 🟢 LOAD NEW FIELD
+  const heroTitle = (store as any).hero_title || ""; 
   const address = (store as any).address || "";
   const hasCustomBanner = !!store.cover_url;
 
@@ -207,7 +227,7 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* 🟢 PREMIUM HEADER (No Truncation) */}
+      {/* PREMIUM HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0 }}>
@@ -223,7 +243,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER WITH FULL DARK OVERLAY & MASSIVE SERIF FONT */}
+      {/* HERO BANNER */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh" }}>
           <img 
@@ -232,24 +252,23 @@ export default function Storefront() {
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} 
           />
           
-          {/* Full dark overlay for the premium look */}
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
           
           <div 
             className="sf-banner-text" 
             style={{ 
               position: "relative", display: "flex", flexDirection: "column", 
-              justifyContent: "center", alignItems: "center", height: "100%", 
-              paddingBottom: "60px", paddingLeft: 24, paddingRight: 24, gap: 24 
+              justifyContent: "flex-end", // 🟢 BRINGING IT DOWN (flex-end)
+              alignItems: "center", height: "100%", 
+              paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
           >
-            {/* Massive Serif Hero Title */}
             {heroTitle && (
               <h1 
                 style={{ 
-                  fontFamily: "'Playfair Display', 'Georgia', serif", // 🟢 Premium Serif Font
+                  fontFamily: "'Playfair Display', 'Georgia', serif", 
                   color: "#fff", 
-                  fontSize: "clamp(3rem, 8vw, 5rem)", // 🟢 MASSIVE size
+                  fontSize: "clamp(2.5rem, 8vw, 5rem)", 
                   fontWeight: 600, 
                   textAlign: "center", 
                   lineHeight: 1.1,
@@ -259,7 +278,8 @@ export default function Storefront() {
                   maxWidth: "900px" 
                 }}
               >
-                {heroTitle}
+                {/* 🟢 CALLS THE SMART STACKING HELPER */}
+                {renderHeroTitle(heroTitle)}
               </h1>
             )}
             
@@ -280,7 +300,7 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* 🟢 SHOP ALL SECTION (More Spacing) */}
+      {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
         
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
@@ -375,7 +395,6 @@ export default function Storefront() {
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
           <>
-            {/* 🟢 INCREASED GAP BETWEEN PRODUCTS */}
             <div className="sf-grid-all" style={{ gap: "32px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <ProductCard 
@@ -400,7 +419,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 PREMIUM FOOTER */}
+      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
