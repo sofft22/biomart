@@ -22,9 +22,6 @@ interface AuthState {
 
 const Ctx = createContext<AuthState | null>(null);
 
-let lastFetchedAt = 0;
-const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -34,25 +31,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [plans, setPlans] = useState<PlansMap | null>(null);
 
   const refresh = useCallback(async (force = false) => {
-    const now = Date.now();
-    
-    if (!force && now - lastFetchedAt < CACHE_TTL && user !== null) {
+    // If not forcing, and we already have data, skip the fetch
+    if (!force && user !== null) {
       setLoading(false);
       return;
     }
 
     try {
       const data = await auth.me();
-      
       setUser(data.user);
-      
-      // 🟢 FORCE TYPESCRIPT TO ACCEPT EVERYTHING
       setStore(data.store as any); 
-      
       setProducts(data.products || []);
       setLimits(data.limits);
       setPlans(data.plans);
-      lastFetchedAt = Date.now();
     } catch {
       setUser(null);
       setStore(null);
@@ -71,14 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider
       value={{
-        loading,
-        user,
-        store,
-        products,
-        limits,
-        plans,
-        refresh,
-        setProducts,
+        loading, user, store, products, limits, plans, refresh, setProducts,
       }}
     >
       {children}
