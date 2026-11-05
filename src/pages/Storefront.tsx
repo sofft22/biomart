@@ -203,11 +203,10 @@ export default function Storefront() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
-  // 🟢 SMART PAGINATION SCROLL
+  // 🟢 SCROLLS TO THE PRODUCT GRID
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    // Smoothly scroll back to the "Shop all" heading
-    scrollTo("shop-all");
+    scrollTo("product-grid-top");
   };
 
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
@@ -409,7 +408,8 @@ export default function Storefront() {
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
           <>
-            <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
+            {/* 🟢 ADDED ID HERE SO IT SCROLLS EXACTLY TO THE FIRST PRODUCT */}
+            <div id="product-grid-top" className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <div key={p.id}>
                   <ProductCard 
@@ -427,7 +427,6 @@ export default function Storefront() {
             {totalPages > 1 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 64 }}>
                 
-                {/* Previous Arrow */}
                 <button 
                   disabled={currentPage === 1} 
                   onClick={() => handlePageChange(currentPage - 1)}
@@ -442,12 +441,9 @@ export default function Storefront() {
                   </svg>
                 </button>
 
-                {/* Page Numbers */}
                 <div style={{ display: "flex", gap: 8 }}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    // Show max 5 pages around current page
                     if (totalPages > 5 && Math.abs(currentPage - page) > 2) return null;
-                    
                     return (
                       <button
                         key={page}
@@ -467,7 +463,6 @@ export default function Storefront() {
                   })}
                 </div>
 
-                {/* Next Arrow */}
                 <button 
                   disabled={currentPage === totalPages} 
                   onClick={() => handlePageChange(currentPage + 1)}
@@ -494,7 +489,7 @@ export default function Storefront() {
           
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "1fr", // Mobile: 1 column
+            gridTemplateColumns: "1fr", 
             gap: "48px", 
             paddingBottom: "48px", 
             borderBottom: "1px solid rgba(255,255,255,0.1)" 
@@ -506,12 +501,11 @@ export default function Storefront() {
                   gap: 32px !important;
                 }
                 .sf-footer-mobile-stack {
-                  display: contents !important;
+                  display: contents !important; 
                 }
               }
             `}</style>
             
-            {/* Brand Column */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
@@ -522,15 +516,13 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* Mobile wrapper for the links (2 cols on mobile, 3 cols on desktop) */}
             <div className="sf-footer-mobile-stack" style={{ 
               display: "grid", 
-              gridTemplateColumns: "1fr 1fr", // Mobile: 2 columns for links
+              gridTemplateColumns: "1fr 1fr", 
               gap: "32px",
               gridColumn: "1 / -1"
             }}>
               
-              {/* Contact Column */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -540,7 +532,6 @@ export default function Storefront() {
                 </div>
               </div>
 
-              {/* Location Column */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
                 {address ? (
@@ -552,17 +543,15 @@ export default function Storefront() {
                 )}
               </div>
 
-              {/* Empty 3rd column for desktop balance (hidden on mobile) */}
               <div className="hidden md:block"></div>
 
             </div>
 
           </div>
 
-          {/* 🟢 BOTTOM BAR (Side-by-side) */}
           <div style={{ 
             display: "flex", 
-            flexDirection: "row", // Forces side-by-side
+            flexDirection: "row", 
             flexWrap: "wrap", 
             justifyContent: "space-between", 
             alignItems: "center", 
