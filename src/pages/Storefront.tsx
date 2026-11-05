@@ -127,19 +127,28 @@ export default function Storefront() {
 
   useReveal([products.length, sort, query, currentPage, activeCategory]);
 
-  // 🟢 BULLETPROOF CATEGORY PARSER
+  // 🟢 BULLETPROOF CATEGORY PARSER (Handles both Array and String formats)
   const categoriesList = useMemo(() => {
-    const raw = (store as any)?.categories;
+    let raw = (store as any)?.categories;
     if (!raw) return [];
-    
-    // If the database sent an Array, just return it
+
     if (Array.isArray(raw)) {
-      return raw.filter(Boolean); 
+      return raw.filter(Boolean);
     }
-    
-    // If the database sent a String, split it by commas
+
     if (typeof raw === "string") {
-      return raw.split(",").map((c: string) => c.trim()).filter(Boolean);
+      const trimmed = raw.trim();
+      // Check if it's a JSON string (e.g., '["Shoes", "Shirts"]')
+      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) return parsed;
+        } catch (e) {
+          // Ignore error and fall through
+        }
+      }
+      // Check if it's a normal comma-separated string (e.g., "Shoes, Shirts")
+      return trimmed.split(",").map((c: string) => c.trim()).filter(Boolean);
     }
     
     return [];
@@ -326,13 +335,13 @@ export default function Storefront() {
               value={sort} 
               onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
               style={{ 
-                appearance: "none", // Hides default browser arrow
+                appearance: "none", 
                 WebkitAppearance: "none",
                 MozAppearance: "none",
                 background: "transparent",
                 border: "1px solid var(--green-lite, #34d399)",
                 borderRadius: "100px",
-                padding: "8px 36px 8px 16px", // Extra padding on right for the arrow
+                padding: "8px 36px 8px 16px", 
                 fontSize: "13px",
                 fontWeight: 600,
                 color: "var(--text)",
@@ -345,7 +354,6 @@ export default function Storefront() {
               <option value="price-desc">Price: High</option>
               <option value="name">A-Z</option>
             </select>
-            {/* Custom Chevron Icon */}
             <svg 
               viewBox="0 0 24 24" 
               fill="none" 
