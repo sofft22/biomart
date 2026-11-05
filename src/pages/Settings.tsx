@@ -11,6 +11,7 @@ export default function Settings() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
+  const [slug, setSlug] = useState((store as any)?.slug ?? ""); // 🟢 Store Slug State
   const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
   const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? "");
   const [categories, setCategories] = useState((store as any)?.categories ?? "");
@@ -24,7 +25,6 @@ export default function Settings() {
   const [banners, setBanners] = useState<string[]>([]);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   
-  // Refs for hidden file inputs (up to 4)
   const fileInputRefs = [
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -35,6 +35,7 @@ export default function Settings() {
   useEffect(() => {
     if (!store) return;
     setName(store.name ?? "");
+    setSlug((store as any).slug ?? "");
     setTagline((store as any).tagline ?? "");
     setHeroTitle((store as any).hero_title ?? "");
     setCategories((store as any).categories ?? "");
@@ -43,7 +44,6 @@ export default function Settings() {
     setInstagram(store.instagram ?? "");
     setTiktok(store.tiktok ?? "");
     
-    // Combine main banner + extra banners
     let loadedBanners = [];
     if ((store as any).cover_url) {
       loadedBanners.push((store as any).cover_url);
@@ -60,12 +60,25 @@ export default function Settings() {
 
   if (!store) return null;
 
+  // 🟢 Auto-generate slug from name
+  const generateSlug = () => {
+    const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    setSlug(baseSlug);
+  };
+
   const handleSaveStore = async () => {
     if (!name.trim()) return toast.show("Store name is required");
     setSaving(true);
     try {
+      // 🟢 If the slug contains random numbers like "soft-3273", we generate a clean one
+      let finalSlug = slug;
+      if (!finalSlug || /-\d{4}$/.test(finalSlug)) {
+        finalSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      }
+
       await storeApi.update({
         name: name.trim(),
+        slug: finalSlug.trim(), // 🟢 Save the clean slug
         tagline: tagline.trim() || null,
         hero_title: heroTitle.trim() || null,
         categories: categories.trim() || null,
@@ -92,11 +105,9 @@ export default function Settings() {
       const newBanners = [...banners];
       newBanners[index] = url;
       
-      // Clean up empty slots
       const cleanBanners = newBanners.filter(Boolean);
       setBanners(cleanBanners);
 
-      // Save to API
       const cover_url = cleanBanners[0] || null;
       const extra_banners = cleanBanners.length > 1 ? JSON.stringify(cleanBanners.slice(1)) : null;
       
@@ -149,6 +160,7 @@ export default function Settings() {
           {!isEditing ? (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Name</span><p style={{ fontSize: 16, fontWeight: 600, margin: "4px 0 0" }}>{name || "—"}</p></div>
+              <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Link</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>biomart.pages.dev/{slug || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Tagline</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tagline || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Hero Title</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{heroTitle || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Categories</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{categories || "—"}</p></div>
@@ -162,7 +174,21 @@ export default function Settings() {
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Name (Max 22 chars)</label>
-                  <input className="pe-input" value={name} maxLength={22} onChange={(e) => setName(e.target.value)} />
+                  <input className="pe-input" value={name} maxLength={22} onChange={(e) => setName(e.target.value)} onBlur={generateSlug} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Link</label>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ padding: "10px 12px", background: "var(--soft)", border: "1px solid var(--line)", borderRight: "none", borderRadius: "8px 0 0 8px", fontSize: 13, color: "var(--muted)" }}>
+                      biomart.pages.dev/
+                    </span>
+                    <input 
+                      className="pe-input" 
+                      value={slug} 
+                      onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))} 
+                      style={{ borderRadius: "0 8px 8px 0", flex: 1 }} 
+                    />
+                  </div>
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 20 chars)</label>
@@ -198,12 +224,9 @@ export default function Settings() {
             </div>
           </div>
           
-          {/* 🟢 SMART GRID: 1 column on mobile, 2x2 on desktop */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             {[0, 1, 2, 3].map((index) => {
               const url = banners[index];
-              
-              // Only show slot if it's the first one, OR if the previous slot has an image
               if (index > 0 && banners.length < index) return null;
 
               return (
