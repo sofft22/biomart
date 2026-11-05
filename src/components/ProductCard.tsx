@@ -52,8 +52,9 @@ export const ProductCard = memo(function ProductCard({
   return (
     <article className="pc group flex flex-col cursor-pointer w-full" style={{ animationDelay: `${delay}s` }}>
       
-      <button onClick={onClick} className="pc-media relative aspect-[4/5] w-full overflow-hidden rounded-lg bg-[#EBE0D3]" aria-label={`View ${product.name}`}>
-        {!imgLoaded && images.length > 0 && <div className="pc-skeleton absolute inset-0 animate-pulse bg-[#EBE0D3]" />}
+      {/* 🟢 REMOVED the hardcoded background color here so it matches your store */}
+      <button onClick={onClick} className="pc-media relative aspect-[4/5] w-full overflow-hidden rounded-lg" aria-label={`View ${product.name}`}>
+        {!imgLoaded && images.length > 0 && <div className="pc-skeleton absolute inset-0 animate-pulse" />}
 
         <div className="pc-desktop h-full w-full">
           {images[0] && (
@@ -95,7 +96,7 @@ export const ProductCard = memo(function ProductCard({
               ))}
             </div>
           ) : (
-            <div className="pc-no-image flex items-center justify-center h-full text-[#2C1A1D]">No image</div>
+            <div className="pc-no-image flex items-center justify-center h-full">No image</div>
           )}
           
           {/* Indicators */}
@@ -138,7 +139,7 @@ export const ProductCard = memo(function ProductCard({
 
         {!inStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-            <span className="bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#2C1A1D]">
+            <span className="bg-white/90 px-3 py-1 text-[10px] font-bold uppercase tracking-widest">
               Sold Out
             </span>
           </div>
@@ -146,17 +147,17 @@ export const ProductCard = memo(function ProductCard({
 
         {inStock && (
           <div className="pc-hover-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={handleQuickAction} className="pc-quick-btn bg-white text-[#2C1A1D] px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded">
+            <button onClick={handleQuickAction} className="pc-quick-btn bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded">
               {hasVariants ? 'Choose options' : 'Add to bag'}
             </button>
           </div>
         )}
       </button>
 
-      {/* Meta Section - Exact fonts, weights, sizes and margins from reference */}
+      {/* Meta Section - Removed hardcoded text colors so it matches your global theme */}
       <button onClick={onClick} className="pc-meta mt-3 flex flex-col gap-1 text-left w-full">
         <p 
-          className="pc-name text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em] text-[#2C1A1D]"
+          className="pc-name text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]"
           style={{ fontFamily: 'var(--font-inter), sans-serif', textTransform: 'capitalize' }}
         >
           {product.name}
@@ -164,7 +165,7 @@ export const ProductCard = memo(function ProductCard({
         
         <div className="pc-price-row flex items-baseline gap-1 mt-0">
           <span 
-            className="pc-price text-[14px] font-extrabold text-[#2C1A1D] tracking-tight"
+            className="pc-price text-[14px] font-extrabold tracking-tight"
             style={{ fontFamily: 'var(--font-inter), sans-serif' }}
           >
             {naira(product.price)}
@@ -172,7 +173,7 @@ export const ProductCard = memo(function ProductCard({
           
           {hasDiscount && (
             <span 
-              className="pc-price-old text-[11px] font-medium text-[#2C1A1D]/70 line-through"
+              className="pc-price-old text-[11px] font-medium opacity-50 line-through"
               style={{ fontFamily: 'var(--font-inter), sans-serif' }}
             >
               {naira(product.compare_at_price!)}
