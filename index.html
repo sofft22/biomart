@@ -3,17 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>biomart</title>
+    
+    <!-- 🟢 Standard Meta (Fallbacks) -->
+    <title>Biomart</title>
     <meta name="description" content="Your bio link, but it sells." />
     <meta name="theme-color" content="#0F7A4A" />
+    
+    <!-- 🟢 Open Graph Fallbacks (Used if a store has no banner) -->
+    <meta property="og:title" content="Biomart - Your bio link, but it sells." />
+    <meta property="og:description" content="Turn every click into a customer." />
+    <meta property="og:image" content="https://biomart.pages.dev/og-fallback.jpg" />
+    <meta property="og:type" content="website" />
+    
+    <!-- 🟢 Twitter Fallbacks -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Biomart - Your bio link, but it sells." />
+    <meta name="twitter:description" content="Turn every click into a customer." />
+    <meta name="twitter:image" content="https://biomart.pages.dev/og-fallback.jpg" />
     
     <!-- 🟢 Optimization: Preconnect to font and image servers -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://images.unsplash.com">
-    
-    <!-- 🟢 Optimization: Preload the main Hero banner image (Change the href to your actual banner URL if you want) -->
-    <link rel="preload" as="image" href="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600&q=85&auto=format&fit=crop" fetchpriority="high">
 
     <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
