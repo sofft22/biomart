@@ -198,7 +198,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER (Motion added via CSS class) */}
+      {/* HERO BANNER */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh" }}>
           <img 
@@ -220,7 +220,7 @@ export default function Storefront() {
           >
             {heroTitle && (
               <h1 
-                className="sf-banner-tagline" // 🟢 CSS MOTION APPLIED
+                className="sf-banner-tagline"
                 style={{ 
                   fontFamily: "'Playfair Display', 'Georgia', serif", 
                   color: "#fff", 
@@ -240,7 +240,7 @@ export default function Storefront() {
             
             <button 
               onClick={() => scrollTo("shop-all")} 
-              className="sf-banner-cta" // 🟢 CSS MOTION APPLIED
+              className="sf-banner-cta"
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
                 fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16
@@ -353,7 +353,6 @@ export default function Storefront() {
             <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <div key={p.id}>
-                  {/* 🟢 Note: The "sf-rise" motion is already handled inside the .pc class in your CSS file, so ProductCard animates automatically! */}
                   <ProductCard 
                     product={p} 
                     index={i} 
@@ -376,7 +375,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 CLEAN MOBILE-LEFT ALIGNED FOOTER */}
+      {/* 🟢 EXACTLY AS REQUESTED: NO FAKE LINKS, GROUPED PERFECTLY */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
@@ -393,11 +392,11 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* Links Grid (2 col mobile, 3 col desktop via inline flex wrap) */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "40px", width: "100%", textAlign: "left" }}>
+            {/* Side-by-Side Navs for Mobile & Desktop */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", width: "100%", textAlign: "left" }}>
               
               {/* Contact */}
-              <div style={{ flex: "1 1 120px" }}>
+              <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                   {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
@@ -408,21 +407,13 @@ export default function Storefront() {
 
               {/* Location */}
               {address && (
-                <div style={{ flex: "1 1 120px" }}>
+                <div>
                   <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Location</h4>
                   <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.5, display: "block" }}>
                     {address}
                   </a>
                 </div>
               )}
-
-              {/* Shop All Link */}
-              <div style={{ flex: "1 1 120px" }}>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Shop</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  <a href="#shop-all" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>All Products</a>
-                </div>
-              </div>
 
             </div>
           </div>
@@ -435,13 +426,6 @@ export default function Storefront() {
                 <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
                 Powered by biomart
               </a>
-              <button 
-                onClick={scrollToTop} 
-                style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6 }}
-              >
-                Back to top
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-              </button>
             </div>
           </div>
         </div>
