@@ -59,9 +59,6 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // Carousel State
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -117,6 +114,7 @@ export default function Storefront() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // 🟢 CHANGED TO LIMIT 4 BANNERS
   const bannersList = useMemo(() => {
     const list = [];
     if ((store as any)?.cover_url) list.push((store as any).cover_url);
@@ -124,16 +122,8 @@ export default function Storefront() {
       const extras = JSON.parse((store as any)?.extra_banners || "[]");
       if (Array.isArray(extras)) list.push(...extras);
     } catch (e) {}
-    return list.filter(Boolean).slice(0, 3);
+    return list.filter(Boolean).slice(0, 4);
   }, [store]);
-
-  useEffect(() => {
-    if (bannersList.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => (prev + 1) % bannersList.length);
-    }, 4000); 
-    return () => clearInterval(interval);
-  }, [bannersList.length]);
 
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
@@ -196,10 +186,36 @@ export default function Storefront() {
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
+  const marqueeBanners = bannersList.length > 1 ? [...bannersList, ...bannersList] : bannersList;
+
+  // 🟢 Dynamic CSS for the "Slide, Pause, Slide" animation up to 4 images
+  const slideCount = bannersList.length;
+  const slidePercentage = 100 / slideCount;
+  
+  const marqueeKeyframes = `
+    @keyframes sf-marquee-loop {
+      0%, 12% { transform: translateX(0%); } 
+      25%, 37% { transform: translateX(-${slidePercentage}%); } 
+      ${slideCount >= 3 ? `50%, 62% { transform: translateX(-${slidePercentage * 2}%); }` : ''}
+      ${slideCount >= 4 ? `75%, 87% { transform: translateX(-${slidePercentage * 3}%); }` : ''}
+      100% { transform: translateX(-${slidePercentage * slideCount}%); } 
+    }
+  `;
+
   return (
     <div className="sf-shell">
+      <style>{marqueeKeyframes}</style>
+      <style>{`
+        .sf-marquee-track {
+          display: flex;
+          width: max-content;
+          height: 100%;
+          animation: sf-marquee-loop ${slideCount * 4}s ease-in-out infinite; 
+        }
+      `}</style>
+
       {/* HEADER */}
-      <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
+      <header className={headerClasses} style={{ transition: "all 0.3s ease", zIndex: 50 }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button 
             onClick={scrollToTop} 
@@ -219,26 +235,31 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 FIXED HERO BANNER CAROUSEL (Stacked Cross-Fade) */}
+      {/* HERO BANNER MARQUEE */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#000" }}>
+        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
           
-          {/* Render all images stacked on top of each other */}
-          {bannersList.map((url, idx) => (
-            <img 
-              key={idx}
-              src={url} 
-              alt={`Banner ${idx + 1}`} 
-              loading={idx === 0 ? "eager" : "lazy"} 
-              fetchPriority={idx === 0 ? "high" : "auto"}
-              style={{ 
-                position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
-                opacity: currentBannerIndex === idx ? 1 : 0,
-                transition: "opacity 0.8s ease-in-out",
-                zIndex: currentBannerIndex === idx ? 1 : 0
-              }} 
-            />
-          ))}
+          <div className="sf-marquee-track">
+            {marqueeBanners.map((url, idx) => (
+              <div 
+                key={idx} 
+                style={{ 
+                  width: "100vw", 
+                  height: "70vh", 
+                  flexShrink: 0,
+                  backgroundColor: "#fff" 
+                }}
+              >
+                <img 
+                  src={url} 
+                  alt={`Banner ${(idx % slideCount) + 1}`} 
+                  loading={idx === 0 ? "eager" : "lazy"} 
+                  fetchPriority={idx === 0 ? "high" : "auto"}
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                />
+              </div>
+            ))}
+          </div>
           
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
           
