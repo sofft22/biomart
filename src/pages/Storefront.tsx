@@ -68,9 +68,12 @@ export default function Storefront() {
   const [cartOpen, setCartOpen] = useState(false);
   const [sort, setSort] = useState<SortKey>("new");
   const [query, setQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   
+  // 🟢 UI States for Toolbar
+  const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
@@ -78,6 +81,17 @@ export default function Storefront() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Close category dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setCategoryOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -127,13 +141,10 @@ export default function Storefront() {
 
   useReveal([products.length, sort, query, currentPage, activeCategory]);
 
-  // 🟢 BULLETPROOF CATEGORY PARSER
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
     if (!raw) return [];
-    
     if (Array.isArray(raw)) return raw.filter(Boolean);
-
     if (typeof raw === "string") {
       const trimmed = raw.trim();
       if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
@@ -149,16 +160,13 @@ export default function Storefront() {
 
   const filtered = useMemo(() => {
     let list = products;
-    
     if (activeCategory !== "All") {
       list = list.filter((p) => (p as any).category === activeCategory);
     }
-
     if (query.trim()) {
       const q = query.toLowerCase();
       list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
     }
-
     const sorted = [...list];
     switch (sort) {
       case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
@@ -189,45 +197,28 @@ export default function Storefront() {
   const brand = splitBrandName(store.name);
   const tagline = (store as any).tagline || "";
   const address = (store as any).address || "";
-  
   const hasCustomBanner = !!store.cover_url;
 
-  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : "", searchOpen ? "sf-head-searching" : ""].filter(Boolean).join(" ");
+  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
   return (
     <div className="sf-shell">
+      {/* HEADER - Cleaned up */}
       <header className={headerClasses}>
         <div className="sf-head-inner">
-          {!searchOpen && (
-            <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
-              {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
-              {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
-            </button>
-          )}
-          <div className={`sf-head-searchbar ${searchOpen ? "open" : ""}`}>
-            {searchOpen && (
-              <>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-                <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} placeholder="Search products…" autoFocus />
-              </>
-            )}
-          </div>
-          {!searchOpen && <div className="sf-head-spacer" />}
-          {!searchOpen && (
-            <nav className="sf-head-links">
-              <button onClick={() => scrollTo("shop-all")}>Shop all</button>
-            </nav>
-          )}
+          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
+            {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
+          </button>
+          <div className="sf-head-spacer" />
+          <nav className="sf-head-links">
+            <button onClick={() => scrollTo("shop-all")}>Shop all</button>
+          </nav>
           <div className="sf-head-actions">
-            <button onClick={() => setSearchOpen(!searchOpen)} className="sf-icon-btn" aria-label="Search">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+              {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
             </button>
-            {!searchOpen && (
-              <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
-                {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
-              </button>
-            )}
           </div>
         </div>
       </header>
@@ -237,23 +228,9 @@ export default function Storefront() {
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div className="sf-banner-overlay" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0) 100%)" }} />
-          
-          <div 
-            className="sf-banner-text" 
-            style={{ 
-              position: "relative", display: "flex", flexDirection: "column", justifyContent: "flex-end",
-              alignItems: "center", height: "100%", paddingBottom: "clamp(40px, 8vw, 80px)",
-              paddingLeft: 24, paddingRight: 24, gap: 20 
-            }}
-          >
+          <div className="sf-banner-text" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%", paddingBottom: "clamp(40px, 8vw, 80px)", paddingLeft: 24, paddingRight: 24, gap: 20 }}>
             {tagline && (
-              <h2 
-                style={{ 
-                  color: "#fff", fontSize: "clamp(0.9rem, 2vw, 1.2rem)", fontWeight: 500, textAlign: "center",
-                  letterSpacing: "0.15em", textTransform: "uppercase", margin: 0,
-                  textShadow: "0 2px 10px rgba(0,0,0,0.5)", maxWidth: "600px"
-                }}
-              >
+              <h2 style={{ color: "#fff", fontSize: "clamp(0.9rem, 2vw, 1.2rem)", fontWeight: 500, textAlign: "center", letterSpacing: "0.15em", textTransform: "uppercase", margin: 0, textShadow: "0 2px 10px rgba(0,0,0,0.5)", maxWidth: "600px" }}>
                 {tagline}
               </h2>
             )}
@@ -265,73 +242,100 @@ export default function Storefront() {
       )}
 
       {/* SHOP ALL SECTION */}
-      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
+      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "60px" : "100px" }}>
         
-        {/* Category Pills */}
-        {categoriesList.length > 0 && (
-          <div className="no-scrollbar" style={{ display: "flex", overflowX: "auto", gap: "10px", marginBottom: "24px", paddingBottom: "4px" }}>
-            <button
-              onClick={() => { setActiveCategory("All"); setCurrentPage(1); }}
-              style={{
-                padding: "8px 16px", borderRadius: "100px", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap", border: "1px solid",
-                borderColor: activeCategory === "All" ? "var(--text)" : "rgba(0,0,0,0.1)",
-                background: activeCategory === "All" ? "var(--text)" : "transparent",
-                color: activeCategory === "All" ? "var(--bg)" : "var(--text)",
-                cursor: "pointer", transition: "all 0.2s"
-              }}
-            >
-              All
-            </button>
-            {categoriesList.map((cat: string) => (
-              <button
-                key={cat}
-                onClick={() => { setActiveCategory(cat); setCurrentPage(1); }}
-                style={{
-                  padding: "8px 16px", borderRadius: "100px", fontSize: "13px", fontWeight: 500, whiteSpace: "nowrap", border: "1px solid",
-                  borderColor: activeCategory === cat ? "var(--text)" : "rgba(0,0,0,0.1)",
-                  background: activeCategory === cat ? "var(--text)" : "transparent",
-                  color: activeCategory === cat ? "var(--bg)" : "var(--text)",
-                  cursor: "pointer", transition: "all 0.2s"
-                }}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Title & Sort Layout */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 16, marginBottom: 24 }}>
-          <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-            <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {query ? `Results for "${query}"` : activeCategory === "All" ? "Shop all" : activeCategory}
-            </h2>
-          </div>
+        {/* 🟢 NEW TOOLBAR LAYOUT */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 24 }}>
           
-          <div style={{ position: "relative", flex: "0 0 auto" }}>
-            <select 
-              value={sort} 
-              onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
-              style={{ 
-                appearance: "none", WebkitAppearance: "none", MozAppearance: "none", background: "transparent",
-                border: "1px solid var(--green-lite, #34d399)", borderRadius: "100px",
-                padding: "8px 36px 8px 16px", fontSize: "13px", fontWeight: 600, color: "var(--text)", cursor: "pointer", outline: "none"
-              }}
+          {/* Left Side: Category Dropdown */}
+          <div ref={dropdownRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
+            <button 
+              onClick={() => setCategoryOpen(!categoryOpen)}
+              style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
             >
-              <option value="new">Newest</option>
-              <option value="price-asc">Price: Low</option>
-              <option value="price-desc">Price: High</option>
-              <option value="name">A-Z</option>
-            </select>
-            <svg 
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", width: "14px", height: "14px", pointerEvents: "none", color: "var(--text)" }}
+              <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+                {query ? `Search` : activeCategory === "All" ? "Shop all" : activeCategory}
+              </h2>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}>
+                <path d={categoryOpen ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
+              </svg>
+            </button>
+
+            {/* Category Menu */}
+            {categoryOpen && categoriesList.length > 0 && (
+              <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 200, zIndex: 50, overflow: "hidden" }}>
+                <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
+                  {["All", ...categoriesList].map((cat: string) => (
+                    <button
+                      key={cat}
+                      onClick={() => { setActiveCategory(cat); setCurrentPage(1); setCategoryOpen(false); setQuery(""); }}
+                      style={{ padding: "12px 20px", textAlign: "left", background: activeCategory === cat && !query ? "var(--soft)" : "transparent", border: "none", fontSize: 14, fontWeight: activeCategory === cat && !query ? 600 : 500, color: "var(--text)", cursor: "pointer" }}
+                    >
+                      {cat === "All" ? "Shop All" : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right Side: Search & Sort Icons */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
+            
+            {/* Search Toggle Button */}
+            <button 
+              onClick={() => setSearchOpen(!searchOpen)} 
+              style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}
             >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            </button>
+
+            {/* Sort Dropdown (Icon style) */}
+            <div style={{ position: "relative" }}>
+              <select 
+                value={sort} 
+                onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
+                style={{ 
+                  appearance: "none", WebkitAppearance: "none", MozAppearance: "none", 
+                  background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", 
+                  padding: "6px", width: "34px", height: "34px", cursor: "pointer", outline: "none", display: "flex", alignItems: "center", justifyContent: "center"
+                }}
+                title="Sort products"
+              >
+                <option value="new">Newest</option>
+                <option value="price-asc">Price: Low</option>
+                <option value="price-desc">Price: High</option>
+                <option value="name">A-Z</option>
+              </select>
+              {/* Sort Icon */}
+              <svg 
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                style={{ position: "absolute", right: "9px", top: "50%", transform: "translateY(-50%)", width: "14px", height: "14px", pointerEvents: "none", color: "var(--text)" }}
+              >
+                <path d="M3 6h18M6 12h12M10 18h4" />
+              </svg>
+            </div>
+            
           </div>
         </div>
 
+        {/* 🟢 EXPANDABLE SEARCH BAR (Reveals under the toolbar) */}
+        {searchOpen && (
+          <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
+            <input 
+              type="search" 
+              value={query} 
+              onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} 
+              placeholder="Search products…" 
+              autoFocus 
+              style={{ background: "transparent", border: "none", outline: "none", width: "100%", fontSize: 14, color: "var(--text)" }}
+            />
+            <button onClick={() => { setSearchOpen(false); setQuery(""); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Cancel</button>
+          </div>
+        )}
+
+        {/* Product Grid */}
         {paginatedProducts.length === 0 ? (
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
@@ -339,7 +343,10 @@ export default function Storefront() {
             <div className="sf-grid-all">
               {paginatedProducts.map((p, i) => (
                 <ProductCard 
-                  key={p.id} product={p} index={i} priority={i < 4} 
+                  key={p.id} 
+                  product={p} 
+                  index={i} 
+                  priority={i < 4} 
                   onClick={() => handleOpenProduct(p)} 
                   onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
                 />
@@ -357,20 +364,18 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* SMARTER FOOTER */}
+      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
-        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+         {/* ... Footer stays the same as your last code ... */}
+         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
             <div style={{ flex: "1 1 300px" }}>
               <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
                 {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
                 {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
               </div>
-              <p className="sf-footer-bio" style={{ maxWidth: 300, margin: 0, opacity: 0.7 }}>
-                {tagline || "Curated essentials for the modern wardrobe."}
-              </p>
+              <p className="sf-footer-bio" style={{ maxWidth: 300, margin: 0, opacity: 0.7 }}>{tagline || "Curated essentials for the modern wardrobe."}</p>
             </div>
-            
             <div style={{ flex: "1 1 200px", textAlign: "left" }}>
               <h4 className="sf-footer-h" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 16, opacity: 0.6 }}>Contact</h4>
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
@@ -397,7 +402,6 @@ export default function Storefront() {
               )}
             </div>
           </div>
-
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
