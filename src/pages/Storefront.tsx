@@ -69,25 +69,27 @@ export default function Storefront() {
   const [sort, setSort] = useState<SortKey>("new");
   const [query, setQuery] = useState("");
   
-  // 🟢 UI States for Toolbar
+  // UI States for Toolbar
   const [searchOpen, setSearchOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [sortOpen, setSortOpen] = useState(false);
+  
+  const categoryRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
   const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // Close category dropdown when clicking outside
+  // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setCategoryOpen(false);
-      }
+      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
+      if (sortRef.current && !sortRef.current.contains(event.target as Node)) setSortOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -97,7 +99,7 @@ export default function Storefront() {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setItemsPerPage(20);
       else if (window.innerWidth >= 768) setItemsPerPage(15);
-      else setItemsPerPage(10);
+      else setItemsPerPage(12);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -190,6 +192,7 @@ export default function Storefront() {
   };
 
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
   if (error || !store) return <div className="sf-loading">Store not found</div>;
@@ -199,21 +202,19 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = !!store.cover_url;
 
+  // 🟢 Premium Header Logic
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
   return (
     <div className="sf-shell">
-      {/* HEADER - Cleaned up */}
-      <header className={headerClasses}>
+      {/* 🟢 PREMIUM HEADER */}
+      <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
         <div className="sf-head-inner">
-          <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
+          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name}>
             {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
             {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
           </button>
           <div className="sf-head-spacer" />
-          <nav className="sf-head-links">
-            <button onClick={() => scrollTo("shop-all")}>Shop all</button>
-          </nav>
           <div className="sf-head-actions">
             <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
@@ -223,11 +224,13 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER */}
+      {/* 🟢 HERO BANNER WITH TOP GRADIENT */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-          <div className="sf-banner-overlay" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0) 100%)" }} />
+          {/* Dark gradient at top for header readability, dark gradient at bottom for CTA */}
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%)" }} />
+          
           <div className="sf-banner-text" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%", paddingBottom: "clamp(40px, 8vw, 80px)", paddingLeft: 24, paddingRight: 24, gap: 20 }}>
             {tagline && (
               <h2 style={{ color: "#fff", fontSize: "clamp(0.9rem, 2vw, 1.2rem)", fontWeight: 500, textAlign: "center", letterSpacing: "0.15em", textTransform: "uppercase", margin: 0, textShadow: "0 2px 10px rgba(0,0,0,0.5)", maxWidth: "600px" }}>
@@ -241,19 +244,19 @@ export default function Storefront() {
         </section>
       )}
 
-      {/* SHOP ALL SECTION */}
+      {/* 🟢 SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "60px" : "100px" }}>
         
-        {/* 🟢 NEW TOOLBAR LAYOUT */}
+        {/* TOOLBAR */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 24 }}>
           
-          {/* Left Side: Category Dropdown */}
-          <div ref={dropdownRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
+          {/* Left: Category Dropdown */}
+          <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button 
               onClick={() => setCategoryOpen(!categoryOpen)}
               style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
             >
-              <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>
+              <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", fontSize: "clamp(1.5rem, 4vw, 2rem)" }}>
                 {query ? `Search` : activeCategory === "All" ? "Shop all" : activeCategory}
               </h2>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}>
@@ -261,7 +264,6 @@ export default function Storefront() {
               </svg>
             </button>
 
-            {/* Category Menu */}
             {categoryOpen && categoriesList.length > 0 && (
               <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 200, zIndex: 50, overflow: "hidden" }}>
                 <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
@@ -279,47 +281,50 @@ export default function Storefront() {
             )}
           </div>
 
-          {/* Right Side: Search & Sort Icons */}
+          {/* Right: Search & Custom Sort */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
             
-            {/* Search Toggle Button */}
-            <button 
-              onClick={() => setSearchOpen(!searchOpen)} 
-              style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}
-            >
+            <button onClick={() => setSearchOpen(!searchOpen)} style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             </button>
 
-            {/* Sort Dropdown (Icon style) */}
-            <div style={{ position: "relative" }}>
-              <select 
-                value={sort} 
-                onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
-                style={{ 
-                  appearance: "none", WebkitAppearance: "none", MozAppearance: "none", 
-                  background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", 
-                  padding: "6px", width: "34px", height: "34px", cursor: "pointer", outline: "none", display: "flex", alignItems: "center", justifyContent: "center"
-                }}
-                title="Sort products"
+            {/* 🟢 CUSTOM SORT DROPDOWN */}
+            <div ref={sortRef} style={{ position: "relative" }}>
+              <button 
+                onClick={() => setSortOpen(!sortOpen)}
+                style={{ background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", padding: 6, width: "34px", height: "34px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)" }}
               >
-                <option value="new">Newest</option>
-                <option value="price-asc">Price: Low</option>
-                <option value="price-desc">Price: High</option>
-                <option value="name">A-Z</option>
-              </select>
-              {/* Sort Icon */}
-              <svg 
-                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
-                style={{ position: "absolute", right: "9px", top: "50%", transform: "translateY(-50%)", width: "14px", height: "14px", pointerEvents: "none", color: "var(--text)" }}
-              >
-                <path d="M3 6h18M6 12h12M10 18h4" />
-              </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "16px", height: "16px" }}>
+                  <path d="M3 6h18M6 12h12M10 18h4" />
+                </svg>
+              </button>
+
+              {sortOpen && (
+                <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 160, zIndex: 50, overflow: "hidden" }}>
+                  <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
+                    {[
+                      { key: "new", label: "Newest" },
+                      { key: "price-asc", label: "Price: Low to High" },
+                      { key: "price-desc", label: "Price: High to Low" },
+                      { key: "name", label: "Name: A-Z" }
+                    ].map((opt) => (
+                      <button
+                        key={opt.key}
+                        onClick={() => { setSort(opt.key as SortKey); setCurrentPage(1); setSortOpen(false); }}
+                        style={{ padding: "12px 20px", textAlign: "left", background: sort === opt.key ? "var(--soft)" : "transparent", border: "none", fontSize: 13, fontWeight: sort === opt.key ? 600 : 500, color: "var(--text)", cursor: "pointer" }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             
           </div>
         </div>
 
-        {/* 🟢 EXPANDABLE SEARCH BAR (Reveals under the toolbar) */}
+        {/* SEARCH INPUT */}
         {searchOpen && (
           <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -335,7 +340,7 @@ export default function Storefront() {
           </div>
         )}
 
-        {/* Product Grid */}
+        {/* PRODUCT GRID */}
         {paginatedProducts.length === 0 ? (
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
@@ -354,7 +359,7 @@ export default function Storefront() {
             </div>
             
             {totalPages > 1 && (
-              <div className="sf-pagination">
+              <div className="sf-pagination" style={{ marginTop: 40 }}>
                 <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
                 <span>Page {currentPage} of {totalPages}</span>
                 <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollTo("shop-all"); }}>Next</button>
@@ -364,10 +369,9 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* FOOTER */}
+      {/* 🟢 PREMIUM FOOTER WITH BACK TO TOP */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
-         {/* ... Footer stays the same as your last code ... */}
-         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
             <div style={{ flex: "1 1 300px" }}>
               <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
@@ -402,12 +406,25 @@ export default function Storefront() {
               )}
             </div>
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
-            <span>© 2026 {titleCase(store.name)}</span>
-            <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
-              <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
-              Powered by biomart
-            </a>
+          
+          {/* Bottom Bar with Back to Top */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", width: "100%", gap: 16 }}>
+              <span>© 2026 {titleCase(store.name)}</span>
+              <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
+                <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+                Powered by biomart
+              </a>
+            </div>
+            
+            {/* 🟢 BACK TO TOP BUTTON */}
+            <button 
+              onClick={scrollToTop} 
+              style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
+            >
+              Back to top
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+            </button>
           </div>
         </div>
       </footer>
