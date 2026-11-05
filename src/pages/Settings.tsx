@@ -13,7 +13,7 @@ export default function Settings() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
   const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
-  const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? ""); // 🟢 NEW STATE
+  const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? "");
   const [categories, setCategories] = useState((store as any)?.categories ?? "");
   const [address, setAddress] = useState((store as any)?.address ?? "");
   const [whatsapp, setWhatsapp] = useState(store?.whatsapp ?? "");
@@ -25,11 +25,13 @@ export default function Settings() {
   const [bannerUrl, setBannerUrl] = useState<string>((store as any)?.cover_url ?? "");
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
+  // 🟢 FIX: Force the state to sync whenever the store object updates
   useEffect(() => {
     if (!store) return;
+    
     setName(store.name ?? "");
     setTagline((store as any).tagline ?? "");
-    setHeroTitle((store as any).hero_title ?? ""); // 🟢 LOAD NEW FIELD
+    setHeroTitle((store as any).hero_title ?? ""); 
     setCategories((store as any).categories ?? "");
     setAddress((store as any).address ?? "");
     setWhatsapp(store.whatsapp ?? "");
@@ -47,13 +49,14 @@ export default function Settings() {
       await storeApi.update({
         name: name.trim(),
         tagline: tagline.trim() || null,
-        hero_title: heroTitle.trim() || null, // 🟢 SAVE NEW FIELD
+        hero_title: heroTitle.trim() || null,
         categories: categories.trim() || null,
         address: address.trim() || null,
         whatsapp: whatsapp.trim(),
         instagram: instagram.trim() || null,
         tiktok: tiktok.trim() || null,
       } as any);
+      
       await refresh(true);
       setIsEditing(false);
       toast.show("Store info saved");
@@ -112,6 +115,7 @@ export default function Settings() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Name</span><p style={{ fontSize: 16, fontWeight: 600, margin: "4px 0 0" }}>{name || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Tagline</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tagline || "—"}</p></div>
+              {/* 🟢 DISPLAY HERO TITLE */}
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Hero Title</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{heroTitle || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Categories</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{categories || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>WhatsApp</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{whatsapp || "—"}</p></div>
@@ -127,7 +131,7 @@ export default function Settings() {
                   <input className="pe-input" value={name} maxLength={15} onChange={(e) => setName(e.target.value)} />
                 </div>
 
-                {/* 🟢 NEW HERO TITLE INPUT */}
+                {/* 🟢 HERO TITLE INPUT */}
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 15 chars)</label>
                   <input className="pe-input" value={heroTitle} maxLength={15} placeholder="e.g. Sips & Treats." onChange={(e) => setHeroTitle(e.target.value)} />
