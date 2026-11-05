@@ -473,12 +473,31 @@ export default function Landing() {
       </main>
 
       {/* 🟢 CORRECTED FOOTER (4 Columns) */}
-      <footer style={{ backgroundColor: "#1A1A1A", color: "#fff", paddingTop: 80, paddingBottom: 40 }}>
+           {/* 🟢 FOOTER */}
+      <footer style={{ backgroundColor: "#1A1A1A", color: "#fff", paddingTop: 64, paddingBottom: 32 }}>
         <div className="wrap" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 48, paddingBottom: 64, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-            
-            {/* Column 1: Brand */}
+          <div style={{ 
+            display: "grid", 
+            // 🟢 1 column on mobile, 4 columns on desktop
+            gridTemplateColumns: "repeat(1, 1fr)", 
+            gap: 40, 
+            paddingBottom: 48, 
+            borderBottom: "1px solid rgba(255,255,255,0.1)" 
+          }}>
+            <style>{`
+              @media (min-width: 768px) {
+                .footer-grid {
+                  grid-template-columns: 2fr 1fr 1fr 1fr !important;
+                  gap: 48px !important;
+                }
+                .footer-links-wrap {
+                  display: contents !important; /* Makes the 3 columns sit properly */
+                }
+              }
+            `}</style>
+
+            {/* Brand Column */}
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <a href="#top" style={{ display: "flex", alignItems: "center", gap: 10, color: "#fff", textDecoration: "none" }}>
                 <span style={{ color: "var(--green)" }}>{I.logoBag}</span>
@@ -500,40 +519,49 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Column 2: Product */}
-            <div>
-              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Product</h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-                <li><a href="#how" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>How it works</a></li>
-                <li><a href="#pricing" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Pricing</a></li>
-                <li><a href="#faq" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Questions</a></li>
-              </ul>
-            </div>
+            {/* 🟢 Links Grid (2 cols on mobile, 3 cols on desktop) */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 1fr", // 🟢 Mobile is 2 columns!
+              gap: 32,
+              gridColumn: "1 / -1" // Spans full width on mobile
+            }}>
+              
+              {/* Product */}
+              <div>
+                <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>Product</h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <li><a href="#how" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>How it works</a></li>
+                  <li><a href="#pricing" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Pricing</a></li>
+                  <li><a href="#faq" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Questions</a></li>
+                </ul>
+              </div>
 
-            {/* Column 3: Socials */}
-            <div>
-              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Socials</h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>WhatsApp</a></li>
-                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Instagram</a></li>
-                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>TikTok</a></li>
-              </ul>
-            </div>
+              {/* Socials */}
+              <div>
+                <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>Socials</h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>WhatsApp</a></li>
+                  <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Instagram</a></li>
+                  <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>TikTok</a></li>
+                </ul>
+              </div>
 
-            {/* Column 4: Legal */}
-            <div>
-              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Legal</h4>
-              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
-                <li><Link to="/legal/privacy" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Privacy</Link></li>
-                <li><Link to="/legal/terms" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Terms</Link></li>
-                <li><Link to="/legal/refunds" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Refunds</Link></li>
-              </ul>
+              {/* Legal (Moves to the left on mobile) */}
+              <div>
+                <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 20 }}>Legal</h4>
+                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                  <li><Link to="/legal/privacy" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Privacy</Link></li>
+                  <li><Link to="/legal/terms" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Terms</Link></li>
+                  <li><Link to="/legal/refunds" style={{ color: "#fff", textDecoration: "none", fontSize: 14 }}>Refunds</Link></li>
+                </ul>
+              </div>
             </div>
 
           </div>
 
           {/* Bottom Bar */}
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
             <span>© 2026 Biomart. All rights reserved.</span>
             <span>Built for sellers who move fast.</span>
           </div>
