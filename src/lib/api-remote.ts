@@ -52,7 +52,8 @@ export const auth = {
 export const store = {
   public: (slug: string) =>
     apiFetch<StorefrontResponse>(`/api/store/${encodeURIComponent(slug)}`),
-  update: (body: Partial<Store> & { cover_url?: string | null }) =>
+  // 🟢 CHANGED TO ANY SO IT NEVER STRIPS NEW FIELDS
+  update: (body: any) =>
     apiFetch<void>("/api/store", { method: "PUT", body: JSON.stringify(body) }),
 };
 
