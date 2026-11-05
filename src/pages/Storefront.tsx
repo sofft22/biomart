@@ -127,11 +127,22 @@ export default function Storefront() {
 
   useReveal([products.length, sort, query, currentPage, activeCategory]);
 
-  // 🟢 FIXED: Added optional chaining (?.) to prevent crash if store is null
+  // 🟢 BULLETPROOF CATEGORY PARSER
   const categoriesList = useMemo(() => {
-    const raw = (store as any)?.categories || "";
-    if (!raw || !raw.trim()) return [];
-    return raw.split(",").map((c: string) => c.trim()).filter(Boolean);
+    const raw = (store as any)?.categories;
+    if (!raw) return [];
+    
+    // If the database sent an Array, just return it
+    if (Array.isArray(raw)) {
+      return raw.filter(Boolean); 
+    }
+    
+    // If the database sent a String, split it by commas
+    if (typeof raw === "string") {
+      return raw.split(",").map((c: string) => c.trim()).filter(Boolean);
+    }
+    
+    return [];
   }, [store]);
 
   const filtered = useMemo(() => {
