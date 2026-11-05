@@ -23,7 +23,9 @@ export default function Overview() {
   const totalValue = products.reduce((sum, p) => sum + (p.price || 0), 0);
   const productCap = limits?.products ?? 5;
   const atCap = productCap < 100000 && products.length >= productCap;
-  const storeUrl = `${location.origin}/store/${store.slug}`;
+  
+  // 🟢 FIXED: Changed to the clean root path
+  const storeUrl = `${location.origin}/${store.slug}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(storeUrl);
@@ -102,6 +104,7 @@ export default function Overview() {
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={copyLink} className="dash-btn dash-btn-line">Copy</button>
           <button onClick={() => setQrOpen(true)} className="dash-btn dash-btn-line">QR</button>
+          {/* 🟢 FIXED: View Store link */}
           <a href={storeUrl} target="_blank" rel="noopener" className="dash-btn dash-btn-dark">View store</a>
         </div>
       </div>
@@ -118,6 +121,7 @@ export default function Overview() {
           </span>
         </Link>
 
+        {/* 🟢 FIXED: WhatsApp Share link */}
         <a href={`https://wa.me/?text=${encodeURIComponent("Check out my store: " + storeUrl)}`} target="_blank" rel="noopener" style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: 12, background: "var(--green)", color: "#fff" }}>
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h16v11H9l-5 4V5z"/></svg>
