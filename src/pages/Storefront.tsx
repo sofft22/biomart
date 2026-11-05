@@ -200,13 +200,22 @@ export default function Storefront() {
     cart.add(product, qty, variant, unitPrice);
   };
 
-  const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToShopAll = () => document.getElementById("shop-all")?.scrollIntoView({ behavior: "smooth" });
 
-  // 🟢 SCROLLS TO THE PRODUCT GRID
+  // 🟢 FOOLPROOF PAGINATION SCROLL
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    scrollTo("product-grid-top");
+    
+    // Wait 50ms for React to update the DOM with the new products
+    setTimeout(() => {
+      const section = document.getElementById("shop-all");
+      if (section) {
+        const yOffset = -80; // Offset for the fixed header
+        const y = section.getBoundingClientRect().top + window.scrollY + yOffset;
+        window.scrollTo({ top: y, behavior: "smooth" });
+      }
+    }, 50);
   };
 
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
@@ -296,7 +305,7 @@ export default function Storefront() {
             )}
             
             <button 
-              onClick={() => scrollTo("shop-all")} 
+              onClick={() => scrollToShopAll()} 
               className="sf-banner-cta"
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
@@ -408,8 +417,7 @@ export default function Storefront() {
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
           <>
-            {/* 🟢 ADDED ID HERE SO IT SCROLLS EXACTLY TO THE FIRST PRODUCT */}
-            <div id="product-grid-top" className="sf-grid-all" style={{ gap: "64px 20px" }}>
+            <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <div key={p.id}>
                   <ProductCard 
