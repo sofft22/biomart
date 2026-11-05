@@ -2,7 +2,6 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
   const url = new URL(context.request.url);
   const pathname = url.pathname;
 
-  // 1. Ignore standard pages, API, and assets
   const reserved = [
     "/api/", "/assets/", "/src/", "/favicon.ico", "/index.html", 
     "/login", "/signup", "/dashboard", "/settings", "/plan", "/legal", "/admin"
@@ -12,22 +11,19 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
     return context.next();
   }
 
-  // 2. Get the slug (e.g., "/soft" -> "soft")
   const slug = pathname.split("/")[1];
   if (!slug) {
     return context.next(); 
   }
 
-  // 3. Fetch store data
   const store = await context.env.DB.prepare(
     "SELECT name, cover_url, hero_title, tagline, extra_banners FROM stores WHERE slug = ?"
   ).bind(slug).first<any>();
 
   if (!store) {
-    return context.next(); // Serve default app
+    return context.next();
   }
 
-  // 4. Prepare Meta Data
   let imageUrl = store.cover_url || "https://biomart.pages.dev/og-fallback.jpg";
   if (!imageUrl && store.extra_banners) {
     try {
@@ -39,24 +35,43 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
   const title = `${store.name} | Biomart`;
   const description = `${store.hero_title || store.name} — ${store.tagline || "Shop now."}`;
 
-  // 5. Get the HTML and inject
   const response = await context.next();
   
   return new HTMLRewriter()
     .on("head", {
       element(element) {
-        element.append(`<meta property="og:title" content="${title}" />`, { html: true });
-        element.append(`<meta property="og:description" content="${description}" />`, { html: true });
-        element.append(`<meta property="og:image" content="${imageUrl}" />`, { html: true });
-        element.append(`<meta property="og:url" content="${context.request.url}" />`, { html: true });
-        
+        // 🟢 REMOVE the generic Biomart tags so they don't conflict
+        element.onEndTag(() => {}); 
+      },
+    })
+    .on("title", {
+      element(element) {
+        element.setInnerContent(title); // 🟢 REPLACE the title
+      }
+    })
+    .on('meta[property="og:title"]', {
+      element(element) {
+        element.setAttribute("content", title); // 🟢 REPLACE og:title
+      }
+    })
+    .on('meta[property="og:description"]', {
+      element(element) {
+        element.setAttribute("content", description); // 🟢 REPLACE og:description
+      }
+    })
+    .on('meta[property="og:image"]', {
+      element(element) {
+        element.setAttribute("content", imageUrl); // 🟢 REPLACE og:image
+      }
+    })
+    .on("head", {
+      element(element) {
+        // Append the Twitter tags (since they aren't in the default HTML)
         element.append(`<meta name="twitter:card" content="summary_large_image" />`, { html: true });
         element.append(`<meta name="twitter:title" content="${title}" />`, { html: true });
         element.append(`<meta name="twitter:description" content="${description}" />`, { html: true });
         element.append(`<meta name="twitter:image" content="${imageUrl}" />`, { html: true });
-
-        element.append(`<title>${title}</title>`, { html: true });
-      },
+      }
     })
     .transform(response);
 };
