@@ -26,6 +26,7 @@ export interface Store {
   instagram?: string | null;
   tiktok?: string | null;
   cover_url?: string | null;
+  categories?: string | null; // 🟢 ADDED THIS LINE
   plan: PlanId;
   paid_until?: number | null;
   subscription_status: SubscriptionStatus;
@@ -40,7 +41,7 @@ export interface Product {
   description?: string | null;
   price: number;
   compare_at_price?: number | null;
-  category?: string | null;
+  category?: string | null; // This is already here, which is perfect
   photos: string[];
   in_stock: boolean;
   featured: boolean;
