@@ -10,9 +10,9 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     
     if (!session) return Response.json({ error: "Session expired." }, { status: 401 });
 
-    // 🟢 ADDED hero_title to the SELECT query
+    // 🟢 FETCH EVERYTHING. No hardcoded columns.
     const store = await env.DB.prepare(
-      "SELECT id, name, slug, tagline, hero_title, address, whatsapp, instagram, tiktok, cover_url, gallery_urls, plan, categories FROM stores WHERE user_id = ?"
+      "SELECT * FROM stores WHERE user_id = ?"
     ).bind(session.user_id).first<any>();
 
     return Response.json({ store });
@@ -42,27 +42,17 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const updates: string[] = [];
     const values: any[] = [];
 
-    if ("name" in body) { updates.push("name = ?"); values.push(String(body.name || "").trim()); }
-    if ("bio" in body) { updates.push("bio = ?"); values.push(body.bio || null); }
-    if ("tagline" in body) { updates.push("tagline = ?"); values.push(body.tagline || null); }
-    
-    // 🟢 ADDED THE SAVE LOGIC FOR HERO TITLE
-    if ("hero_title" in body) { updates.push("hero_title = ?"); values.push(body.hero_title || null); }
-    
-    if ("address" in body) { updates.push("address = ?"); values.push(body.address || null); }
-    if ("whatsapp" in body) { updates.push("whatsapp = ?"); values.push(String(body.whatsapp || "").trim()); }
-    if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram || null); }
-    if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
-    if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
-    
-    if ("categories" in body) { 
-      updates.push("categories = ?"); 
-      values.push(body.categories || null); 
-    }
-
-    if ("gallery_urls" in body) { 
-      updates.push("gallery_urls = ?"); 
-      values.push(Array.isArray(body.gallery_urls) ? JSON.stringify(body.gallery_urls) : null); 
+    // 🟢 SAVE EVERYTHING. If it's in the payload, it goes to the database.
+    for (const key of Object.keys(body)) {
+      if (key === "id" || key === "user_id" || key === "slug" || key === "created_at") continue;
+      
+      let value = body[key];
+      if (typeof value === "object" && value !== null) {
+        value = JSON.stringify(value); // Handle arrays like categories
+      }
+      
+      updates.push(`${key} = ?`);
+      values.push(value);
     }
 
     if (updates.length === 0) return Response.json({ ok: true });
