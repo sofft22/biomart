@@ -472,15 +472,14 @@ export default function Landing() {
         </section>
       </main>
 
-      {/* 🟢 NEW PREMIUM FOOTER (Matches Mocktopia style) */}
+      {/* 🟢 CORRECTED FOOTER (4 Columns) */}
       <footer style={{ backgroundColor: "#1A1A1A", color: "#fff", paddingTop: 80, paddingBottom: 40 }}>
         <div className="wrap" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
           
-          {/* Top Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 48, paddingBottom: 64, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             
-            {/* Brand Column */}
-            <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Column 1: Brand */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <a href="#top" style={{ display: "flex", alignItems: "center", gap: 10, color: "#fff", textDecoration: "none" }}>
                 <span style={{ color: "var(--green)" }}>{I.logoBag}</span>
                 <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Biomart</span>
@@ -501,7 +500,7 @@ export default function Landing() {
               </div>
             </div>
 
-            {/* Navigation Column */}
+            {/* Column 2: Product */}
             <div>
               <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Product</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -511,7 +510,7 @@ export default function Landing() {
               </ul>
             </div>
 
-            {/* Socials Column */}
+            {/* Column 3: Socials */}
             <div>
               <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Socials</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
@@ -521,7 +520,7 @@ export default function Landing() {
               </ul>
             </div>
 
-            {/* Legal Column */}
+            {/* Column 4: Legal */}
             <div>
               <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Legal</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
