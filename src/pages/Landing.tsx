@@ -503,4 +503,44 @@ export default function Landing() {
 
             {/* Navigation Column */}
             <div>
-              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}
+              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Product</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                <li><a href="#how" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>How it works</a></li>
+                <li><a href="#pricing" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Pricing</a></li>
+                <li><a href="#faq" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Questions</a></li>
+              </ul>
+            </div>
+
+            {/* Socials Column */}
+            <div>
+              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Socials</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>WhatsApp</a></li>
+                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Instagram</a></li>
+                <li><a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>TikTok</a></li>
+              </ul>
+            </div>
+
+            {/* Legal Column */}
+            <div>
+              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}>Legal</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+                <li><Link to="/legal/privacy" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Privacy</Link></li>
+                <li><Link to="/legal/terms" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Terms</Link></li>
+                <li><Link to="/legal/refunds" style={{ color: "#fff", textDecoration: "none", fontSize: 14, transition: "opacity 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.opacity = "0.7"} onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}>Refunds</Link></li>
+              </ul>
+            </div>
+
+          </div>
+
+          {/* Bottom Bar */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
+            <span>© 2026 Biomart. All rights reserved.</span>
+            <span>Built for sellers who move fast.</span>
+          </div>
+
+        </div>
+      </footer>
+    </>
+  );
+}
