@@ -472,77 +472,35 @@ export default function Landing() {
         </section>
       </main>
 
-      {/* 🟢 FOOTER */}
-      {/* 🟢 FOOTER */}
-<footer className="site-footer">
-  <div className="wrap">
-    <div className="footer-top">
-      {/* Brand */}
-      <div className="footer-brand">
-        <a href="#top" className="footer-logo">
-          <span className="text-green">{I.logoBag}</span>
-          <span>Biomart</span>
-        </a>
-        <p className="footer-tag">
-          Your bio link, but it sells. Turn every click into a customer.
-        </p>
+      {/* 🟢 NEW PREMIUM FOOTER (Matches Mocktopia style) */}
+      <footer style={{ backgroundColor: "#1A1A1A", color: "#fff", paddingTop: 80, paddingBottom: 40 }}>
+        <div className="wrap" style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
+          
+          {/* Top Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 48, paddingBottom: 64, borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+            
+            {/* Brand Column */}
+            <div style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 16 }}>
+              <a href="#top" style={{ display: "flex", alignItems: "center", gap: 10, color: "#fff", textDecoration: "none" }}>
+                <span style={{ color: "var(--green)" }}>{I.logoBag}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase" }}>Biomart</span>
+              </a>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", margin: 0, maxWidth: 300, lineHeight: 1.6 }}>
+                Your bio link, but it sells. Turn every click into a customer.
+              </p>
+              <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.whatsapp}
+                </a>
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.instagram}
+                </a>
+                <a href={wa("Hi Biomart")} target="_blank" rel="noopener noreferrer" style={{ color: "rgba(255,255,255,0.6)", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(255,255,255,0.6)"}>
+                  {I.tiktok}
+                </a>
+              </div>
+            </div>
 
-        <div className="footer-socials">
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Chat on WhatsApp"
-          >
-            {I.whatsapp}
-          </a>
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Follow on Instagram"
-          >
-            {I.instagram}
-          </a>
-          <a
-            href={wa("Hi Biomart")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Follow on TikTok"
-          >
-            {I.tiktok}
-          </a>
-        </div>
-      </div>
-
-      {/* Link columns */}
-      <nav className="footer-nav" aria-label="Footer">
-        <div className="footer-col">
-          <h4>Product</h4>
-          <ul>
-            <li><a href="#how">How it works</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#faq">Questions</a></li>
-          </ul>
-        </div>
-
-        <div className="footer-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><Link to="/legal/privacy">Privacy</Link></li>
-            <li><Link to="/legal/terms">Terms</Link></li>
-            <li><Link to="/legal/refunds">Refunds</Link></li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-
-    <div className="footer-bottom">
-      <span>© 2026 Biomart. All rights reserved.</span>
-      <span className="footer-made">Built for sellers who move fast.</span>
-    </div>
-  </div>
-</footer>
-    </>
-  );
-}
+            {/* Navigation Column */}
+            <div>
+              <h4 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 24 }}
