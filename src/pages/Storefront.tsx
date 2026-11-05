@@ -288,7 +288,7 @@ export default function Storefront() {
                 fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16
               }}
             >
-              SHOP THE COLLECTION 
+              SHOP NOW 
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}>
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
