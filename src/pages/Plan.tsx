@@ -18,6 +18,7 @@ export default function Plan() {
   const [isQuarterly, setIsQuarterly] = useState(false);
 
   const currentPlan = store?.plan || "free";
+  const storeName = store?.name || "my store";
   const storeSlug = store?.slug || "my-store";
 
   // Seller's own number — only ever used for customer-facing order links,
@@ -26,8 +27,9 @@ export default function Plan() {
 
   const getUpgradeLink = (planName) => {
     const cycle = isQuarterly ? "Quarterly" : "Monthly";
+    // 🟢 FIXED: Uses the actual store name, not just the slug
     return biomartWa(
-      `Hi Biomart, I'd like to upgrade my store (${storeSlug}) to the ${planName} (${cycle}) plan. Please send me the payment details.`
+      `Hi Biomart, I'd like to upgrade my store (${storeName}) to the ${planName} (${cycle}) plan. Please send me the payment details.`
     );
   };
 
