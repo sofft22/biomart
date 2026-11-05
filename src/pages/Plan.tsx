@@ -226,9 +226,9 @@ export default function Plan() {
               <li>Your own custom domain</li>
               <li>Advanced shopping cart & checkout</li>
               <li>Automated Paystack payments</li>
-              <li>Automated order tracking</li>
-              <li>Custom branding & UI design</li>
-              <li>Priority lifetime support</li>
+              <li>Automated order tracking & Branded Receipt Download</li>
+              <li>Showing up in google searches</li>
+              <li>Fully activated Coupons & Revies systems</li>
             </ul>
           </div>
           
