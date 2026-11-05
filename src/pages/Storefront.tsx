@@ -174,7 +174,6 @@ export default function Storefront() {
             <button onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} className="sf-wordmark" aria-label={store.name}>
               {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
               {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
-              {/* 🟢 GREEN DOT REMOVED HERE */}
             </button>
           )}
           <div className={`sf-head-searchbar ${searchOpen ? "open" : ""}`}>
@@ -205,12 +204,44 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER - Text removed, Overlay & Button kept */}
+      {/* CUSTOM BANNER - Tagline dynamically added above button */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
           <div className="sf-banner-overlay" style={{ background: "rgba(0,0,0,0.3)" }} />
-          <div className="sf-banner-text" style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", height: "100%", paddingBottom: 40 }}>
+          
+          <div 
+            className="sf-banner-text" 
+            style={{ 
+              display: "flex", 
+              flexDirection: "column", 
+              justifyContent: "flex-end", 
+              alignItems: "center", 
+              height: "100%", 
+              paddingBottom: 48,
+              paddingLeft: 24,
+              paddingRight: 24,
+              gap: 20 // spacing between tagline and button
+            }}
+          >
+            {/* Dynamic Tagline */}
+            {tagline && (
+              <h2 
+                style={{ 
+                  color: "#fff", 
+                  fontSize: "clamp(1.2rem, 3vw, 1.8rem)", 
+                  fontWeight: 500, 
+                  textAlign: "center",
+                  margin: 0,
+                  textShadow: "0 2px 10px rgba(0,0,0,0.5)", // keeps it readable on light/dark images
+                  maxWidth: "600px"
+                }}
+              >
+                {tagline}
+              </h2>
+            )}
+
+            {/* Shop Button */}
             <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000" }}>
               Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
@@ -220,7 +251,6 @@ export default function Storefront() {
 
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "80px" : "120px" }}>
-        {/* FIXED: Sort Icon layout - no longer stretches */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
           <div>
             <h2 className="sf-section-title" style={{ margin: 0 }}>{query ? `Results for "${query}"` : "Shop all"}</h2>
@@ -267,7 +297,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* SMARTER FOOTER - No Ad, Green Dot removed, Stacks on Mobile */}
+      {/* SMARTER FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
@@ -277,7 +307,6 @@ export default function Storefront() {
               <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
                 {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
                 {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
-                {/* 🟢 GREEN DOT REMOVED HERE */}
               </div>
               <p className="sf-footer-bio" style={{ maxWidth: 300, margin: 0, opacity: 0.7 }}>
                 {tagline || "Curated essentials for the modern wardrobe."}
@@ -290,13 +319,11 @@ export default function Storefront() {
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
                 {store.whatsapp && (
                   <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.7 }}>
-                    {/* 🟢 GREEN WHATSAPP RESTORED */}
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="#25D366"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.86 9.86 0 0 0 12.04 2m0 1.67c2.2 0 4.27.86 5.83 2.42a8.2 8.2 0 0 1 2.41 5.82c0 4.55-3.7 8.25-8.25 8.25-1.47 0-2.92-.4-4.18-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.39c0-4.55 3.7-8.24 8.23-8.24M8.53 7.33c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.76 2.68 4.25 3.76.59.26 1.06.41 1.42.52.6.19 1.14.16 1.57.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.08.15-1.18-.06-.1-.23-.17-.48-.29-.25-.13-1.47-.72-1.7-.8-.23-.09-.39-.13-.55.13-.17.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-2-1.24-.74-.66-1.24-1.47-1.39-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.41.09-.17.04-.31-.02-.44-.06-.13-.55-1.34-.76-1.83-.2-.48-.4-.41-.55-.42l-.46-.01c-.16 0-.42.06-.64.31" /></svg>
                   </a>
                 )}
                 {store.instagram && (
                   <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.7 }}>
-                    {/* 🟢 PINK INSTAGRAM RESTORED */}
                     <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#E1306C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="#E1306C" stroke="none" /></svg>
                   </a>
                 )}
@@ -318,7 +345,6 @@ export default function Storefront() {
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
-              {/* 🟢 GREEN LOGO RESTORED */}
               <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
               Powered by biomart
             </a>
