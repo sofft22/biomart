@@ -2,8 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
-import { store as storeApi } from "../lib/api";
+import { store as storeApi, products as productsApi } from "../lib/api";
 import { getCategories } from "../lib/storeData";
+import { useToast } from "../components/Toast";
 import type { Category, Product } from "../types";
 
 type SortKey = "manual" | "newest" | "name" | "price";
@@ -15,6 +16,7 @@ function formatPrice(n: number): string {
 export default function Dashboard() {
   const nav = useNavigate();
   const { store: currentStore, products: cachedProducts, refresh } = useAuth();
+  const toast = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -22,6 +24,7 @@ export default function Dashboard() {
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<SortKey>("manual");
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null); // 🟢 Track which product is being deleted
 
   // 🟢 Load products: use cache if available, else fetch fresh
   useEffect(() => {
@@ -92,6 +95,24 @@ export default function Dashboard() {
 
   const countFor = (id: string) =>
     id === "all" ? products.length : products.filter((p) => p.category_id === id).length;
+
+  // 🟢 DELETE LOGIC
+  const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation(); // Prevent navigating to the edit page when clicking delete
+    if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+    
+    setDeletingId(id);
+    try {
+      await productsApi.remove(id);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      await refresh(true); // Force fetch to update cache and context
+      toast.show("Product deleted successfully");
+    } catch (err) {
+      toast.show("Failed to delete product");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -187,9 +208,10 @@ export default function Dashboard() {
         <div className="pr-list">
           {filtered.map((p) => {
             const productCategory = categories.find((c) => c.id === p.category_id)?.label || p.category;
+            const isDeleting = deletingId === p.id;
             
             return (
-              <div key={p.id} className="pr-item">
+              <div key={p.id} className="pr-item" style={{ opacity: isDeleting ? 0.5 : 1, pointerEvents: isDeleting ? "none" : "auto" }}>
                 <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body">
                   <div className="pr-item-thumb">
                     {p.image_url ? (
@@ -201,7 +223,7 @@ export default function Dashboard() {
                   <div className="pr-item-info">
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <p className="pr-item-name" style={{ margin: 0 }}>{p.name}</p>
-                      {/* 🟢 MINIMAL CATEGORY TAG */}
+                      {/* MINIMAL CATEGORY TAG */}
                       {productCategory && (
                         <span style={{ 
                           fontSize: 10, 
@@ -225,9 +247,45 @@ export default function Dashboard() {
                       )}
                     </p>
                   </div>
-                  <svg className="pr-item-chevron" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 6l6 6-6 6" />
-                  </svg>
+                </button>
+
+                {/* 🟢 DELETE BUTTON */}
+                <button 
+                  onClick={(e) => handleDelete(e, p.id, p.name)}
+                  disabled={isDeleting}
+                  className="pr-delete-btn"
+                  style={{
+                    background: "transparent",
+                    border: 0,
+                    padding: "8px",
+                    marginRight: 16,
+                    borderRadius: "50%",
+                    cursor: isDeleting ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "var(--muted)",
+                    transition: "all 0.2s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#d32f2f";
+                    e.currentTarget.style.background = "rgba(211, 47, 47, 0.1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--muted)";
+                    e.currentTarget.style.background = "transparent";
+                  }}
+                  aria-label="Delete product"
+                >
+                  {isDeleting ? (
+                    <div className="dash-spinner" style={{ width: 16, height: 16, borderTopColor: "var(--muted)" }} />
+                  ) : (
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  )}
                 </button>
               </div>
             );
