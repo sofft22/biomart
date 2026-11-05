@@ -1,62 +1,150 @@
 import { Link } from 'react-router-dom';
-import { Home, Search, ArrowLeft } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export default function NotFound() {
-  return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 px-4 py-16">
-      {/* Decorative background blobs */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-24 -left-24 h-72 w-72 rounded-full bg-indigo-100 blur-3xl opacity-60"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-purple-100 blur-3xl opacity-60"
-      />
+  const { store } = useAuth();
+  
+  // If they are on a storefront, send them to the store. Otherwise, home.
+  const homeLink = store?.slug ? `/${store.slug}` : "/";
 
-      {/* Card */}
-      <div className="relative z-10 w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-8 shadow-xl sm:p-12 text-center">
-        {/* Icon badge */}
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 ring-8 ring-indigo-50/50">
-          <Search className="h-7 w-7" />
+  return (
+    <div 
+      style={{ 
+        minHeight: "100vh", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        background: "var(--bg)", 
+        padding: "24px",
+        fontFamily: "var(--font)"
+      }}
+    >
+      <div 
+        style={{ 
+          maxWidth: 480, 
+          width: "100%", 
+          textAlign: "center",
+          animation: "sf-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both"
+        }}
+      >
+        {/* Minimal Icon */}
+        <div 
+          style={{ 
+            width: 64, 
+            height: 64, 
+            margin: "0 auto 24px", 
+            borderRadius: "50%", 
+            background: "var(--soft)", 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            color: "var(--muted)"
+          }}
+        >
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3.5-3.5" />
+          </svg>
         </div>
 
-        {/* Big 404 */}
-        <h1 className="mt-6 text-7xl font-black tracking-tight text-gray-900 sm:text-8xl">
-          4<span className="text-indigo-600">0</span>4
+        {/* 404 Text */}
+        <h1 
+          style={{ 
+            fontFamily: "var(--serif)", 
+            fontSize: "clamp(4rem, 10vw, 6rem)", 
+            fontWeight: 400, 
+            letterSpacing: "-0.04em",
+            lineHeight: 1,
+            margin: "0 0 16px",
+            color: "var(--ink)"
+          }}
+        >
+          404.
         </h1>
 
-        <h2 className="mt-3 text-xl font-semibold text-gray-900">
+        <h2 
+          style={{ 
+            fontSize: "clamp(1.2rem, 3vw, 1.5rem)", 
+            fontWeight: 600, 
+            margin: "0 0 12px", 
+            color: "var(--ink)" 
+          }}
+        >
           Page not found
         </h2>
-        <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-gray-500">
-          The page you're looking for doesn't exist, was moved, or is
-          temporarily unavailable. Let's get you back on track.
+        
+        <p 
+          style={{ 
+            fontSize: 15, 
+            lineHeight: 1.6, 
+            color: "var(--muted)", 
+            margin: "0 0 32px",
+            maxWidth: 340,
+            marginLeft: "auto",
+            marginRight: "auto"
+          }}
+        >
+          The page you're looking for doesn't exist or has been moved.
         </p>
 
         {/* Actions */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            to="/"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 sm:w-auto"
+        <div 
+          style={{ 
+            display: "flex", 
+            flexDirection: "row", 
+            gap: 12, 
+            justifyContent: "center",
+            flexWrap: "wrap"
+          }}
+        >
+          <Link 
+            to={homeLink}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "14px 24px",
+              background: "var(--ink)",
+              color: "var(--bg)",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              textDecoration: "none",
+              transition: "opacity 0.2s ease"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.opacity = "0.8"}
+            onMouseLeave={(e) => e.currentTarget.style.opacity = "1"}
           >
-            <Home className="h-4 w-4" />
-            Back to Home
+            Back to home
           </Link>
+          
           <button
-            type="button"
             onClick={() => window.history.back()}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 sm:w-auto"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "14px 24px",
+              background: "transparent",
+              color: "var(--ink)",
+              border: "1px solid var(--line)",
+              borderRadius: 10,
+              fontSize: 13,
+              fontWeight: 600,
+              letterSpacing: "0.05em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              transition: "background 0.2s ease"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = "var(--soft)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}
           >
-            <ArrowLeft className="h-4 w-4" />
             Go back
           </button>
         </div>
 
-        {/* Helpful hint */}
-        <p className="mt-8 text-xs text-gray-400">
-          Need help? Check the URL or contact support.
-        </p>
       </div>
     </div>
   );
