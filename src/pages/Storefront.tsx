@@ -59,7 +59,6 @@ function useReveal(deps: unknown[] = []) {
   }, deps);
 }
 
-// 🟢 HELPER TO SMARTLY SPLIT TEXT INTO TWO LINES
 function renderHeroTitle(title: string) {
   if (!title) return null;
   const firstSpaceIdx = title.indexOf(" ");
@@ -256,7 +255,7 @@ export default function Storefront() {
             className="sf-banner-text" 
             style={{ 
               position: "relative", display: "flex", flexDirection: "column", 
-              justifyContent: "flex-end", // 🟢 BRINGING IT DOWN (flex-end)
+              justifyContent: "flex-end", 
               alignItems: "center", height: "100%", 
               paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
@@ -392,7 +391,6 @@ export default function Storefront() {
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
           <>
-            {/* 🟢 INCREASED VERTICAL GAP (64px up/down, 20px side/side) */}
             <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <ProductCard 
@@ -417,74 +415,67 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 PREMIUM FOOTER (TEXT LINKS, BETTER ALIGNMENT) */}
-      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
-        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
+      {/* 🟢 CENTERED PREMIUM FOOTER */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px", textAlign: "center" }}>
+        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
           
-          <div style={{ display: "flex", flexDirection: "column", gap: 40, marginBottom: 48 }}>
-            
-            {/* Top Row: Brand & Tagline */}
+          <div style={{ marginBottom: 40 }}>
+            <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 8 }}>
+              {brand.first && <span className="sf-footer-brand-1" style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.first)}</span>}
+              {brand.second && <span className="sf-footer-brand-2" style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.second)}</span>}
+            </div>
+            <p className="sf-footer-bio" style={{ maxWidth: 400, margin: "0 auto", opacity: 0.7, fontSize: 15, lineHeight: 1.6 }}>
+              {tagline || "Curated essentials for the modern wardrobe."}
+            </p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32, marginBottom: 48 }}>
             <div>
-              <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
-                {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
-                {brand.second && <span className="sf-footer-brand-2">{titleCase(brand.second)}</span>}
-              </div>
-              <p className="sf-footer-bio" style={{ maxWidth: 350, margin: 0, opacity: 0.7, fontSize: 14, lineHeight: 1.5 }}>
-                {tagline || "Curated essentials for the modern wardrobe."}
-              </p>
-            </div>
-
-            {/* Bottom Row: Contact Text & Address */}
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 48 }}>
-              
-              <div>
-                <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Contact</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {store.whatsapp && (
-                    <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 14, textDecoration: "none" }}>
-                      WhatsApp
-                    </a>
-                  )}
-                  {store.instagram && (
-                    <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 14, textDecoration: "none" }}>
-                      Instagram
-                    </a>
-                  )}
-                  {store.tiktok && (
-                    <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 14, textDecoration: "none" }}>
-                      TikTok
-                    </a>
-                  )}
-                </div>
-              </div>
-
-              {address && (
-                <div>
-                  <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Location</h4>
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 14, textDecoration: "none", display: "inline-block", maxWidth: 200 }}>
-                    {address}
+              <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Contact</h4>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+                {store.whatsapp && (
+                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
+                    WhatsApp
                   </a>
-                </div>
-              )}
+                )}
+                {store.instagram && (
+                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
+                    Instagram
+                  </a>
+                )}
+                {store.tiktok && (
+                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
+                    TikTok
+                  </a>
+                )}
+              </div>
             </div>
+
+            {address && (
+              <div>
+                <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Location</h4>
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
+                  {address}
+                </a>
+              </div>
+            )}
           </div>
           
-          {/* Bottom Bar */}
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", width: "100%", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 13, opacity: 0.6, width: "100%" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
               <span>© 2026 {titleCase(store.name)}</span>
               <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
-                <svg viewBox="0 0 60 64" width="14" height="14" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+                <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
                 Powered by biomart
               </a>
             </div>
             
             <button 
               onClick={scrollToTop} 
-              style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
+              style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
             >
               Back to top
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 12, height: 12 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
             </button>
           </div>
         </div>
