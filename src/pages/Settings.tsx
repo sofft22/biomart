@@ -25,13 +25,11 @@ export default function Settings() {
   const [bannerUrl, setBannerUrl] = useState<string>((store as any)?.cover_url ?? "");
   const [uploadingBanner, setUploadingBanner] = useState(false);
 
-  // 🟢 FIX: Force the state to sync whenever the store object updates
   useEffect(() => {
     if (!store) return;
-    
     setName(store.name ?? "");
     setTagline((store as any).tagline ?? "");
-    setHeroTitle((store as any).hero_title ?? ""); 
+    setHeroTitle((store as any).hero_title ?? "");
     setCategories((store as any).categories ?? "");
     setAddress((store as any).address ?? "");
     setWhatsapp(store.whatsapp ?? "");
@@ -115,7 +113,6 @@ export default function Settings() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Name</span><p style={{ fontSize: 16, fontWeight: 600, margin: "4px 0 0" }}>{name || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Tagline</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tagline || "—"}</p></div>
-              {/* 🟢 DISPLAY HERO TITLE */}
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Hero Title</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{heroTitle || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Categories</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{categories || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>WhatsApp</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{whatsapp || "—"}</p></div>
@@ -127,14 +124,14 @@ export default function Settings() {
             <>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Name (Max 15 chars)</label>
-                  <input className="pe-input" value={name} maxLength={15} onChange={(e) => setName(e.target.value)} />
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Name (Max 22 chars)</label>
+                  <input className="pe-input" value={name} maxLength={22} onChange={(e) => setName(e.target.value)} />
                 </div>
 
-                {/* 🟢 HERO TITLE INPUT */}
+                {/* 🟢 HERO TITLE INPUT (CHANGED TO 20) */}
                 <div>
-                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 15 chars)</label>
-                  <input className="pe-input" value={heroTitle} maxLength={15} placeholder="e.g. Sips & Treats." onChange={(e) => setHeroTitle(e.target.value)} />
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 20 chars)</label>
+                  <input className="pe-input" value={heroTitle} maxLength={20} placeholder="e.g. Sips & Treats." onChange={(e) => setHeroTitle(e.target.value)} />
                 </div>
 
                 <div>
