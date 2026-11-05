@@ -127,30 +127,23 @@ export default function Storefront() {
 
   useReveal([products.length, sort, query, currentPage, activeCategory]);
 
-  // 🟢 BULLETPROOF CATEGORY PARSER (Handles both Array and String formats)
+  // 🟢 BULLETPROOF CATEGORY PARSER
   const categoriesList = useMemo(() => {
-    let raw = (store as any)?.categories;
+    const raw = (store as any)?.categories;
     if (!raw) return [];
-
-    if (Array.isArray(raw)) {
-      return raw.filter(Boolean);
-    }
+    
+    if (Array.isArray(raw)) return raw.filter(Boolean);
 
     if (typeof raw === "string") {
       const trimmed = raw.trim();
-      // Check if it's a JSON string (e.g., '["Shoes", "Shirts"]')
       if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
         try {
           const parsed = JSON.parse(trimmed);
           if (Array.isArray(parsed)) return parsed;
-        } catch (e) {
-          // Ignore error and fall through
-        }
+        } catch (e) {}
       }
-      // Check if it's a normal comma-separated string (e.g., "Shoes, Shirts")
       return trimmed.split(",").map((c: string) => c.trim()).filter(Boolean);
     }
-    
     return [];
   }, [store]);
 
@@ -248,36 +241,22 @@ export default function Storefront() {
           <div 
             className="sf-banner-text" 
             style={{ 
-              position: "relative",
-              display: "flex", 
-              flexDirection: "column", 
-              justifyContent: "flex-end",
-              alignItems: "center", 
-              height: "100%", 
-              paddingBottom: "clamp(40px, 8vw, 80px)",
-              paddingLeft: 24,
-              paddingRight: 24,
-              gap: 20 
+              position: "relative", display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              alignItems: "center", height: "100%", paddingBottom: "clamp(40px, 8vw, 80px)",
+              paddingLeft: 24, paddingRight: 24, gap: 20 
             }}
           >
             {tagline && (
               <h2 
                 style={{ 
-                  color: "#fff", 
-                  fontSize: "clamp(0.9rem, 2vw, 1.2rem)", 
-                  fontWeight: 500, 
-                  textAlign: "center",
-                  letterSpacing: "0.15em",
-                  textTransform: "uppercase",
-                  margin: 0,
-                  textShadow: "0 2px 10px rgba(0,0,0,0.5)",
-                  maxWidth: "600px"
+                  color: "#fff", fontSize: "clamp(0.9rem, 2vw, 1.2rem)", fontWeight: 500, textAlign: "center",
+                  letterSpacing: "0.15em", textTransform: "uppercase", margin: 0,
+                  textShadow: "0 2px 10px rgba(0,0,0,0.5)", maxWidth: "600px"
                 }}
               >
                 {tagline}
               </h2>
             )}
-
             <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000", padding: "16px 32px", fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600 }}>
               SHOP THE COLLECTION <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
@@ -329,24 +308,14 @@ export default function Storefront() {
             </h2>
           </div>
           
-          {/* 🟢 CUSTOM SORT DROPDOWN WITH ICON */}
           <div style={{ position: "relative", flex: "0 0 auto" }}>
             <select 
               value={sort} 
               onChange={(e) => { setSort(e.target.value as SortKey); setCurrentPage(1); }}
               style={{ 
-                appearance: "none", 
-                WebkitAppearance: "none",
-                MozAppearance: "none",
-                background: "transparent",
-                border: "1px solid var(--green-lite, #34d399)",
-                borderRadius: "100px",
-                padding: "8px 36px 8px 16px", 
-                fontSize: "13px",
-                fontWeight: 600,
-                color: "var(--text)",
-                cursor: "pointer",
-                outline: "none"
+                appearance: "none", WebkitAppearance: "none", MozAppearance: "none", background: "transparent",
+                border: "1px solid var(--green-lite, #34d399)", borderRadius: "100px",
+                padding: "8px 36px 8px 16px", fontSize: "13px", fontWeight: 600, color: "var(--text)", cursor: "pointer", outline: "none"
               }}
             >
               <option value="new">Newest</option>
@@ -355,22 +324,8 @@ export default function Storefront() {
               <option value="name">A-Z</option>
             </select>
             <svg 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              style={{ 
-                position: "absolute", 
-                right: "12px", 
-                top: "50%", 
-                transform: "translateY(-50%)", 
-                width: "14px", 
-                height: "14px", 
-                pointerEvents: "none", 
-                color: "var(--text)" 
-              }}
+              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", width: "14px", height: "14px", pointerEvents: "none", color: "var(--text)" }}
             >
               <path d="M6 9l6 6 6-6" />
             </svg>
@@ -384,10 +339,7 @@ export default function Storefront() {
             <div className="sf-grid-all">
               {paginatedProducts.map((p, i) => (
                 <ProductCard 
-                  key={p.id} 
-                  product={p} 
-                  index={i} 
-                  priority={i < 4} 
+                  key={p.id} product={p} index={i} priority={i < 4} 
                   onClick={() => handleOpenProduct(p)} 
                   onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
                 />
@@ -408,9 +360,7 @@ export default function Storefront() {
       {/* SMARTER FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "48px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: 32, marginBottom: 48 }}>
-            {/* Brand Col */}
             <div style={{ flex: "1 1 300px" }}>
               <div className="sf-footer-brand" style={{ marginBottom: 12 }}>
                 {brand.first && <span className="sf-footer-brand-1">{titleCase(brand.first)}</span>}
@@ -421,7 +371,6 @@ export default function Storefront() {
               </p>
             </div>
             
-            {/* Contact Col */}
             <div style={{ flex: "1 1 200px", textAlign: "left" }}>
               <h4 className="sf-footer-h" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 16, opacity: 0.6 }}>Contact</h4>
               <div style={{ display: "flex", gap: 16, marginBottom: 16 }}>
@@ -449,7 +398,6 @@ export default function Storefront() {
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
@@ -462,13 +410,9 @@ export default function Storefront() {
 
       {openProduct && (
         <ProductModal 
-          product={openProduct} 
-          products={products} 
-          store={store} 
+          product={openProduct} products={products} store={store} 
           onClose={() => setOpenProduct(null)} 
-          onAddToCart={(qty, variant, priceDelta) => {
-            handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0));
-          }} 
+          onAddToCart={(qty, variant, priceDelta) => { handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0)); }} 
           onOpenProduct={(p) => handleOpenProduct(p)} 
         />
       )}
