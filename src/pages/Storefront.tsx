@@ -444,31 +444,32 @@ export default function Storefront() {
         )}
       </section>
 
-            {/* FOOTER */}
+                  {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          {/* 🟢 RESPONSIVE GRID LOGIC */}
+          {/* 🟢 4-COLUMN DESKTOP GRID / STACKED MOBILE */}
           <div style={{ 
             display: "grid", 
-            gridTemplateColumns: "1fr", // Mobile: 1 column for brand
-            gap: "40px", 
+            gridTemplateColumns: "1fr", // Mobile: 1 column
+            gap: "48px", 
             paddingBottom: "48px", 
             borderBottom: "1px solid rgba(255,255,255,0.1)" 
           }}>
             <style>{`
               @media (min-width: 768px) {
                 .sf-footer-grid {
-                  grid-template-columns: 2fr 1fr 1fr !important; /* Desktop: Brand gets more space */
-                  gap: 64px !important;
+                  /* 🟢 Desktop: 4 specific columns */
+                  grid-template-columns: 2fr 1fr 1fr 1fr !important; 
+                  gap: 32px !important;
                 }
-                .sf-footer-links-wrap {
-                  display: contents !important; /* Breaks the columns out on desktop */
+                .sf-footer-mobile-stack {
+                  display: contents !important; /* Makes children sit as independent columns */
                 }
               }
             `}</style>
             
-            {/* Brand Block */}
+            {/* Brand Column */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
@@ -479,43 +480,58 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* 🟢 Links Grid (2 cols on mobile, spreads to 2 cols on desktop) */}
-            <div style={{ 
+            {/* Mobile wrapper for the links (2 cols on mobile, 3 cols on desktop) */}
+            <div className="sf-footer-mobile-stack" style={{ 
               display: "grid", 
-              gridTemplateColumns: "1fr 1fr", // 🟢 Mobile is 2 columns!
-              gap: "32px", 
-              width: "100%", 
-              textAlign: "left",
-              gridColumn: "1 / -1" // Spans full width on mobile below the brand
+              gridTemplateColumns: "1fr 1fr", // Mobile: 2 columns for links
+              gap: "32px",
+              gridColumn: "1 / -1"
             }}>
               
-              {/* Contact */}
+              {/* Contact Column */}
               <div>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Contact</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
                   {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
                   {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
                 </div>
               </div>
 
-              {/* Location */}
-              {address && (
-                <div>
-                  <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Location</h4>
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.5, display: "block" }}>
+              {/* Location Column */}
+              <div>
+                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
+                {address ? (
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>
                     {address}
                   </a>
-                </div>
-              )}
+                ) : (
+                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
+                )}
+              </div>
+
+              {/* Empty 3rd column for desktop balance (hidden on mobile) */}
+              <div className="hidden md:block"></div>
+
             </div>
 
           </div>
 
-          {/* Bottom Bar */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
+          {/* 🟢 BOTTOM BAR (Side-by-side) */}
+          <div style={{ 
+            display: "flex", 
+            flexDirection: "row", // Forces side-by-side
+            flexWrap: "wrap", 
+            justifyContent: "space-between", 
+            alignItems: "center", 
+            gap: 16, 
+            paddingTop: 32, 
+            fontSize: 13, 
+            color: "rgba(255,255,255,0.4)", 
+            width: "100%" 
+          }}>
             <span>© 2026 {titleCase(store.name)}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <svg viewBox="0 0 60 64" width="14" height="14" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
               Powered by biomart
             </div>
