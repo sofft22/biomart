@@ -186,6 +186,8 @@ export default function Dashboard() {
       ) : (
         <div className="pr-list">
           {filtered.map((p) => {
+            const productCategory = categories.find((c) => c.id === p.category_id)?.label || p.category;
+            
             return (
               <div key={p.id} className="pr-item">
                 <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body">
@@ -197,9 +199,26 @@ export default function Dashboard() {
                     )}
                   </div>
                   <div className="pr-item-info">
-                    <p className="pr-item-name">{p.name}</p>
-                    {/* 🟢 REMOVED CATEGORY LABEL - JUST PRICE AND VIEWS */}
-                    <p className="pr-item-meta">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <p className="pr-item-name" style={{ margin: 0 }}>{p.name}</p>
+                      {/* 🟢 MINIMAL CATEGORY TAG */}
+                      {productCategory && (
+                        <span style={{ 
+                          fontSize: 10, 
+                          fontWeight: 600, 
+                          textTransform: "uppercase", 
+                          letterSpacing: "0.05em",
+                          padding: "2px 6px", 
+                          background: "var(--soft)", 
+                          color: "var(--muted)",
+                          borderRadius: 4,
+                          border: "1px solid var(--line)"
+                        }}>
+                          {productCategory}
+                        </span>
+                      )}
+                    </div>
+                    <p className="pr-item-meta" style={{ marginTop: 4 }}>
                       {formatPrice(p.price)}
                       {typeof (p as any).views === "number" && (
                         <> · {(p as any).views} {(p as any).views === 1 ? "view" : "views"}</>
