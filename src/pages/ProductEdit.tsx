@@ -24,7 +24,6 @@ export default function ProductEdit() {
   const [price, setPrice] = useState("");
   const [wasPrice, setWasPrice] = useState("");
   
-  // 🟢 NEW: Category State
   const [category, setCategory] = useState("");
 
   const [inStock, setInStock] = useState(true);
@@ -41,7 +40,6 @@ export default function ProductEdit() {
   const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
   const canUseVariants = isPro;
 
-  // 🟢 Extract available categories from settings
   const availableCategories = (currentStore as any)?.categories 
     ? (currentStore as any).categories.split(",").map((c: string) => c.trim()).filter(Boolean)
     : [];
@@ -79,12 +77,16 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
-    // 🟢 Load existing category
     setCategory((product as any).category || "");
-    
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
-    setVariants(product.variants?.suggested ?? []);
+    
+    // 🟢 FIX: Ensure we are loading the array correctly
+    if (product.variants && Array.isArray(product.variants.suggested)) {
+      setVariants(product.variants.suggested);
+    } else {
+      setVariants([]);
+    }
   }, [product]);
 
   const handleImageUpload = async (file: File) => {
@@ -116,8 +118,14 @@ export default function ProductEdit() {
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
-  const removeVariant = (i: number) =>
-    setVariants((prev) => prev.filter((_, idx) => idx !== i));
+  // 🟢 FIX: The removal logic is now perfectly safe
+  const removeVariant = (i: number) => {
+    setVariants((prev) => {
+      const newArr = [...prev];
+      newArr.splice(i, 1);
+      return newArr;
+    });
+  };
 
   const numericPrice = Number(price) || 0;
   const numericWas = Number(wasPrice) || 0;
@@ -151,12 +159,13 @@ export default function ProductEdit() {
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
-      category: category.trim() || null, // 🟢 SAVING CATEGORY
+      category: category.trim() || null,
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : undefined,
+      // 🟢 FIX: Ensure we pass it as the correct object structure
+      variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : null,
     };
 
     try {
@@ -287,7 +296,6 @@ export default function ProductEdit() {
           />
         </section>
 
-        {/* 🟢 NEW CATEGORY SELECTOR */}
         <section className="pe-section">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
             <label className="pe-label">Category</label>
