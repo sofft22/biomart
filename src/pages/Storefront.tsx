@@ -202,20 +202,18 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = !!store.cover_url;
 
-  // 🟢 Premium Header Logic
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
   return (
     <div className="sf-shell">
       {/* 🟢 PREMIUM HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
-        <div className="sf-head-inner">
-          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name}>
-            {brand.first && <span className="sf-wordmark-1">{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2">{titleCase(brand.second)}</span>}
+        <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0 }}>
+            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(16px, 4vw, 20px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(16px, 4vw, 20px)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{titleCase(brand.second)}</span>}
           </button>
-          <div className="sf-head-spacer" />
-          <div className="sf-head-actions">
+          <div className="sf-head-actions" style={{ flexShrink: 0 }}>
             <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
               {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
@@ -224,8 +222,7 @@ export default function Storefront() {
         </div>
       </header>
 
-  
-            {/* 🟢 HERO BANNER WITH TOP GRADIENT */}
+      {/* 🟢 HERO BANNER */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "65vh" }}>
           <img 
@@ -234,7 +231,6 @@ export default function Storefront() {
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} 
           />
           
-          {/* Dark gradient at top for header readability, dark gradient at bottom for CTA */}
           <div 
             style={{ 
               position: "absolute", inset: 0, 
@@ -245,32 +241,17 @@ export default function Storefront() {
           <div 
             className="sf-banner-text" 
             style={{ 
-              position: "relative", 
-              display: "flex", 
-              flexDirection: "column", 
-              justifyContent: "flex-end", 
-              alignItems: "center", 
-              height: "100%", 
-              // 🟢 Increased bottom padding so the button NEVER clips on mobile
-              paddingBottom: "clamp(60px, 12vw, 100px)", 
-              paddingLeft: 24, 
-              paddingRight: 24, 
-              gap: 24 // More gap between tagline and button
+              position: "relative", display: "flex", flexDirection: "column", 
+              justifyContent: "flex-end", alignItems: "center", height: "100%", 
+              paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
           >
             {tagline && (
               <h2 
                 style={{ 
-                  color: "#fff", 
-                  // 🟢 Slightly increased font size for the tagline
-                  fontSize: "clamp(1rem, 3vw, 1.4rem)", 
-                  fontWeight: 500, 
-                  textAlign: "center", 
-                  letterSpacing: "0.15em", 
-                  textTransform: "uppercase", 
-                  margin: 0, 
-                  textShadow: "0 2px 12px rgba(0,0,0,0.6)", 
-                  maxWidth: "600px" 
+                  color: "#fff", fontSize: "clamp(1rem, 3vw, 1.4rem)", fontWeight: 500, 
+                  textAlign: "center", letterSpacing: "0.15em", textTransform: "uppercase", 
+                  margin: 0, textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "600px" 
                 }}
               >
                 {tagline}
@@ -281,13 +262,8 @@ export default function Storefront() {
               onClick={() => scrollTo("shop-all")} 
               className="sf-banner-cta" 
               style={{ 
-                background: "#fff", 
-                color: "#000", 
-                padding: "16px 32px", 
-                fontSize: "13px", 
-                letterSpacing: "0.05em", 
-                fontWeight: 600,
-                flexShrink: 0 // Prevents the button from squishing
+                background: "#fff", color: "#000", padding: "16px 32px", 
+                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0
               }}
             >
               SHOP THE COLLECTION 
@@ -298,14 +274,12 @@ export default function Storefront() {
           </div>
         </section>
       )}
-      
+
       {/* 🟢 SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "60px" : "100px" }}>
         
-        {/* TOOLBAR */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 24 }}>
           
-          {/* Left: Category Dropdown */}
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button 
               onClick={() => setCategoryOpen(!categoryOpen)}
@@ -336,14 +310,12 @@ export default function Storefront() {
             )}
           </div>
 
-          {/* Right: Search & Custom Sort */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
             
             <button onClick={() => setSearchOpen(!searchOpen)} style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             </button>
 
-            {/* 🟢 CUSTOM SORT DROPDOWN */}
             <div ref={sortRef} style={{ position: "relative" }}>
               <button 
                 onClick={() => setSortOpen(!sortOpen)}
@@ -379,7 +351,6 @@ export default function Storefront() {
           </div>
         </div>
 
-        {/* SEARCH INPUT */}
         {searchOpen && (
           <div style={{ marginBottom: 24, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
@@ -395,7 +366,6 @@ export default function Storefront() {
           </div>
         )}
 
-        {/* PRODUCT GRID */}
         {paginatedProducts.length === 0 ? (
           <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
         ) : (
@@ -462,7 +432,6 @@ export default function Storefront() {
             </div>
           </div>
           
-          {/* Bottom Bar with Back to Top */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 12, opacity: 0.6 }}>
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", width: "100%", gap: 16 }}>
               <span>© 2026 {titleCase(store.name)}</span>
@@ -472,7 +441,6 @@ export default function Storefront() {
               </a>
             </div>
             
-            {/* 🟢 BACK TO TOP BUTTON */}
             <button 
               onClick={scrollToTop} 
               style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
