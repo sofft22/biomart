@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Routes, Route, useParams, useLocation } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { StoreProvider } from "./context/StoreContext";
 import { CartProvider } from "./context/CartContext";
@@ -14,7 +15,7 @@ import Settings from "./pages/Settings";
 import Plan from "./pages/Plan";
 import ProductEdit from "./pages/ProductEdit";
 import Storefront from "./pages/Storefront";
-import LegalPage from "./pages/LegalPage"; // 🟢 Import LegalPage
+import LegalPage from "./pages/LegalPage";
 
 // Admin Pages
 import RequireAuth from "./components/RequireAuth";
@@ -23,6 +24,18 @@ import AdminLayout from "./pages/admin/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminStores from "./pages/admin/AdminStores";
 import AdminSettings from "./pages/admin/AdminSettings";
+
+// 🟢 SCROLL TO TOP HELPER
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    // Instantly scrolls to top whenever the pathname changes
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
 
 function StorefrontRoute() {
   const { slug } = useParams<{ slug: string }>();
@@ -52,6 +65,9 @@ function NotFound() {
 export default function App() {
   return (
     <BrowserRouter>
+      {/* 🟢 Placed here so it runs on every route change */}
+      <ScrollToTop />
+      
       <AuthProvider>
         <ToastProvider>
           <Routes>
@@ -61,7 +77,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/store/:slug" element={<StorefrontRoute />} />
 
-            {/* 🟢 LEGAL ROUTES */}
+            {/* Legal Routes */}
             <Route path="/legal/privacy" element={<LegalPage />} />
             <Route path="/legal/terms" element={<LegalPage />} />
             <Route path="/legal/refunds" element={<LegalPage />} />
