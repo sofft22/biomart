@@ -13,6 +13,7 @@ export default function Settings() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
   const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
+  const [categories, setCategories] = useState((store as any)?.categories ?? ""); // 🟢 NEW STATE
   const [address, setAddress] = useState((store as any)?.address ?? "");
   const [whatsapp, setWhatsapp] = useState(store?.whatsapp ?? "");
   const [instagram, setInstagram] = useState(store?.instagram ?? "");
@@ -27,6 +28,7 @@ export default function Settings() {
     if (!store) return;
     setName(store.name ?? "");
     setTagline((store as any).tagline ?? "");
+    setCategories((store as any).categories ?? ""); // 🟢 NEW
     setAddress((store as any).address ?? "");
     setWhatsapp(store.whatsapp ?? "");
     setInstagram(store.instagram ?? "");
@@ -43,6 +45,7 @@ export default function Settings() {
       await storeApi.update({
         name: name.trim(),
         tagline: tagline.trim() || null,
+        categories: categories.trim() || null, // 🟢 SENDING TO DB
         address: address.trim() || null,
         whatsapp: whatsapp.trim(),
         instagram: instagram.trim() || null,
@@ -106,6 +109,7 @@ export default function Settings() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Name</span><p style={{ fontSize: 16, fontWeight: 600, margin: "4px 0 0" }}>{name || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Tagline</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tagline || "—"}</p></div>
+              <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Categories</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{categories || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>WhatsApp</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{whatsapp || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Instagram</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{instagram ? `@${instagram}` : "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>TikTok</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tiktok ? `@${tiktok}` : "—"}</p></div>
@@ -114,8 +118,30 @@ export default function Settings() {
           ) : (
             <>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: 20 }}>
-                <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Name</label><input className="pe-input" value={name} onChange={(e) => setName(e.target.value)} /></div>
-                <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Tagline</label><input className="pe-input" value={tagline} onChange={(e) => setTagline(e.target.value)} /></div>
+                {/* 🟢 ADDED maxLength TO NAME TO FIX HEADER */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Store Name (Max 20 chars)</label>
+                  <input className="pe-input" value={name} maxLength={20} onChange={(e) => setName(e.target.value)} />
+                </div>
+
+                {/* 🟢 ADDED maxLength TO TAGLINE */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Tagline (Max 50 chars)</label>
+                  <input className="pe-input" value={tagline} maxLength={50} onChange={(e) => setTagline(e.target.value)} />
+                </div>
+
+                {/* 🟢 NEW CATEGORIES INPUT */}
+                <div style={{ gridColumn: "1 / -1" }}>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Categories (Comma separated)</label>
+                  <input 
+                    className="pe-input" 
+                    value={categories} 
+                    placeholder="e.g. Banana Bread, Puff Puffs, Mocktails" 
+                    onChange={(e) => setCategories(e.target.value)} 
+                  />
+                  <p style={{ fontSize: 12, color: "var(--muted)", margin: "6px 0 0" }}>Separate categories with a comma. These will appear as filter pills on your storefront.</p>
+                </div>
+
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>WhatsApp Number</label><input className="pe-input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} /></div>
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Instagram Handle</label><input className="pe-input" value={instagram} onChange={(e) => setInstagram(e.target.value)} /></div>
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>TikTok Handle</label><input className="pe-input" value={tiktok} onChange={(e) => setTiktok(e.target.value)} /></div>
