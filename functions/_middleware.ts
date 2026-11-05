@@ -12,7 +12,7 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
     return context.next();
   }
 
-  // 2. Get the slug
+  // 2. Get the slug (e.g., "/soft" -> "soft")
   const slug = pathname.split("/")[1];
   if (!slug) {
     return context.next(); 
@@ -23,6 +23,7 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
     "SELECT name, cover_url, hero_title, tagline, extra_banners FROM stores WHERE slug = ?"
   ).bind(slug).first<any>();
 
+  // If store doesn't exist, serve the normal app
   if (!store) {
     return context.next();
   }
@@ -39,7 +40,7 @@ export const onRequest: PagesFunction<{ DB: D1Database }> = async (context) => {
   const title = `${store.name} | Biomart`;
   const description = `${store.hero_title || store.name} — ${store.tagline || "Shop now."}`;
 
-  // 5. Get the HTML and inject
+  // 5. Fetch the HTML and inject the tags
   const response = await context.next();
   
   return new HTMLRewriter()
