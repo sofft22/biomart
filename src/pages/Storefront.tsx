@@ -204,7 +204,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER - Tagline dynamically added above button */}
+           {/* CUSTOM BANNER - Perfectly Centered */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
@@ -215,13 +215,12 @@ export default function Storefront() {
             style={{ 
               display: "flex", 
               flexDirection: "column", 
-              justifyContent: "flex-end", 
-              alignItems: "center", 
+              justifyContent: "center", // 👈 THIS IS THE MAGIC FIX: Centers it vertically
+              alignItems: "center",     // Centers it horizontally
               height: "100%", 
-              paddingBottom: 48,
               paddingLeft: 24,
               paddingRight: 24,
-              gap: 20 // spacing between tagline and button
+              gap: 24 // Spacing between tagline and button
             }}
           >
             {/* Dynamic Tagline */}
@@ -229,18 +228,27 @@ export default function Storefront() {
               <h2 
                 style={{ 
                   color: "#fff", 
-                  fontSize: "clamp(1.2rem, 3vw, 1.8rem)", 
-                  fontWeight: 500, 
+                  fontSize: "clamp(1.5rem, 4vw, 2.5rem)", // Bigger, bolder
+                  fontWeight: 600, 
                   textAlign: "center",
+                  letterSpacing: "-0.02em", // Makes it look more premium
                   margin: 0,
-                  textShadow: "0 2px 10px rgba(0,0,0,0.5)", // keeps it readable on light/dark images
-                  maxWidth: "600px"
+                  textShadow: "0 4px 20px rgba(0,0,0,0.6)", // Stronger shadow so it pops over the shirt
+                  maxWidth: "800px",
+                  lineHeight: 1.2
                 }}
               >
                 {tagline}
               </h2>
             )}
 
+            {/* Shop Button */}
+            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000" }}>
+              Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+          </div>
+        </section>
+      )}
             {/* Shop Button */}
             <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000" }}>
               Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
