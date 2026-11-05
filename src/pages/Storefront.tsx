@@ -127,24 +127,13 @@ export default function Storefront() {
     return list.filter(Boolean).slice(0, 3);
   }, [store]);
 
-  // 🟢 FIX: Preload all images immediately and auto-slide
   useEffect(() => {
-    if (bannersList.length === 0) return;
-
-    // Preload all images so there is no blank flash
-    bannersList.forEach((url) => {
-      const img = new Image();
-      img.src = url;
-    });
-
     if (bannersList.length <= 1) return;
-
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => (prev + 1) % bannersList.length);
     }, 4000); 
-
     return () => clearInterval(interval);
-  }, [bannersList]);
+  }, [bannersList.length]);
 
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
@@ -230,40 +219,27 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER CAROUSEL (Track Slider) */}
+      {/* 🟢 FIXED HERO BANNER CAROUSEL (Stacked Cross-Fade) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#000", overflow: "hidden" }}>
+        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#000" }}>
           
-          {/* Sliding Track */}
-          <div 
-            style={{ 
-              display: "flex", 
-              width: "100%", 
-              height: "100%", 
-              transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
-              transform: `translateX(-${currentBannerIndex * 100}%)`
-            }}
-          >
-            {bannersList.map((url, idx) => (
-              <div 
-                key={idx} 
-                style={{ 
-                  minWidth: "100%", 
-                  height: "100%", 
-                  position: "relative",
-                  backgroundColor: "#000" // Ensures transparent images don't bleed over
-                }}
-              >
-                <img 
-                  src={url} 
-                  alt={`Banner ${idx + 1}`} 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                />
-              </div>
-            ))}
-          </div>
+          {/* Render all images stacked on top of each other */}
+          {bannersList.map((url, idx) => (
+            <img 
+              key={idx}
+              src={url} 
+              alt={`Banner ${idx + 1}`} 
+              loading={idx === 0 ? "eager" : "lazy"} 
+              fetchPriority={idx === 0 ? "high" : "auto"}
+              style={{ 
+                position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+                opacity: currentBannerIndex === idx ? 1 : 0,
+                transition: "opacity 0.8s ease-in-out",
+                zIndex: currentBannerIndex === idx ? 1 : 0
+              }} 
+            />
+          ))}
           
-          {/* Overlay & Text */}
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
           
           <div 
