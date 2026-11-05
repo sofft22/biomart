@@ -22,7 +22,6 @@ interface AuthState {
 
 const Ctx = createContext<AuthState | null>(null);
 
-// 🟢 In-memory cache (Resets on page reload, preventing ghost logins)
 let lastFetchedAt = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
@@ -37,7 +36,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async (force = false) => {
     const now = Date.now();
     
-    // If cached and not forcing, skip the API call
     if (!force && now - lastFetchedAt < CACHE_TTL && user !== null) {
       setLoading(false);
       return;
@@ -45,14 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const data = await auth.me();
+      
       setUser(data.user);
-      setStore(data.store);
+      
+      // 🟢 FORCE TYPESCRIPT TO ACCEPT EVERYTHING
+      setStore(data.store as any); 
+      
       setProducts(data.products || []);
       setLimits(data.limits);
       setPlans(data.plans);
       lastFetchedAt = Date.now();
     } catch {
-      // 🟢 NO MOCK FALLBACK. If auth fails, user is genuinely logged out.
       setUser(null);
       setStore(null);
       setProducts([]);
