@@ -59,6 +59,9 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
+  // 🟢 Carousel State
+  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -113,6 +116,26 @@ export default function Storefront() {
     update();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // 🟢 Parse all banners into an array
+  const bannersList = useMemo(() => {
+    const list = [];
+    if ((store as any)?.cover_url) list.push((store as any).cover_url);
+    try {
+      const extras = JSON.parse((store as any)?.extra_banners || "[]");
+      if (Array.isArray(extras)) list.push(...extras);
+    } catch (e) {}
+    return list.filter(Boolean).slice(0, 3);
+  }, [store]);
+
+  // 🟢 Auto-slide logic
+  useEffect(() => {
+    if (bannersList.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentBannerIndex((prev) => (prev + 1) % bannersList.length);
+    }, 4000); // Changes every 4 seconds
+    return () => clearInterval(interval);
+  }, [bannersList.length]);
 
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
@@ -171,7 +194,7 @@ export default function Storefront() {
   const tagline = (store as any).tagline || "";
   const heroTitle = (store as any).hero_title || ""; 
   const address = (store as any).address || "";
-  const hasCustomBanner = !!store.cover_url;
+  const hasCustomBanner = bannersList.length > 0;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
@@ -198,23 +221,31 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER */}
+      {/* 🟢 HERO BANNER CAROUSEL */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh" }}>
-          <img 
-            src={store.cover_url!} 
-            alt="Banner" 
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} 
-          />
+          {/* Render all images, cross-fade them based on index */}
+          {bannersList.map((url, idx) => (
+            <img 
+              key={url}
+              src={url} 
+              alt={`Banner ${idx + 1}`} 
+              style={{ 
+                position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
+                opacity: currentBannerIndex === idx ? 1 : 0,
+                transition: "opacity 1s ease-in-out",
+                zIndex: currentBannerIndex === idx ? 1 : 0
+              }} 
+            />
+          ))}
           
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2 }} />
           
           <div 
             className="sf-banner-text" 
             style={{ 
-              position: "relative", display: "flex", flexDirection: "column", 
-              justifyContent: "flex-end", 
-              alignItems: "center", height: "100%", 
+              position: "relative", zIndex: 3, display: "flex", flexDirection: "column", 
+              justifyContent: "flex-end", alignItems: "center", height: "100%", 
               paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
           >
@@ -222,16 +253,10 @@ export default function Storefront() {
               <h1 
                 className="sf-banner-tagline"
                 style={{ 
-                  fontFamily: "'Playfair Display', 'Georgia', serif", 
-                  color: "#fff", 
-                  fontSize: "clamp(2.5rem, 8vw, 5rem)", 
-                  fontWeight: 600, 
-                  textAlign: "center", 
-                  lineHeight: 1.1,
-                  letterSpacing: "-0.02em",
-                  margin: 0, 
-                  textShadow: "0 4px 20px rgba(0,0,0,0.5)", 
-                  maxWidth: "900px",
+                  fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", 
+                  fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", 
+                  lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, 
+                  textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px",
                 }}
               >
                 {renderHeroTitle(heroTitle)}
@@ -375,7 +400,7 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 EXACTLY AS REQUESTED: NO FAKE LINKS, GROUPED PERFECTLY */}
+      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
@@ -392,7 +417,7 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* Side-by-Side Navs for Mobile & Desktop */}
+            {/* Navs */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", width: "100%", textAlign: "left" }}>
               
               {/* Contact */}
