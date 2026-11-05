@@ -52,7 +52,6 @@ export const ProductCard = memo(function ProductCard({
   return (
     <article className="pc group flex flex-col cursor-pointer w-full" style={{ animationDelay: `${delay}s` }}>
       
-      {/* 🟢 REMOVED the hardcoded background color here so it matches your store */}
       <button onClick={onClick} className="pc-media relative aspect-[4/5] w-full overflow-hidden rounded-lg" aria-label={`View ${product.name}`}>
         {!imgLoaded && images.length > 0 && <div className="pc-skeleton absolute inset-0 animate-pulse" />}
 
@@ -147,14 +146,18 @@ export const ProductCard = memo(function ProductCard({
 
         {inStock && (
           <div className="pc-hover-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={handleQuickAction} className="pc-quick-btn bg-white px-4 py-2 text-xs font-semibold uppercase tracking-wider rounded">
+            {/* 🟢 BLACK & WHITE HOVER: Default is Black BG / White Text. Hover is White BG / Black Text */}
+            <button 
+              onClick={handleQuickAction} 
+              className="bg-black text-white px-6 py-3 text-[11px] font-bold uppercase tracking-[0.15em] rounded-md shadow-lg transition-all duration-300 hover:bg-white hover:text-black"
+            >
               {hasVariants ? 'Choose options' : 'Add to bag'}
             </button>
           </div>
         )}
       </button>
 
-      {/* Meta Section - Removed hardcoded text colors so it matches your global theme */}
+      {/* Meta Section */}
       <button onClick={onClick} className="pc-meta mt-3 flex flex-col gap-1 text-left w-full">
         <p 
           className="pc-name text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]"
