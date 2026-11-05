@@ -61,13 +61,15 @@ export function ProductModal({
   const hasVariants = variants.length > 0;
 
   const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
-  const priceDelta = selectedVariant?.priceDelta ?? 0;
   
-  // 🟢 Base price + the variant's exact price delta (if any)
-  const displayPrice = product.price + priceDelta;
+  // 🟢 FIX: The variant price is the absolute price, NOT a delta to add.
+  // If a variant is selected, we use its exact price. Otherwise, we use the base product price.
+  const displayPrice = selectedVariant ? selectedVariant.priceDelta : product.price;
   
-  const displayCompare =
-    product.compare_at_price != null ? product.compare_at_price + priceDelta : null;
+  // For the "compare at" price, we don't touch it if a variant is selected.
+  const displayCompare = !selectedVariant && product.compare_at_price != null 
+    ? product.compare_at_price 
+    : null;
 
   const canAdd = !hasVariants || selectedVariantLabel !== null;
 
@@ -109,14 +111,15 @@ export function ProductModal({
 
   const handleAdd = () => {
     if (!canAdd) return;
-    onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
+    // 🟢 FIX: We pass the absolute price as the final argument so the cart knows the exact cost.
+    onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
     setAddedFlash(true);
     setTimeout(() => setAddedFlash(false), 1400);
   };
 
   const handleOrder = () => {
     if (!canAdd) return;
-    onAddToCart(qty, selectedVariantLabel ?? undefined, priceDelta, { silent: true });
+    onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
     
     const phone = store.whatsapp.replace(/\D/g, "");
     const lineTotal = displayPrice * qty;
@@ -126,7 +129,7 @@ export function ProductModal({
     
 I want to order:
     
-${product.name} x ${qty} = ${formattedLineTotal}
+${product.name} ${selectedVariantLabel ? `(${selectedVariantLabel})` : ''} x ${qty} = ${formattedLineTotal}
     
 Total: ${formattedLineTotal}
     
@@ -275,24 +278,22 @@ How do I proceed with the payment and delivery process?`;
                   <div className="flex flex-wrap gap-2.5">
                     {variants.map((v) => {
                       const active = selectedVariantLabel === v.label;
-                      // 🟢 Calculate the absolute price for this specific variant
-                      const variantTotalPrice = product.price + v.priceDelta;
                       
                       return (
                         <button
                           key={v.label}
                           onClick={() => setSelectedVariantLabel(v.label)}
-                          className="rounded-[8px] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] transition-all duration-300"
+                          className="rounded-[8px] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] transition-all duration-300 flex items-center gap-2"
                           style={{
                             border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
                             backgroundColor: active ? CHARCOAL : 'transparent',
                             color: active ? '#fff' : CHARCOAL,
                           }}
                         >
-                          {v.label}
-                          {/* 🟢 Show the absolute price, not the + delta */}
-                          <span className="ml-2 opacity-60" style={{ color: active ? '#fff' : CHARCOAL }}>
-                            {naira(variantTotalPrice)}
+                          <span>{v.label}</span>
+                          {/* 🟢 DISPLAYS THE EXACT PRICE ENTERED FOR THE VARIANT */}
+                          <span style={{ color: active ? 'rgba(255,255,255,0.7)' : MUTED, fontSize: 11 }}>
+                            {naira(v.priceDelta)}
                           </span>
                         </button>
                       );
