@@ -20,45 +20,6 @@ function splitBrandName(name: string): { first: string; second: string } {
   return { first: parts[0], second: parts.slice(1).join(" ") };
 }
 
-function useReveal(deps: unknown[] = []) {
-  useEffect(() => {
-    let mounted = true;
-    const io = ("IntersectionObserver" in window)
-      ? new IntersectionObserver(
-          (entries) => {
-            for (const entry of entries) {
-              if (entry.isIntersecting) {
-                entry.target.classList.add("in");
-                io.unobserve(entry.target);
-              }
-            }
-          },
-          { rootMargin: "0px 0px -5% 0px", threshold: 0.05 }
-        )
-      : null;
-
-    const scan = () => {
-      if (!mounted) return;
-      const els = document.querySelectorAll<HTMLElement>("[data-reveal]:not(.in)");
-      if (!io) {
-        els.forEach((el) => el.classList.add("in"));
-        return;
-      }
-      els.forEach((el) => io.observe(el));
-    };
-
-    scan();
-    const mo = new MutationObserver(scan);
-    mo.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      mounted = false;
-      io?.disconnect();
-      mo.disconnect();
-    };
-  }, deps);
-}
-
 // 🟢 SMART STACKING HELPER
 function renderHeroTitle(title: string) {
   if (!title) return null;
@@ -159,8 +120,6 @@ export default function Storefront() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  useReveal([products.length, sort, query, currentPage, activeCategory]);
-
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
     if (!raw) return [];
@@ -246,7 +205,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER WITH STAGGERED FADE */}
+      {/* HERO BANNER */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh" }}>
           <img 
@@ -268,7 +227,6 @@ export default function Storefront() {
           >
             {heroTitle && (
               <h1 
-                className="animate-fade-up"
                 style={{ 
                   fontFamily: "'Playfair Display', 'Georgia', serif", 
                   color: "#fff", 
@@ -279,7 +237,8 @@ export default function Storefront() {
                   letterSpacing: "-0.02em",
                   margin: 0, 
                   textShadow: "0 4px 20px rgba(0,0,0,0.5)", 
-                  maxWidth: "900px" 
+                  maxWidth: "900px",
+                  animation: "sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both" // 🟢 MOTION
                 }}
               >
                 {renderHeroTitle(heroTitle)}
@@ -288,11 +247,11 @@ export default function Storefront() {
             
             <button 
               onClick={() => scrollTo("shop-all")} 
-              className="sf-banner-cta animate-fade-up" 
+              className="sf-banner-cta" 
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
                 fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16,
-                animationDelay: "0.1s"
+                animation: "sf-slide-up 1s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both" // 🟢 MOTION
               }}
             >
               SHOP NOW 
@@ -307,7 +266,7 @@ export default function Storefront() {
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
         
-        <div className="animate-fade-up" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button 
@@ -381,7 +340,7 @@ export default function Storefront() {
         </div>
 
         {searchOpen && (
-          <div className="animate-fade-up" style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
+          <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <input 
               type="search" 
@@ -403,8 +362,8 @@ export default function Storefront() {
               {paginatedProducts.map((p, i) => (
                 <div 
                   key={p.id} 
-                  className="animate-fade-up" 
-                  style={{ animationDelay: `${Math.min(i * 0.05, 0.5)}s` }} // 🟢 STAGGERED MOTION
+                  // 🟢 ADDED CSS MOTION (Staggered fade-up)
+                  style={{ animation: `sf-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) ${Math.min(i * 0.05, 0.4)}s both` }}
                 >
                   <ProductCard 
                     product={p} 
@@ -428,71 +387,112 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* CENTERED PREMIUM FOOTER */}
-      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px", textAlign: "center" }}>
-        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
+      {/* 🟢 NEW SPLIT FOOTER (Desktop 3-col, Mobile centered) */}
+      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
+        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          <div style={{ marginBottom: 40 }}>
-            <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
-              {brand.first && <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", color: "inherit" }}>{titleCase(brand.first)}</span>}
-              {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "-0.02em", opacity: 0.6 }}>{titleCase(brand.second)}</span>}
-            </div>
-            <p className="sf-footer-bio" style={{ maxWidth: 400, margin: "0 auto", opacity: 0.7, fontSize: 15, lineHeight: 1.6 }}>
-              {tagline || "Curated essentials for the modern wardrobe."}
-            </p>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32, marginBottom: 48 }}>
-            <div>
-              <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Contact</h4>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-                {store.whatsapp && (
-                  <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
-                    WhatsApp
-                  </a>
-                )}
-                {store.instagram && (
-                  <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
-                    Instagram
-                  </a>
-                )}
-                {store.tiktok && (
-                  <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
-                    TikTok
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {address && (
-              <div>
-                <h4 className="sf-footer-h" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, opacity: 0.5, fontWeight: 700 }}>Location</h4>
-                <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "inherit", opacity: 0.8, fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
-                  {address}
-                </a>
-              </div>
-            )}
-          </div>
-          
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 13, opacity: 0.6, width: "100%" }}>
+          <div className="sf-footer-top" style={{ display: "grid", gap: "48px", paddingBottom: "64px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             
-            {/* 🟢 SIDE BY SIDE ON EDGES */}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, width: "100%" }}>
-              <span>© 2026 {titleCase(store.name)}</span>
+            {/* Brand Column */}
+            <div className="sf-footer-brand-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+              <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
+                {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
+                {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
+              </div>
+              <p className="sf-footer-bio" style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
+                {tagline || "Curated essentials for the modern wardrobe."}
+              </p>
+            </div>
+
+            {/* 3 Columns (Hidden on mobile, flex on desktop) */}
+            <div className="sf-footer-desktop-cols" style={{ display: "none" }}>
+              <div>
+                <h4 className="sf-footer-h" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Navigation</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <a href="#shop-all" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Signature Treats</a>
+                  <a href="#shop-all" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Categories</a>
+                </div>
+              </div>
+              <div>
+                <h4 className="sf-footer-h" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Socials</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
+                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
+                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
+                </div>
+              </div>
+              <div>
+                <h4 className="sf-footer-h" style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Legal</h4>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  <a href="#" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Terms & Conditions</a>
+                  <a href="#" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Privacy Policy</a>
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Centered Contact/Location (Hidden on desktop) */}
+            <div className="sf-footer-mobile-links" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 32 }}>
+              <div style={{ textAlign: "center" }}>
+                <h4 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>Contact</h4>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>WhatsApp</a>}
+                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>Instagram</a>}
+                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>TikTok</a>}
+                </div>
+              </div>
+              {address && (
+                <div style={{ textAlign: "center" }}>
+                  <h4 style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 16, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>Location</h4>
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", fontSize: 15, textDecoration: "none", fontWeight: 500 }}>
+                    {address}
+                  </a>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="sf-footer-bot" style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
+            <span>© 2026 {titleCase(store.name)}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
               <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
                 <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
                 Powered by biomart
               </a>
+              <button 
+                onClick={scrollToTop} 
+                style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6 }}
+              >
+                Back to top
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
+              </button>
             </div>
-            
-            <button 
-              onClick={scrollToTop} 
-              style={{ background: "transparent", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "inherit", display: "flex", alignItems: "center", gap: 6, marginTop: 8 }}
-            >
-              Back to top
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}><path d="M12 19V5M5 12l7-7 7 7" /></svg>
-            </button>
           </div>
+
+          {/* CSS overrides to handle responsive layout without touching global styles */}
+          <style>{`
+            @media (min-width: 768px) {
+              .sf-footer-top {
+                grid-template-columns: 1fr 2fr !important;
+                text-align: left !important;
+              }
+              .sf-footer-brand-col {
+                align-items: flex-start !important;
+                text-align: left !important;
+              }
+              .sf-footer-brand {
+                justify-content: flex-start !important;
+              }
+              .sf-footer-desktop-cols {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 32px;
+              }
+              .sf-footer-mobile-links {
+                display: none !important;
+              }
+            }
+          `}</style>
         </div>
       </footer>
 
