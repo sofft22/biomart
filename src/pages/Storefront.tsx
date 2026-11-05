@@ -444,14 +444,33 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* FOOTER */}
+            {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          <div style={{ display: "grid", gap: "40px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+          {/* 🟢 RESPONSIVE GRID LOGIC */}
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "1fr", // Mobile: 1 column for brand
+            gap: "40px", 
+            paddingBottom: "48px", 
+            borderBottom: "1px solid rgba(255,255,255,0.1)" 
+          }}>
+            <style>{`
+              @media (min-width: 768px) {
+                .sf-footer-grid {
+                  grid-template-columns: 2fr 1fr 1fr !important; /* Desktop: Brand gets more space */
+                  gap: 64px !important;
+                }
+                .sf-footer-links-wrap {
+                  display: contents !important; /* Breaks the columns out on desktop */
+                }
+              }
+            `}</style>
             
+            {/* Brand Block */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
-              <div style={{ marginBottom: 12, display: "flex", justifyContent: "flex-start", gap: 6 }}>
+              <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
                 {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
               </div>
@@ -460,7 +479,17 @@ export default function Storefront() {
               </p>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", width: "100%", textAlign: "left" }}>
+            {/* 🟢 Links Grid (2 cols on mobile, spreads to 2 cols on desktop) */}
+            <div style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr 1fr", // 🟢 Mobile is 2 columns!
+              gap: "32px", 
+              width: "100%", 
+              textAlign: "left",
+              gridColumn: "1 / -1" // Spans full width on mobile below the brand
+            }}>
+              
+              {/* Contact */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -470,6 +499,7 @@ export default function Storefront() {
                 </div>
               </div>
 
+              {/* Location */}
               {address && (
                 <div>
                   <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Location</h4>
@@ -479,17 +509,18 @@ export default function Storefront() {
                 </div>
               )}
             </div>
+
           </div>
 
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
+          {/* Bottom Bar */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
             <span>© 2026 {titleCase(store.name)}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-              <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
-                <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
-                Powered by biomart
-              </a>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <svg viewBox="0 0 60 64" width="14" height="14" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
+              Powered by biomart
             </div>
           </div>
+
         </div>
       </footer>
 
