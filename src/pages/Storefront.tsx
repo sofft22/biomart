@@ -59,7 +59,6 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // Carousel State
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
 
@@ -128,7 +127,6 @@ export default function Storefront() {
     return list.filter(Boolean).slice(0, 4);
   }, [store]);
 
-  // 🟢 Preload images immediately
   useEffect(() => {
     bannersList.forEach((url) => {
       const img = new Image();
@@ -136,28 +134,21 @@ export default function Storefront() {
     });
   }, [bannersList]);
 
-  // 🟢 Slide logic (3.5 seconds)
   useEffect(() => {
     if (bannersList.length <= 1) return;
-    
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => prev + 1);
     }, 3500);
-
     return () => clearInterval(interval);
   }, [bannersList.length]);
 
-  // 🟢 Seamless Reset logic
   useEffect(() => {
-    // If we reached the cloned first image at the end
     if (currentBannerIndex === bannersList.length) {
       const timer = setTimeout(() => {
-        setIsTransitioning(false); // Turn off animation
-        setCurrentBannerIndex(0);  // Snap to real first image
-        // Force browser to recognize the snap before turning animation back on
+        setIsTransitioning(false);
+        setCurrentBannerIndex(0);
         setTimeout(() => setIsTransitioning(true), 50); 
-      }, 600); // 600ms matches the CSS transition speed below
-      
+      }, 600);
       return () => clearTimeout(timer);
     }
   }, [currentBannerIndex, bannersList.length]);
@@ -212,6 +203,13 @@ export default function Storefront() {
   const scrollTo = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
+  // 🟢 SMART PAGINATION SCROLL
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    // Smoothly scroll back to the "Shop all" heading
+    scrollTo("shop-all");
+  };
+
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
   if (error || !store) return <div className="sf-loading">Store not found</div>;
 
@@ -254,9 +252,7 @@ export default function Storefront() {
           
           <div 
             style={{ 
-              display: "flex", 
-              height: "100%", 
-              width: "100%",
+              display: "flex", height: "100%", width: "100%",
               transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
               transform: `translateX(-${currentBannerIndex * 100}%)`
             }}
@@ -264,17 +260,11 @@ export default function Storefront() {
             {displayBanners.map((url, idx) => (
               <div 
                 key={idx} 
-                style={{ 
-                  minWidth: "100%", 
-                  height: "100%", 
-                  flexShrink: 0,
-                  backgroundColor: "#fff" 
-                }}
+                style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff" }}
               >
                 <img 
                   src={url} 
                   alt={`Banner ${(idx % bannersList.length) + 1}`} 
-                  // 🟢 Preload all to memory
                   loading="eager" 
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                 />
@@ -433,22 +423,75 @@ export default function Storefront() {
               ))}
             </div>
             
+            {/* 🟢 SMART PREMIUM PAGINATION */}
             {totalPages > 1 && (
-              <div className="sf-pagination" style={{ marginTop: 56 }}>
-                <button disabled={currentPage === 1} onClick={() => { setCurrentPage(p => Math.max(1, p - 1)); scrollTo("shop-all"); }}>Previous</button>
-                <span>Page {currentPage} of {totalPages}</span>
-                <button disabled={currentPage === totalPages} onClick={() => { setCurrentPage(p => Math.min(totalPages, p + 1)); scrollTo("shop-all"); }}>Next</button>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 64 }}>
+                
+                {/* Previous Arrow */}
+                <button 
+                  disabled={currentPage === 1} 
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "1px solid var(--line)", background: "transparent", cursor: currentPage === 1 ? "not-allowed" : "pointer",
+                    opacity: currentPage === 1 ? 0.3 : 1, transition: "all 0.2s ease"
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+
+                {/* Page Numbers */}
+                <div style={{ display: "flex", gap: 8 }}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    // Show max 5 pages around current page
+                    if (totalPages > 5 && Math.abs(currentPage - page) > 2) return null;
+                    
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => handlePageChange(page)}
+                        style={{
+                          width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease",
+                          border: "1px solid",
+                          borderColor: currentPage === page ? "var(--ink)" : "transparent",
+                          background: currentPage === page ? "var(--ink)" : "transparent",
+                          color: currentPage === page ? "var(--bg)" : "var(--text)",
+                        }}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Arrow */}
+                <button 
+                  disabled={currentPage === totalPages} 
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  style={{
+                    width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "1px solid var(--line)", background: "transparent", cursor: currentPage === totalPages ? "not-allowed" : "pointer",
+                    opacity: currentPage === totalPages ? 0.3 : 1, transition: "all 0.2s ease"
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+
               </div>
             )}
           </>
         )}
       </section>
 
-                  {/* FOOTER */}
+      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          {/* 🟢 4-COLUMN DESKTOP GRID / STACKED MOBILE */}
           <div style={{ 
             display: "grid", 
             gridTemplateColumns: "1fr", // Mobile: 1 column
@@ -459,12 +502,11 @@ export default function Storefront() {
             <style>{`
               @media (min-width: 768px) {
                 .sf-footer-grid {
-                  /* 🟢 Desktop: 4 specific columns */
                   grid-template-columns: 2fr 1fr 1fr 1fr !important; 
                   gap: 32px !important;
                 }
                 .sf-footer-mobile-stack {
-                  display: contents !important; /* Makes children sit as independent columns */
+                  display: contents !important;
                 }
               }
             `}</style>
