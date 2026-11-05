@@ -24,6 +24,9 @@ export default function ProductEdit() {
   const [price, setPrice] = useState("");
   const [wasPrice, setWasPrice] = useState("");
   
+  // 🟢 NEW: Category State
+  const [category, setCategory] = useState("");
+
   const [inStock, setInStock] = useState(true);
   const [images, setImages] = useState<string[]>([]);
   const [variants, setVariants] = useState<Variant[]>([]);
@@ -37,6 +40,11 @@ export default function ProductEdit() {
   
   const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
   const canUseVariants = isPro;
+
+  // 🟢 Extract available categories from settings
+  const availableCategories = (currentStore as any)?.categories 
+    ? (currentStore as any).categories.split(",").map((c: string) => c.trim()).filter(Boolean)
+    : [];
 
   useEffect(() => {
     refresh(true);
@@ -71,6 +79,9 @@ export default function ProductEdit() {
         ? String(product.compare_at_price)
         : ""
     );
+    // 🟢 Load existing category
+    setCategory((product as any).category || "");
+    
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     setVariants(product.variants?.suggested ?? []);
@@ -140,6 +151,7 @@ export default function ProductEdit() {
       description: description.trim(),
       price: Number(price),
       compare_at_price: hasValidWas ? numericWas : null,
+      category: category.trim() || null, // 🟢 SAVING CATEGORY
       in_stock: inStock,
       inStock: inStock,
       image_url: imageUrl,
@@ -183,7 +195,6 @@ export default function ProductEdit() {
     <DashboardLayout>
       <style>{`
         @media (max-width: 899px) {
-          /* 1. Stop the button from floating */
           .pe-actions {
             position: static !important;
             background: transparent !important;
@@ -192,7 +203,6 @@ export default function ProductEdit() {
             padding: 0 !important;
             margin-top: 24px !important;
           }
-          /* 2. Add space to the bottom so you can scroll past the nav bar */
           .dash-main {
             padding-bottom: 120px !important;
           }
@@ -275,6 +285,56 @@ export default function ProductEdit() {
             onChange={(e) => setName(e.target.value)}
             placeholder="Ankara tote bag"
           />
+        </section>
+
+        {/* 🟢 NEW CATEGORY SELECTOR */}
+        <section className="pe-section">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <label className="pe-label">Category</label>
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>Optional</span>
+          </div>
+          
+          {availableCategories.length > 0 ? (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setCategory("")}
+                style={{
+                  padding: "8px 16px", borderRadius: 99, fontSize: 13, fontWeight: 500,
+                  border: "1px solid",
+                  borderColor: !category ? "var(--ink)" : "var(--line)",
+                  background: !category ? "var(--ink)" : "transparent",
+                  color: !category ? "var(--bg)" : "var(--muted)",
+                  cursor: "pointer", transition: "all 0.2s"
+                }}
+              >
+                None (Shop all)
+              </button>
+              {availableCategories.map((cat: string) => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  style={{
+                    padding: "8px 16px", borderRadius: 99, fontSize: 13, fontWeight: 500,
+                    border: "1px solid",
+                    borderColor: category === cat ? "var(--ink)" : "var(--line)",
+                    background: category === cat ? "var(--ink)" : "transparent",
+                    color: category === cat ? "var(--bg)" : "var(--muted)",
+                    cursor: "pointer", transition: "all 0.2s"
+                  }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={{ background: "var(--soft)", padding: 16, borderRadius: 10, border: "1px solid var(--line)" }}>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>
+                You haven't set up any categories yet. Go to <Link to="/dashboard/settings" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "underline" }}>Settings</Link> to add them.
+              </p>
+            </div>
+          )}
         </section>
 
         <section className="pe-section">
