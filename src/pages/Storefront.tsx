@@ -59,17 +59,15 @@ function useReveal(deps: unknown[] = []) {
   }, deps);
 }
 
-// 🟢 HELPER TO SMARTLY SPLIT TEXT INTO TWO LINES
+// 🟢 SMART STACKING HELPER
 function renderHeroTitle(title: string) {
   if (!title) return null;
   const firstSpaceIdx = title.indexOf(" ");
   
-  // If there is no space, or it's just one word, keep it on one line
   if (firstSpaceIdx === -1) {
     return <span>{title}</span>;
   }
   
-  // If there is a space, split it into two lines exactly at the first space
   const line1 = title.substring(0, firstSpaceIdx);
   const line2 = title.substring(firstSpaceIdx + 1);
   
@@ -230,7 +228,6 @@ export default function Storefront() {
       {/* PREMIUM HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          {/* 🟢 UPDATED HEADER BRAND (No truncation, breathing room) */}
           <button 
             onClick={scrollToTop} 
             className="sf-wordmark" 
@@ -249,7 +246,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER */}
+      {/* HERO BANNER WITH STAGGERED FADE */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh" }}>
           <img 
@@ -271,6 +268,7 @@ export default function Storefront() {
           >
             {heroTitle && (
               <h1 
+                className="animate-fade-up"
                 style={{ 
                   fontFamily: "'Playfair Display', 'Georgia', serif", 
                   color: "#fff", 
@@ -290,10 +288,11 @@ export default function Storefront() {
             
             <button 
               onClick={() => scrollTo("shop-all")} 
-              className="sf-banner-cta" 
+              className="sf-banner-cta animate-fade-up" 
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
-                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16
+                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16,
+                animationDelay: "0.1s"
               }}
             >
               SHOP NOW 
@@ -308,7 +307,7 @@ export default function Storefront() {
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
         
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
+        <div className="animate-fade-up" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button 
@@ -382,7 +381,7 @@ export default function Storefront() {
         </div>
 
         {searchOpen && (
-          <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
+          <div className="animate-fade-up" style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             <input 
               type="search" 
@@ -402,14 +401,19 @@ export default function Storefront() {
           <>
             <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
-                <ProductCard 
+                <div 
                   key={p.id} 
-                  product={p} 
-                  index={i} 
-                  priority={i < 4} 
-                  onClick={() => handleOpenProduct(p)} 
-                  onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
-                />
+                  className="animate-fade-up" 
+                  style={{ animationDelay: `${Math.min(i * 0.05, 0.5)}s` }} // 🟢 STAGGERED MOTION
+                >
+                  <ProductCard 
+                    product={p} 
+                    index={i} 
+                    priority={i < 4} 
+                    onClick={() => handleOpenProduct(p)} 
+                    onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
+                  />
+                </div>
               ))}
             </div>
             
@@ -424,12 +428,11 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* 🟢 CENTERED PREMIUM FOOTER */}
+      {/* CENTERED PREMIUM FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px", textAlign: "center" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
           
           <div style={{ marginBottom: 40 }}>
-            {/* 🟢 FIXED BRAND WEIGHT (First word bold, second word thin grey) */}
             <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
               {brand.first && <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", color: "inherit" }}>{titleCase(brand.first)}</span>}
               {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "-0.02em", opacity: 0.6 }}>{titleCase(brand.second)}</span>}
@@ -473,8 +476,8 @@ export default function Storefront() {
           
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 13, opacity: 0.6, width: "100%" }}>
             
-            {/* SIDE BY SIDE COPYRIGHT AND POWERED BY */}
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 16 }}>
+            {/* 🟢 SIDE BY SIDE ON EDGES */}
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, width: "100%" }}>
               <span>© 2026 {titleCase(store.name)}</span>
               <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
                 <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
