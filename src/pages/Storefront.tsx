@@ -59,7 +59,7 @@ export default function Storefront() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
 
-  // 🟢 Carousel State
+  // Carousel State
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
 
   useEffect(() => {
@@ -117,7 +117,6 @@ export default function Storefront() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // 🟢 Parse all banners into an array
   const bannersList = useMemo(() => {
     const list = [];
     if ((store as any)?.cover_url) list.push((store as any).cover_url);
@@ -128,14 +127,24 @@ export default function Storefront() {
     return list.filter(Boolean).slice(0, 3);
   }, [store]);
 
-  // 🟢 Auto-slide logic
+  // 🟢 FIX: Preload all images immediately and auto-slide
   useEffect(() => {
+    if (bannersList.length === 0) return;
+
+    // Preload all images so there is no blank flash
+    bannersList.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+
     if (bannersList.length <= 1) return;
+
     const interval = setInterval(() => {
       setCurrentBannerIndex((prev) => (prev + 1) % bannersList.length);
-    }, 4000); // Changes every 4 seconds
+    }, 4000); 
+
     return () => clearInterval(interval);
-  }, [bannersList.length]);
+  }, [bannersList]);
 
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
@@ -221,31 +230,47 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER CAROUSEL */}
+      {/* 🟢 HERO BANNER CAROUSEL (Track Slider) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "70vh" }}>
-          {/* Render all images, cross-fade them based on index */}
-          {bannersList.map((url, idx) => (
-            <img 
-              key={url}
-              src={url} 
-              alt={`Banner ${idx + 1}`} 
-              style={{ 
-                position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
-                opacity: currentBannerIndex === idx ? 1 : 0,
-                transition: "opacity 1s ease-in-out",
-                zIndex: currentBannerIndex === idx ? 1 : 0
-              }} 
-            />
-          ))}
+        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#000", overflow: "hidden" }}>
           
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2 }} />
+          {/* Sliding Track */}
+          <div 
+            style={{ 
+              display: "flex", 
+              width: "100%", 
+              height: "100%", 
+              transition: "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+              transform: `translateX(-${currentBannerIndex * 100}%)`
+            }}
+          >
+            {bannersList.map((url, idx) => (
+              <div 
+                key={idx} 
+                style={{ 
+                  minWidth: "100%", 
+                  height: "100%", 
+                  position: "relative",
+                  backgroundColor: "#000" // Ensures transparent images don't bleed over
+                }}
+              >
+                <img 
+                  src={url} 
+                  alt={`Banner ${idx + 1}`} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                />
+              </div>
+            ))}
+          </div>
+          
+          {/* Overlay & Text */}
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
           
           <div 
             className="sf-banner-text" 
             style={{ 
-              position: "relative", zIndex: 3, display: "flex", flexDirection: "column", 
-              justifyContent: "flex-end", alignItems: "center", height: "100%", 
+              position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", 
+              justifyContent: "flex-end", alignItems: "center", 
               paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
             }}
           >
@@ -268,7 +293,8 @@ export default function Storefront() {
               className="sf-banner-cta"
               style={{ 
                 background: "#fff", color: "#000", padding: "16px 32px", 
-                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16
+                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16,
+                pointerEvents: "auto"
               }}
             >
               SHOP NOW 
@@ -406,7 +432,6 @@ export default function Storefront() {
           
           <div style={{ display: "grid", gap: "40px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             
-            {/* Brand Block */}
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 12, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
@@ -417,10 +442,7 @@ export default function Storefront() {
               </p>
             </div>
 
-            {/* Navs */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", width: "100%", textAlign: "left" }}>
-              
-              {/* Contact */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -430,7 +452,6 @@ export default function Storefront() {
                 </div>
               </div>
 
-              {/* Location */}
               {address && (
                 <div>
                   <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 16, fontWeight: 700 }}>Location</h4>
@@ -439,11 +460,9 @@ export default function Storefront() {
                   </a>
                 </div>
               )}
-
             </div>
           </div>
 
-          {/* Bottom Bar */}
           <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 24, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
