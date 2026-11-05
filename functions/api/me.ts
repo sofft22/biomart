@@ -9,23 +9,17 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       "Expires": "0",
     };
 
-    if (!sid) {
-      return Response.json({ user: null, store: null, products: [] }, { headers: noCacheHeaders });
-    }
+    if (!sid) return Response.json({ user: null, store: null, products: [] }, { headers: noCacheHeaders });
 
     const session = await env.DB.prepare(
       "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
     ).bind(sid, Date.now()).first<{ user_id: string }>();
-
-    if (!session) {
-      return Response.json({ user: null, store: null, products: [] }, { headers: noCacheHeaders });
-    }
+    if (!session) return Response.json({ user: null, store: null, products: [] }, { headers: noCacheHeaders });
 
     const user = await env.DB.prepare(
       "SELECT id, email, role FROM users WHERE id = ?"
     ).bind(session.user_id).first<any>();
 
-    // 🟢 FIX: Changed to SELECT * so it grabs hero_title and any future columns
     const store = user ? await env.DB.prepare(
       "SELECT * FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
@@ -40,27 +34,17 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
         let imgs = [];
         try { imgs = JSON.parse(p.images || "[]"); } catch {}
         return {
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          compare_at_price: p.compare_at_price,
-          description: p.description,
-          category: p.category,
-          category_id: p.category,
-          in_stock: !!p.in_stock,
-          inStock: !!p.in_stock,
-          images: imgs,
-          image_url: imgs[0] || null,
-          image_urls: imgs.slice(1),
-          variants: p.variants ? JSON.parse(p.variants) : null,
-          created_at: p.created_at,
+          id: p.id, name: p.name, price: p.price,
+          compare_at_price: p.compare_at_price, description: p.description,
+          category: p.category, category_id: p.category,
+          in_stock: !!p.in_stock, inStock: !!p.in_stock,
+          images: imgs, image_url: imgs[0] || null, image_urls: imgs.slice(1),
+          variants: p.variants ? JSON.parse(p.variants) : null, created_at: p.created_at,
         };
       });
     }
 
     const planName = store?.plan || "free";
-    
-    // 🟢 EXACT LIMITS
     const limits = {
       free: { products: 5, images: 1, photos: 1, variants: false },
       starter: { products: 15, images: 3, photos: 3, variants: false },
@@ -68,23 +52,14 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     }[planName] || { products: 5, images: 1, photos: 1, variants: false };
 
     return Response.json({
-      user,
-      store,
-      products,
-      limits: {
-        planName,
-        products: limits.products,
-        images: limits.images,
-        photos: limits.photos,
-        variants: limits.variants,
-      },
+      user, store, products,
+      limits: { planName, products: limits.products, images: limits.images, photos: limits.photos, variants: limits.variants },
       plans: {
         free: { name: "Free", price: 0, products: 5, images: 1 },
         starter: { name: "Starter", price: 2500, products: 20, images: 3 },
         pro: { name: "Pro", price: 6000, products: 100000, images: 5 },
       },
     }, { headers: noCacheHeaders });
-
   } catch (e: any) {
     return Response.json({ error: "Me error: " + e.message }, { status: 500 });
   }
