@@ -128,31 +128,36 @@ export default function Storefront() {
     return list.filter(Boolean).slice(0, 4);
   }, [store]);
 
-  // 🟢 Carousel Logic (Wait 4s, slide, seamless reset)
+  // 🟢 Preload images immediately
+  useEffect(() => {
+    bannersList.forEach((url) => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, [bannersList]);
+
+  // 🟢 Slide logic (3.5 seconds)
   useEffect(() => {
     if (bannersList.length <= 1) return;
     
     const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => {
-        if (prev === bannersList.length - 1) {
-          return prev + 1; // Go to the cloned first image
-        }
-        return prev + 1;
-      });
-    }, 4000);
+      setCurrentBannerIndex((prev) => prev + 1);
+    }, 3500);
 
     return () => clearInterval(interval);
   }, [bannersList.length]);
 
-  // Handle seamless reset
+  // 🟢 Seamless Reset logic
   useEffect(() => {
+    // If we reached the cloned first image at the end
     if (currentBannerIndex === bannersList.length) {
       const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setCurrentBannerIndex(0);
-        // Force a reflow so the transition applies correctly on the next tick
-        setTimeout(() => setIsTransitioning(true), 50);
-      }, 800); // Matches the CSS transition duration
+        setIsTransitioning(false); // Turn off animation
+        setCurrentBannerIndex(0);  // Snap to real first image
+        // Force browser to recognize the snap before turning animation back on
+        setTimeout(() => setIsTransitioning(true), 50); 
+      }, 600); // 600ms matches the CSS transition speed below
+      
       return () => clearTimeout(timer);
     }
   }, [currentBannerIndex, bannersList.length]);
@@ -218,7 +223,6 @@ export default function Storefront() {
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
 
-  // We clone the first image at the end to make the loop seamless
   const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
 
   return (
@@ -244,7 +248,7 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER CAROUSEL (Slide, Wait, Seamless Reset) */}
+      {/* HERO BANNER CAROUSEL */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
           
@@ -253,7 +257,7 @@ export default function Storefront() {
               display: "flex", 
               height: "100%", 
               width: "100%",
-              transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
+              transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
               transform: `translateX(-${currentBannerIndex * 100}%)`
             }}
           >
@@ -270,8 +274,8 @@ export default function Storefront() {
                 <img 
                   src={url} 
                   alt={`Banner ${(idx % bannersList.length) + 1}`} 
-                  loading={idx === 0 ? "eager" : "lazy"} 
-                  fetchPriority={idx === 0 ? "high" : "auto"}
+                  // 🟢 Preload all to memory
+                  loading="eager" 
                   style={{ width: "100%", height: "100%", objectFit: "cover" }} 
                 />
               </div>
