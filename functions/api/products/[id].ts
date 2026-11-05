@@ -11,9 +11,9 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     ).bind(sid, Date.now()).first<{ user_id: string }>();
     if (!session) return Response.json({ error: "Session expired" }, { status: 401 });
 
-    // 🟢 Get Store Slug for purging
+    // 🟢 Added 'slug' to the query
     const store = await env.DB.prepare("SELECT id, slug FROM stores WHERE user_id = ?")
-      .bind(session.user_id).first<{ id: string, slug: string }>();
+      .bind(session.user_id).first<{ id: string; slug: string }>();
     if (!store) return Response.json({ error: "No store" }, { status: 404 });
 
     const id = params.id as string;
@@ -32,10 +32,13 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("price" in body) { updates.push("price = ?"); values.push(body.price || 0); }
     if ("compare_at_price" in body) { updates.push("compare_at_price = ?"); values.push(body.compare_at_price ?? null); }
     if ("description" in body) { updates.push("description = ?"); values.push(body.description || ""); }
+    
     if ("category_id" in body || "category" in body) { 
       const cat = body.category_id || body.category || ""; 
       updates.push("category = ?"); values.push(cat); 
+      try { updates.push("category_id = ?"); values.push(cat); } catch {} 
     }
+    
     if ("in_stock" in body || "inStock" in body) { updates.push("in_stock = ?"); values.push(inStock === false ? 0 : 1); }
     if (images.length > 0 || "image_url" in body) { updates.push("images = ?"); values.push(JSON.stringify(images)); }
     if ("variants" in body) { updates.push("variants = ?"); values.push(variants ? JSON.stringify(variants) : null); }
@@ -49,11 +52,12 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
       .bind(...values)
       .run();
 
-    // 🟢 PURGE THE CACHE IMMEDIATELY AFTER SAVING
-    await purgeStoreCache(store.slug, env);
+    // 🟢 PURGE CACHE after updating product
+    await purgeStoreCache(store.slug, env, request.url);
 
     return Response.json({ ok: true });
   } catch (e: any) {
+    console.error("Update product error:", e);
     return Response.json({ error: "Database error: " + e.message }, { status: 500 });
   }
 };
@@ -69,16 +73,17 @@ export const onRequestDelete: PagesFunction<{ DB: D1Database }> = async ({ env, 
     ).bind(sid, Date.now()).first<{ user_id: string }>();
     if (!session) return Response.json({ error: "Session expired" }, { status: 401 });
 
+    // 🟢 Added 'slug' to the query
     const store = await env.DB.prepare("SELECT id, slug FROM stores WHERE user_id = ?")
-      .bind(session.user_id).first<{ id: string, slug: string }>();
+      .bind(session.user_id).first<{ id: string; slug: string }>();
     if (!store) return Response.json({ error: "No store" }, { status: 404 });
 
     await env.DB.prepare("DELETE FROM products WHERE id = ? AND store_id = ?")
       .bind(params.id as string, store.id)
       .run();
 
-    // 🟢 PURGE THE CACHE IMMEDIATELY AFTER DELETING
-    await purgeStoreCache(store.slug, env);
+    // 🟢 PURGE CACHE after deleting product
+    await purgeStoreCache(store.slug, env, request.url);
 
     return Response.json({ ok: true });
   } catch (e: any) {
