@@ -28,12 +28,9 @@ import AdminSettings from "./pages/admin/AdminSettings";
 // 🟢 SCROLL TO TOP HELPER
 function ScrollToTop() {
   const { pathname } = useLocation();
-
   useEffect(() => {
-    // Instantly scrolls to top whenever the pathname changes
     window.scrollTo(0, 0);
   }, [pathname]);
-
   return null;
 }
 
@@ -65,7 +62,6 @@ function NotFound() {
 export default function App() {
   return (
     <BrowserRouter>
-      {/* 🟢 Placed here so it runs on every route change */}
       <ScrollToTop />
       
       <AuthProvider>
@@ -75,7 +71,6 @@ export default function App() {
             <Route path="/" element={<Landing />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/store/:slug" element={<StorefrontRoute />} />
 
             {/* Legal Routes */}
             <Route path="/legal/privacy" element={<LegalPage />} />
@@ -105,6 +100,10 @@ export default function App() {
               <Route path="stores" element={<AdminStores />} />
               <Route path="settings" element={<AdminSettings />} />
             </Route>
+
+            {/* 🟢 STOREFRONT CATCH-ALL ROUTE */}
+            {/* This must be below all other routes so it doesn't catch /login, /dashboard, etc. */}
+            <Route path="/:slug" element={<StorefrontRoute />} />
 
             {/* 404 */}
             <Route path="*" element={<NotFound />} />
