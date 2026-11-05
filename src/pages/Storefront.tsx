@@ -204,45 +204,56 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* CUSTOM BANNER - Perfectly Centered */}
+      {/* CUSTOM BANNER - Premium Bottom Layout */}
       {hasCustomBanner && (
         <section className="sf-banner">
           <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-          <div className="sf-banner-overlay" style={{ background: "rgba(0,0,0,0.3)" }} />
+          
+          {/* Premium Gradient Overlay: Keeps bottom text readable regardless of image color */}
+          <div 
+            style={{ 
+              position: "absolute", inset: 0, 
+              background: "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0) 100%)" 
+            }} 
+          />
           
           <div 
             className="sf-banner-text" 
             style={{ 
+              position: "relative",
               display: "flex", 
               flexDirection: "column", 
-              justifyContent: "center",
-              alignItems: "center",
+              justifyContent: "flex-end", // Pushes to bottom
+              alignItems: "center",       // Centers horizontally
               height: "100%", 
+              paddingBottom: "clamp(40px, 8vw, 80px)", // Responsive bottom padding
               paddingLeft: 24,
               paddingRight: 24,
-              gap: 24
+              gap: 20 
             }}
           >
+            {/* Elegant Uppercase Tagline */}
             {tagline && (
               <h2 
                 style={{ 
                   color: "#fff", 
-                  fontSize: "clamp(1.5rem, 4vw, 2.5rem)",
-                  fontWeight: 600, 
+                  fontSize: "clamp(0.9rem, 2vw, 1.2rem)", 
+                  fontWeight: 500, 
                   textAlign: "center",
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "0.15em", // Spaced out for premium feel
+                  textTransform: "uppercase",
                   margin: 0,
-                  textShadow: "0 4px 20px rgba(0,0,0,0.6)",
-                  maxWidth: "800px",
-                  lineHeight: 1.2
+                  textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+                  maxWidth: "600px"
                 }}
               >
                 {tagline}
               </h2>
             )}
 
-            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000" }}>
-              Shop the collection <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            {/* Shop Button */}
+            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000", padding: "16px 32px", fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600 }}>
+              SHOP THE COLLECTION <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>
         </section>
