@@ -41,25 +41,38 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const updates: string[] = [];
     const values: any[] = [];
 
-    for (const key of Object.keys(body)) {
-      if (key === "id" || key === "user_id" || key === "slug" || key === "created_at") continue;
-      
-      let value = body[key];
-      if (typeof value === "object" && value !== null) {
-        value = JSON.stringify(value); 
-      }
-      
-      updates.push(`${key} = ?`);
-      values.push(value);
+    if ("name" in body) { updates.push("name = ?"); values.push(String(body.name || "").trim()); }
+    if ("slug" in body) { updates.push("slug = ?"); values.push(String(body.slug || "").trim()); } 
+    if ("bio" in body) { updates.push("bio = ?"); values.push(body.bio || null); }
+    if ("tagline" in body) { updates.push("tagline = ?"); values.push(body.tagline || null); }
+    if ("hero_title" in body) { updates.push("hero_title = ?"); values.push(body.hero_title || null); }
+    if ("address" in body) { updates.push("address = ?"); values.push(body.address || null); }
+    if ("whatsapp" in body) { updates.push("whatsapp = ?"); values.push(String(body.whatsapp || "").trim()); }
+    if ("instagram" in body) { updates.push("instagram = ?"); values.push(body.instagram || null); }
+    if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
+    if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
+    if ("categories" in body) { updates.push("categories = ?"); values.push(body.categories || null); }
+
+    if ("gallery_urls" in body) { 
+      updates.push("gallery_urls = ?"); 
+      values.push(Array.isArray(body.gallery_urls) ? JSON.stringify(body.gallery_urls) : null); 
     }
 
     if (updates.length === 0) return Response.json({ ok: true });
 
     values.push(store.id);
 
-    await env.DB.prepare(`UPDATE stores SET ${updates.join(", ")} WHERE id = ?`)
-      .bind(...values)
-      .run();
+    try {
+      await env.DB.prepare(`UPDATE stores SET ${updates.join(", ")} WHERE id = ?`)
+        .bind(...values)
+        .run();
+    } catch (dbError: any) {
+      // 🟢 CATCH UNIQUE CONSTRAINT ERROR FOR SLUG
+      if (dbError.message.includes("UNIQUE constraint failed")) {
+        return Response.json({ error: "That store link is already taken. Please choose another one." }, { status: 400 });
+      }
+      throw dbError;
+    }
 
     return Response.json({ ok: true });
   } catch (e: any) {
