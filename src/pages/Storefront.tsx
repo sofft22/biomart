@@ -224,26 +224,81 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* 🟢 HERO BANNER WITH TOP GRADIENT */}
+  
+            {/* 🟢 HERO BANNER WITH TOP GRADIENT */}
       {hasCustomBanner && (
-        <section className="sf-banner">
-          <img src={store.cover_url!} alt="Banner" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-          {/* Dark gradient at top for header readability, dark gradient at bottom for CTA */}
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.8) 100%)" }} />
+        <section className="sf-banner" style={{ minHeight: "65vh" }}>
+          <img 
+            src={store.cover_url!} 
+            alt="Banner" 
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} 
+          />
           
-          <div className="sf-banner-text" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", height: "100%", paddingBottom: "clamp(40px, 8vw, 80px)", paddingLeft: 24, paddingRight: 24, gap: 20 }}>
+          {/* Dark gradient at top for header readability, dark gradient at bottom for CTA */}
+          <div 
+            style={{ 
+              position: "absolute", inset: 0, 
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 25%, rgba(0,0,0,0) 50%, rgba(0,0,0,0.85) 100%)" 
+            }} 
+          />
+          
+          <div 
+            className="sf-banner-text" 
+            style={{ 
+              position: "relative", 
+              display: "flex", 
+              flexDirection: "column", 
+              justifyContent: "flex-end", 
+              alignItems: "center", 
+              height: "100%", 
+              // 🟢 Increased bottom padding so the button NEVER clips on mobile
+              paddingBottom: "clamp(60px, 12vw, 100px)", 
+              paddingLeft: 24, 
+              paddingRight: 24, 
+              gap: 24 // More gap between tagline and button
+            }}
+          >
             {tagline && (
-              <h2 style={{ color: "#fff", fontSize: "clamp(0.9rem, 2vw, 1.2rem)", fontWeight: 500, textAlign: "center", letterSpacing: "0.15em", textTransform: "uppercase", margin: 0, textShadow: "0 2px 10px rgba(0,0,0,0.5)", maxWidth: "600px" }}>
+              <h2 
+                style={{ 
+                  color: "#fff", 
+                  // 🟢 Slightly increased font size for the tagline
+                  fontSize: "clamp(1rem, 3vw, 1.4rem)", 
+                  fontWeight: 500, 
+                  textAlign: "center", 
+                  letterSpacing: "0.15em", 
+                  textTransform: "uppercase", 
+                  margin: 0, 
+                  textShadow: "0 2px 12px rgba(0,0,0,0.6)", 
+                  maxWidth: "600px" 
+                }}
+              >
                 {tagline}
               </h2>
             )}
-            <button onClick={() => scrollTo("shop-all")} className="sf-banner-cta" style={{ background: "#fff", color: "#000", padding: "16px 32px", fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600 }}>
-              SHOP THE COLLECTION <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            
+            <button 
+              onClick={() => scrollTo("shop-all")} 
+              className="sf-banner-cta" 
+              style={{ 
+                background: "#fff", 
+                color: "#000", 
+                padding: "16px 32px", 
+                fontSize: "13px", 
+                letterSpacing: "0.05em", 
+                fontWeight: 600,
+                flexShrink: 0 // Prevents the button from squishing
+              }}
+            >
+              SHOP THE COLLECTION 
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}>
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
             </button>
           </div>
         </section>
       )}
-
+      
       {/* 🟢 SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "60px" : "100px" }}>
         
