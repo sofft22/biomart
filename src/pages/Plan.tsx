@@ -228,7 +228,7 @@ export default function Plan() {
               <li>Automated Paystack payments</li>
               <li>Automated order tracking & Branded Receipt Download</li>
               <li>Showing up in google searches</li>
-              <li>Fully activated Coupons & Revies systems</li>
+              <li>Fully activated Coupons & Review systems</li>
             </ul>
           </div>
           
