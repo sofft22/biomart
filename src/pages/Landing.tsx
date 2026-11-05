@@ -408,13 +408,13 @@ export default function Landing() {
                   <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦100,000</span></div>
                   
                   <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
-                    <li>Your own custom domain</li>
-                    <li>Advanced shopping cart & checkout</li>
-                    <li>Automated Paystack payments</li>
-                    <li>Automated order tracking</li>
-                    <li>Custom branding & UI design</li>
-                    <li>Priority lifetime support</li>
-                  </ul>
+              <li>Your own custom domain</li>
+              <li>Advanced shopping cart & checkout</li>
+              <li>Automated Paystack payments</li>
+              <li>Automated order tracking & Branded Receipt Download</li>
+              <li>Showing up in google searches</li>
+              <li>Fully activated Coupons & Review systems</li>
+            </ul>
                 </div>
                 <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
                   Contact Sales {I.arrow}
