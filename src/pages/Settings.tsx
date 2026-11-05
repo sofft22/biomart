@@ -20,12 +20,13 @@ export default function Settings() {
   const [tiktok, setTiktok] = useState(store?.tiktok ?? "");
   const [saving, setSaving] = useState(false);
 
-  // 🟢 Banner State (Array of up to 3 URLs)
+  // 🟢 Banner State (Array of up to 4 URLs)
   const [banners, setBanners] = useState<string[]>([]);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   
-  // Refs for hidden file inputs
+  // Refs for hidden file inputs (up to 4)
   const fileInputRefs = [
+    useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
     useRef<HTMLInputElement>(null),
@@ -54,7 +55,7 @@ export default function Settings() {
       }
     } catch (e) {}
     
-    setBanners(loadedBanners.slice(0, 3));
+    setBanners(loadedBanners.slice(0, 4));
   }, [store]);
 
   if (!store) return null;
@@ -193,19 +194,20 @@ export default function Settings() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Store Banners</h2>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>Upload up to 3 banners. They will automatically slide on your storefront.</p>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: "4px 0 0" }}>Upload up to 4 images. They will automatically slide on your storefront.</p>
             </div>
           </div>
           
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-            {[0, 1, 2].map((index) => {
+          {/* 🟢 SMART GRID: 1 column on mobile, 2x2 on desktop */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
+            {[0, 1, 2, 3].map((index) => {
               const url = banners[index];
               
               // Only show slot if it's the first one, OR if the previous slot has an image
               if (index > 0 && banners.length < index) return null;
 
               return (
-                <div key={index} style={{ position: "relative", width: "100%", height: 160, background: "var(--soft)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--line)" }}>
+                <div key={index} style={{ position: "relative", width: "100%", height: 180, background: "var(--soft)", borderRadius: 12, overflow: "hidden", border: "1px solid var(--line)" }}>
                   {url ? (
                     <img src={url} alt={`Banner ${index + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
