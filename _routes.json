@@ -1,5 +1,18 @@
 {
   "version": 1,
-  "include": ["/soft", "/api/*"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/src/*",
+    "/favicon.ico",
+    "/index.html",
+    "/api/*",
+    "/dashboard/*",
+    "/login",
+    "/signup",
+    "/settings",
+    "/plan",
+    "/legal/*",
+    "/admin/*"
+  ]
 }
