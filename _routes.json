@@ -2,11 +2,11 @@
   "version": 1,
   "include": ["/*"],
   "exclude": [
-    "/api/*",
     "/assets/*",
     "/src/*",
     "/favicon.ico",
     "/index.html",
+    "/api/*",
     "/dashboard/*",
     "/login",
     "/signup",
