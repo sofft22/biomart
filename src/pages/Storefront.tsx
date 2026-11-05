@@ -59,14 +59,17 @@ function useReveal(deps: unknown[] = []) {
   }, deps);
 }
 
+// 🟢 HELPER TO SMARTLY SPLIT TEXT INTO TWO LINES
 function renderHeroTitle(title: string) {
   if (!title) return null;
   const firstSpaceIdx = title.indexOf(" ");
   
+  // If there is no space, or it's just one word, keep it on one line
   if (firstSpaceIdx === -1) {
     return <span>{title}</span>;
   }
   
+  // If there is a space, split it into two lines exactly at the first space
   const line1 = title.substring(0, firstSpaceIdx);
   const line2 = title.substring(firstSpaceIdx + 1);
   
@@ -227,7 +230,13 @@ export default function Storefront() {
       {/* PREMIUM HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease" }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0 }}>
+          {/* 🟢 UPDATED HEADER BRAND (No truncation, breathing room) */}
+          <button 
+            onClick={scrollToTop} 
+            className="sf-wordmark" 
+            aria-label={store.name} 
+            style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}
+          >
             {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
             {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
           </button>
@@ -420,10 +429,10 @@ export default function Storefront() {
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
           
           <div style={{ marginBottom: 40 }}>
-            {/* 🟢 FIXED BRAND WEIGHT (First word bold, second word thin) */}
+            {/* 🟢 FIXED BRAND WEIGHT (First word bold, second word thin grey) */}
             <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
-              {brand.first && <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.first)}</span>}
-              {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "-0.02em" }}>{titleCase(brand.second)}</span>}
+              {brand.first && <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em", color: "inherit" }}>{titleCase(brand.first)}</span>}
+              {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "-0.02em", opacity: 0.6 }}>{titleCase(brand.second)}</span>}
             </div>
             <p className="sf-footer-bio" style={{ maxWidth: 400, margin: "0 auto", opacity: 0.7, fontSize: 15, lineHeight: 1.6 }}>
               {tagline || "Curated essentials for the modern wardrobe."}
@@ -464,7 +473,7 @@ export default function Storefront() {
           
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 13, opacity: 0.6, width: "100%" }}>
             
-            {/* 🟢 SIDE BY SIDE COPYRIGHT AND POWERED BY */}
+            {/* SIDE BY SIDE COPYRIGHT AND POWERED BY */}
             <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 16 }}>
               <span>© 2026 {titleCase(store.name)}</span>
               <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
