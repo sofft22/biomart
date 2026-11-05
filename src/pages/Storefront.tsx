@@ -420,9 +420,10 @@ export default function Storefront() {
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px", display: "flex", flexDirection: "column", alignItems: "center" }}>
           
           <div style={{ marginBottom: 40 }}>
-            <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 8 }}>
-              {brand.first && <span className="sf-footer-brand-1" style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.first)}</span>}
-              {brand.second && <span className="sf-footer-brand-2" style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.second)}</span>}
+            {/* 🟢 FIXED BRAND WEIGHT (First word bold, second word thin) */}
+            <div className="sf-footer-brand" style={{ marginBottom: 12, display: "flex", justifyContent: "center", gap: 6 }}>
+              {brand.first && <span style={{ fontSize: 24, fontWeight: 700, letterSpacing: "-0.02em" }}>{titleCase(brand.first)}</span>}
+              {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "-0.02em" }}>{titleCase(brand.second)}</span>}
             </div>
             <p className="sf-footer-bio" style={{ maxWidth: 400, margin: "0 auto", opacity: 0.7, fontSize: 15, lineHeight: 1.6 }}>
               {tagline || "Curated essentials for the modern wardrobe."}
@@ -462,7 +463,9 @@ export default function Storefront() {
           </div>
           
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 24, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.1)", fontSize: 13, opacity: 0.6, width: "100%" }}>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+            
+            {/* 🟢 SIDE BY SIDE COPYRIGHT AND POWERED BY */}
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 16 }}>
               <span>© 2026 {titleCase(store.name)}</span>
               <a href="https://biomart.pages.dev" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "center", gap: 6, color: "inherit", textDecoration: "none" }}>
                 <svg viewBox="0 0 60 64" width="16" height="16" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
