@@ -11,12 +11,15 @@ export default function Settings() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
-  const [slug, setSlug] = useState((store as any)?.slug ?? ""); // 🟢 Store Slug State
+  const [slug, setSlug] = useState((store as any)?.slug ?? "");
   const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
   const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? "");
   const [categories, setCategories] = useState((store as any)?.categories ?? "");
   const [address, setAddress] = useState((store as any)?.address ?? "");
+  
+  // 🟢 WHATSAPP STATE
   const [whatsapp, setWhatsapp] = useState(store?.whatsapp ?? "");
+  
   const [instagram, setInstagram] = useState(store?.instagram ?? "");
   const [tiktok, setTiktok] = useState(store?.tiktok ?? "");
   const [saving, setSaving] = useState(false);
@@ -60,7 +63,6 @@ export default function Settings() {
 
   if (!store) return null;
 
-  // 🟢 Auto-generate slug from name
   const generateSlug = () => {
     const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     setSlug(baseSlug);
@@ -70,20 +72,27 @@ export default function Settings() {
     if (!name.trim()) return toast.show("Store name is required");
     setSaving(true);
     try {
-      // 🟢 If the slug contains random numbers like "soft-3273", we generate a clean one
       let finalSlug = slug;
       if (!finalSlug || /-\d{4}$/.test(finalSlug)) {
         finalSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       }
 
+      // 🟢 SMART WHATSAPP FORMATTER
+      let finalWhatsapp = whatsapp.replace(/\D/g, "");
+      if (finalWhatsapp.startsWith("0")) {
+        finalWhatsapp = "234" + finalWhatsapp.substring(1);
+      } else if (finalWhatsapp.length === 10 && !finalWhatsapp.startsWith("234")) {
+        finalWhatsapp = "234" + finalWhatsapp;
+      }
+
       await storeApi.update({
         name: name.trim(),
-        slug: finalSlug.trim(), // 🟢 Save the clean slug
+        slug: finalSlug.trim(),
         tagline: tagline.trim() || null,
         hero_title: heroTitle.trim() || null,
         categories: categories.trim() || null,
         address: address.trim() || null,
-        whatsapp: whatsapp.trim(),
+        whatsapp: finalWhatsapp, // 🟢 Saved as 234...
         instagram: instagram.trim() || null,
         tiktok: tiktok.trim() || null,
       } as any);
@@ -202,7 +211,24 @@ export default function Settings() {
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Categories (Comma separated)</label>
                   <input className="pe-input" value={categories} placeholder="e.g. Banana Bread, Puff Puffs" onChange={(e) => setCategories(e.target.value)} />
                 </div>
-                <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>WhatsApp Number</label><input className="pe-input" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} /></div>
+                
+                {/* 🟢 STANDARD WHATSAPP INPUT */}
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>WhatsApp Number</label>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    <span style={{ padding: "10px 12px", background: "var(--soft)", border: "1px solid var(--line)", borderRight: "none", borderRadius: "8px 0 0 8px", fontSize: 13, color: "var(--muted)" }}>
+                      +234
+                    </span>
+                    <input 
+                      className="pe-input" 
+                      value={whatsapp.replace(/^0+/, "").replace(/^234/, "")} 
+                      onChange={(e) => setWhatsapp(e.target.value)} 
+                      placeholder="9162443887"
+                      style={{ borderRadius: "0 8px 8px 0" }}
+                    />
+                  </div>
+                </div>
+
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Instagram Handle</label><input className="pe-input" value={instagram} onChange={(e) => setInstagram(e.target.value)} /></div>
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>TikTok Handle</label><input className="pe-input" value={tiktok} onChange={(e) => setTiktok(e.target.value)} /></div>
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Physical Address</label><input className="pe-input" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
