@@ -81,9 +81,12 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // 🟢 FIX: Ensure we are loading the array correctly
-    if (product.variants && Array.isArray(product.variants.suggested)) {
-      setVariants(product.variants.suggested);
+    // 🟢 FIX: Safely extract the variants array
+    const rawVariants = (product as any).variants;
+    if (rawVariants && Array.isArray(rawVariants.suggested)) {
+      setVariants(rawVariants.suggested);
+    } else if (Array.isArray(rawVariants)) {
+      setVariants(rawVariants);
     } else {
       setVariants([]);
     }
@@ -118,7 +121,6 @@ export default function ProductEdit() {
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
-  // 🟢 FIX: The removal logic is now perfectly safe
   const removeVariant = (i: number) => {
     setVariants((prev) => {
       const newArr = [...prev];
@@ -164,8 +166,8 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 FIX: Ensure we pass it as the correct object structure
-      variants: (canUseVariants && variants.length > 0) ? { suggested: variants } : null,
+      // 🟢 FIX: Send flat array to backend
+      variants: (canUseVariants && variants.length > 0) ? variants : null,
     };
 
     try {
