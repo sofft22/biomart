@@ -24,9 +24,8 @@ export default function Dashboard() {
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<SortKey>("manual");
   const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null); // 🟢 Track which product is being deleted
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // 🟢 Load products: use cache if available, else fetch fresh
   useEffect(() => {
     if (cachedProducts && cachedProducts.length > 0) {
       setProducts(cachedProducts);
@@ -41,7 +40,6 @@ export default function Dashboard() {
     }
   }, [currentStore?.slug, cachedProducts]);
 
-  // 🟢 Load categories
   useEffect(() => {
     if (!currentStore?.slug) return;
     setCategories(getCategories(currentStore.slug));
@@ -96,16 +94,15 @@ export default function Dashboard() {
   const countFor = (id: string) =>
     id === "all" ? products.length : products.filter((p) => p.category_id === id).length;
 
-  // 🟢 DELETE LOGIC
   const handleDelete = async (e: React.MouseEvent, id: string, name: string) => {
-    e.stopPropagation(); // Prevent navigating to the edit page when clicking delete
+    e.stopPropagation(); 
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
     
     setDeletingId(id);
     try {
       await productsApi.remove(id);
       setProducts((prev) => prev.filter((p) => p.id !== id));
-      await refresh(true); // Force fetch to update cache and context
+      await refresh(true); 
       toast.show("Product deleted successfully");
     } catch (err) {
       toast.show("Failed to delete product");
@@ -179,6 +176,13 @@ export default function Dashboard() {
         </select>
       </div>
 
+      {/* 🟢 TAP TO EDIT HEADER */}
+      {!loading && filtered.length > 0 && (
+        <div style={{ textAlign: "right", padding: "0 16px 8px", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
+          Tap to edit product
+        </div>
+      )}
+
       {loading ? (
         <div className="dash-empty">
           <div className="dash-spinner" style={{ margin: "0 auto 16px" }} />
@@ -212,7 +216,7 @@ export default function Dashboard() {
             
             return (
               <div key={p.id} className="pr-item" style={{ opacity: isDeleting ? 0.5 : 1, pointerEvents: isDeleting ? "none" : "auto" }}>
-                <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body">
+                <button onClick={() => nav(`/dashboard/product/${p.id}`)} className="pr-item-body" style={{ flex: 1 }}>
                   <div className="pr-item-thumb">
                     {p.image_url ? (
                       <img src={p.image_url} alt={p.name} loading="lazy" decoding="async" />
@@ -223,18 +227,10 @@ export default function Dashboard() {
                   <div className="pr-item-info">
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                       <p className="pr-item-name" style={{ margin: 0 }}>{p.name}</p>
-                      {/* MINIMAL CATEGORY TAG */}
                       {productCategory && (
                         <span style={{ 
-                          fontSize: 10, 
-                          fontWeight: 600, 
-                          textTransform: "uppercase", 
-                          letterSpacing: "0.05em",
-                          padding: "2px 6px", 
-                          background: "var(--soft)", 
-                          color: "var(--muted)",
-                          borderRadius: 4,
-                          border: "1px solid var(--line)"
+                          fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em",
+                          padding: "2px 6px", background: "var(--soft)", color: "var(--muted)", borderRadius: 4, border: "1px solid var(--line)"
                         }}>
                           {productCategory}
                         </span>
@@ -249,23 +245,14 @@ export default function Dashboard() {
                   </div>
                 </button>
 
-                {/* 🟢 DELETE BUTTON */}
+                {/* 🟢 DELETE BUTTON ON THE RIGHT */}
                 <button 
                   onClick={(e) => handleDelete(e, p.id, p.name)}
                   disabled={isDeleting}
-                  className="pr-delete-btn"
                   style={{
-                    background: "transparent",
-                    border: 0,
-                    padding: "8px",
-                    marginRight: 16,
-                    borderRadius: "50%",
-                    cursor: isDeleting ? "not-allowed" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "var(--muted)",
-                    transition: "all 0.2s ease"
+                    background: "transparent", border: 0, padding: "12px", marginRight: 8, borderRadius: "50%",
+                    cursor: isDeleting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "var(--muted)", transition: "all 0.2s ease"
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.color = "#d32f2f";
