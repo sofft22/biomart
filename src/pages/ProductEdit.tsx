@@ -122,8 +122,13 @@ export default function ProductEdit() {
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
   // 🟢 FIXED: Bulletproof variant removal
+    // 🟢 FIXED: Create a brand new array to force React to update state
   const removeVariant = (indexToRemove: number) => {
-    setVariants((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setVariants((prev) => {
+      const newArray = [...prev]; // Copy the array
+      newArray.splice(indexToRemove, 1); // Remove the item
+      return newArray; // Return the new array
+    });
   };
 
   const numericPrice = Number(price) || 0;
