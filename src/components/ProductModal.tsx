@@ -30,6 +30,13 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
+// 🟢 SMART WHATSAPP FORMATTER
+function formatWhatsApp(phone: string) {
+  let clean = (phone || "").replace(/\D/g, "");
+  if (clean.startsWith("0")) clean = "234" + clean.substring(1);
+  return clean;
+}
+
 export function ProductModal({
   product,
   products,
@@ -117,7 +124,9 @@ export function ProductModal({
     if (!canAdd) return;
     onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
     
-    const phone = store.whatsapp.replace(/\D/g, "");
+    // 🟢 USE THE HELPER
+    const phone = formatWhatsApp(store.whatsapp);
+    
     const lineTotal = displayPrice * qty;
     const formattedLineTotal = naira(lineTotal);
     
@@ -138,7 +147,9 @@ How do I proceed with the payment and delivery process?`;
   const handleShareWhatsApp = () => {
     const url = window.location.href;
     const text = `Check out ${product.name}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(`${text} — ${url}`)}`, '_blank');
+    // 🟢 USE THE HELPER
+    const phone = formatWhatsApp(store.whatsapp);
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`${text} — ${url}`)}`, '_blank');
   };
 
   const handleCopyLink = async () => {
@@ -200,7 +211,6 @@ How do I proceed with the payment and delivery process?`;
                     decoding="async"
                     onLoad={() => setMainImgLoaded(true)}
                     draggable={false}
-                    // 🟢 REMOVED group-hover:scale-105 to fix the blurriness
                     className={`h-full w-full object-cover transition-opacity duration-500 ${
                       mainImgLoaded ? 'opacity-100' : 'opacity-0'
                     }`}
