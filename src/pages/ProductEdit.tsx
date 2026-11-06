@@ -81,7 +81,7 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // 🟢 FIX: Safely extract the variants array
+    // Load Variants Safely
     const rawVariants = (product as any).variants;
     if (rawVariants && Array.isArray(rawVariants.suggested)) {
       setVariants(rawVariants.suggested);
@@ -121,12 +121,9 @@ export default function ProductEdit() {
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
-  const removeVariant = (i: number) => {
-    setVariants((prev) => {
-      const newArr = [...prev];
-      newArr.splice(i, 1);
-      return newArr;
-    });
+  // 🟢 FIXED: Bulletproof variant removal
+  const removeVariant = (indexToRemove: number) => {
+    setVariants((prev) => prev.filter((_, index) => index !== indexToRemove));
   };
 
   const numericPrice = Number(price) || 0;
@@ -166,7 +163,7 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 FIX: Send flat array to backend
+      // If the array is empty, send null. Otherwise, send the array.
       variants: (canUseVariants && variants.length > 0) ? variants : null,
     };
 
