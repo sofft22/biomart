@@ -37,7 +37,7 @@ const I = {
     </svg>
   ),
   external: (
-    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 4h6v6" />
       <path d="M20 4l-9 9" />
       <path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" />
@@ -164,12 +164,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           .dash-tab.active .ic { color: var(--green); }
           .dash-body { padding-bottom: 92px !important; }
           .dash-aside { display: none !important; }
+          
+          /* 🟢 Mobile Top Bar tweaks */
+          .dash-store-slug { display: none !important; }
+          .dash-store-link { padding: 8px !important; }
         }
         @media (min-width: 900px) {
           .dash-tabbar { display: none !important; }
         }
 
-        /* 🟢 FIX: Push the help widget up on mobile so it doesn't cover the tab bar */
+        /* 🟢 Push the help widget up on mobile so it doesn't cover the tab bar */
         @media (max-width: 899px) {
           .dash-shell > div:last-child {
             bottom: 90px !important;
@@ -203,20 +207,32 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             Biomart
           </Link>
 
-          <div className="dash-topbar-right">
+          <div className="dash-topbar-right" style={{ display: "flex", alignItems: "center", gap: 12 }}>
             {store && (
               <a
-                href={`/store/${store.slug}`}
+                href={`/${store.slug}`}
                 target="_blank"
                 rel="noopener"
                 className="dash-store-link"
+                style={{ display: "flex", alignItems: "center", gap: 6 }}
+                title="Visit Store"
               >
                 <span className="dash-store-dot" />
-                <span className="dash-store-slug">/store/{store.slug}</span>
-                {I.external}
+                {/* 🟢 Only show text on desktop, hide on mobile */}
+                <span className="dash-store-slug" style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>
+                  /{store.slug}
+                </span>
+                <span style={{ color: "var(--muted)" }}>
+                  {I.external}
+                </span>
               </a>
             )}
-            <button onClick={onLogout} className="dash-logout" aria-label="Log out">
+            <button 
+              onClick={onLogout} 
+              className="dash-logout" 
+              aria-label="Log out"
+              style={{ display: "flex", alignItems: "center", gap: 6 }}
+            >
               {I.logout}
               <span className="dash-logout-label">Log out</span>
             </button>
