@@ -16,13 +16,13 @@ export default function Settings() {
   const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? "");
   const [categories, setCategories] = useState((store as any)?.categories ?? "");
   const [address, setAddress] = useState((store as any)?.address ?? "");
-  
-  // 🟢 WHATSAPP STATE
   const [whatsapp, setWhatsapp] = useState(store?.whatsapp ?? "");
-  
   const [instagram, setInstagram] = useState(store?.instagram ?? "");
   const [tiktok, setTiktok] = useState(store?.tiktok ?? "");
   const [saving, setSaving] = useState(false);
+
+  // 🟢 LIVE SLUG CHECKER STATE
+  const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
 
   // 🟢 Banner State (Array of up to 4 URLs)
   const [banners, setBanners] = useState<string[]>([]);
@@ -61,6 +61,32 @@ export default function Settings() {
     setBanners(loadedBanners.slice(0, 4));
   }, [store]);
 
+  // 🟢 LIVE SLUG CHECK LOGIC
+  useEffect(() => {
+    // If they haven't typed a slug, or it's their current slug, do nothing
+    if (!slug || slug === (store as any)?.slug) {
+      setSlugStatus("idle");
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setSlugStatus("checking");
+      try {
+        const res = await fetch(`/api/store/check-slug?slug=${slug}`, { credentials: "include" });
+        const data = await res.json();
+        if (data.available) {
+          setSlugStatus("available");
+        } else {
+          setSlugStatus("taken");
+        }
+      } catch (err) {
+        setSlugStatus("idle");
+      }
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timer);
+  }, [slug, store]);
+
   if (!store) return null;
 
   const generateSlug = () => {
@@ -70,6 +96,8 @@ export default function Settings() {
 
   const handleSaveStore = async () => {
     if (!name.trim()) return toast.show("Store name is required");
+    if (slugStatus === "taken") return toast.show("That store link is already taken");
+    
     setSaving(true);
     try {
       let finalSlug = slug;
@@ -77,7 +105,6 @@ export default function Settings() {
         finalSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       }
 
-      // 🟢 SMART WHATSAPP FORMATTER
       let finalWhatsapp = whatsapp.replace(/\D/g, "");
       if (finalWhatsapp.startsWith("0")) {
         finalWhatsapp = "234" + finalWhatsapp.substring(1);
@@ -92,7 +119,7 @@ export default function Settings() {
         hero_title: heroTitle.trim() || null,
         categories: categories.trim() || null,
         address: address.trim() || null,
-        whatsapp: finalWhatsapp, // 🟢 Saved as 234...
+        whatsapp: finalWhatsapp,
         instagram: instagram.trim() || null,
         tiktok: tiktok.trim() || null,
       } as any);
@@ -198,6 +225,15 @@ export default function Settings() {
                       style={{ borderRadius: "0 8px 8px 0", flex: 1 }} 
                     />
                   </div>
+                  
+                  {/* 🟢 LIVE SLUG STATUS */}
+                  {slug && slug !== (store as any)?.slug && (
+                    <div style={{ marginTop: 6, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
+                      {slugStatus === "checking" && <span style={{ color: "var(--muted)" }}>Checking availability...</span>}
+                      {slugStatus === "available" && <span style={{ color: "var(--green)", fontWeight: 600 }}>✔ Link is available</span>}
+                      {slugStatus === "taken" && <span style={{ color: "var(--danger)", fontWeight: 600 }}>✖ Link is already taken</span>}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 20 chars)</label>
@@ -212,7 +248,6 @@ export default function Settings() {
                   <input className="pe-input" value={categories} placeholder="e.g. Banana Bread, Puff Puffs" onChange={(e) => setCategories(e.target.value)} />
                 </div>
                 
-                {/* 🟢 STANDARD WHATSAPP INPUT */}
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>WhatsApp Number</label>
                   <div style={{ display: "flex", alignItems: "center" }}>
@@ -234,7 +269,13 @@ export default function Settings() {
                 <div><label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Physical Address</label><input className="pe-input" value={address} onChange={(e) => setAddress(e.target.value)} /></div>
               </div>
               <div style={{ display: "flex", gap: 12, marginTop: 24 }}>
-                <button onClick={handleSaveStore} disabled={saving} className="dash-btn dash-btn-dark">{saving ? "Saving…" : "Save Changes"}</button>
+                <button 
+                  onClick={handleSaveStore} 
+                  disabled={saving || slugStatus === "taken" || slugStatus === "checking"} 
+                  className="dash-btn dash-btn-dark"
+                >
+                  {saving ? "Saving…" : "Save Changes"}
+                </button>
                 <button onClick={() => setIsEditing(false)} className="dash-btn dash-btn-line">Cancel</button>
               </div>
             </>
