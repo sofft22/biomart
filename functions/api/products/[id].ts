@@ -18,32 +18,34 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const id = params.id as string;
     const body = await request.json() as any;
 
-    // 🟢 FORCE SAVE EVERYTHING AT ONCE (NO DYNAMIC LOOPS)
-    const name = body.name || "";
-    const price = body.price || 0;
-    const compare_at_price = body.compare_at_price ?? null;
-    const description = body.description || "";
-    const category = body.category || "";
-    const in_stock = (body.inStock ?? body.in_stock ?? true) ? 1 : 0;
+    const inStock = body.inStock ?? body.in_stock ?? true;
+    let images: string[] = [];
+    if (Array.isArray(body.images)) images = body.images;
+    else if (body.image_url) images = [body.image_url, ...(body.image_urls ?? [])];
     
-    // Stringify images and variants directly
-    const images = JSON.stringify(body.images || [body.image_url].filter(Boolean));
-    
-    // 🟢 SAVE AS A SIMPLE JSON ARRAY
-    let variants = null;
+    // 🟢 Force the variants to be stringified properly
+    let variantsJson = null;
     if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
-      variants = JSON.stringify(body.variants);
+      variantsJson = JSON.stringify(body.variants);
     }
 
+    // 🟢 Static query forces every column to update
     await env.DB.prepare(
       `UPDATE products 
-       SET name = ?, price = ?, compare_at_price = ?, description = ?, 
-           category = ?, in_stock = ?, images = ?, variants = ? 
+       SET name = ?, price = ?, compare_at_price = ?, description = ?, category = ?, 
+           in_stock = ?, images = ?, variants = ? 
        WHERE id = ? AND store_id = ?`
     ).bind(
-      name, price, compare_at_price, description, 
-      category, in_stock, images, variants, 
-      id, store.id
+      body.name || "",
+      body.price || 0,
+      body.compare_at_price ?? null,
+      body.description || "",
+      body.category || "",
+      inStock === false ? 0 : 1,
+      JSON.stringify(images),
+      variantsJson, // 🟢 Save it
+      id,
+      store.id
     ).run();
 
     if (store.slug) {
