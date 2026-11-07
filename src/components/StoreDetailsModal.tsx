@@ -57,13 +57,13 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
     else if (selectedPlan === "pro_quarterly") amount = PLAN_PRICES_QUARTERLY.pro;
 
     try {
-      await fetch(`/api/admin/stores/${storeId}`, {
+      await fetch(`/api/admin/stores/${storeId}/payments`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ planId: selectedPlan, amount, note: "Manual Upgrade" })
       });
       setShowLog(false);
-      load(); // Reload data to show new payment and plan
+      load();
     } catch (e) {
       alert("Failed to log payment");
     }
@@ -91,16 +91,28 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
       <div 
         className="admin-modal-backdrop" 
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-        style={{ padding: isMobile ? 0 : 24 }} 
+        style={{ 
+          padding: isMobile ? 0 : 24,
+          display: "flex",
+          alignItems: isMobile ? "stretch" : "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.5)"
+        }} 
       >
         <div 
           className="admin-store-modal" 
           style={{ 
             maxWidth: isMobile ? "100%" : 560, 
-            width: isMobile ? "100%" : "auto",
+            width: isMobile ? "100%" : "100%",
             height: isMobile ? "100%" : "auto",
             maxHeight: isMobile ? "100%" : "90vh", 
-            borderRadius: isMobile ? 0 : 20 
+            borderRadius: isMobile ? 0 : 20,
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "var(--bg)",
+            boxShadow: "0 24px 48px -12px rgba(0,0,0,0.25)",
+            overflow: "hidden"
           }}
         >
           <button onClick={onClose} aria-label="Close" className="admin-modal-close" style={{ zIndex: 10, top: 16, right: 16 }}>
@@ -109,7 +121,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
             </svg>
           </button>
 
-          <div className="admin-store-body" ref={bodyRef} style={{ paddingBottom: 32 }}>
+          <div className="admin-store-body" ref={bodyRef} style={{ paddingBottom: 32, overflowY: "auto", flex: 1 }}>
             {loading && <p className="admin-modal-sub" style={{ padding: 32, textAlign: "center" }}>Loading…</p>}
             {error && <p className="admin-modal-sub" style={{ padding: 32, color: "var(--danger)", textAlign: "center" }}>{error}</p>}
 
