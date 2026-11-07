@@ -14,7 +14,7 @@ interface Variant {
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { store: currentStore, refresh } = useAuth();
+  const { store: currentStore, refresh, user } = useAuth();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loadingProduct, setLoadingProduct] = useState(!!id);
@@ -81,11 +81,9 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // 🟢 Safely load variants
+    // 🟢 LOAD AS SIMPLE ARRAY
     const rawVariants = (product as any).variants;
-    if (rawVariants && Array.isArray(rawVariants.suggested)) {
-      setVariants(rawVariants.suggested);
-    } else if (Array.isArray(rawVariants)) {
+    if (Array.isArray(rawVariants)) {
       setVariants(rawVariants);
     } else {
       setVariants([]);
@@ -121,7 +119,6 @@ export default function ProductEdit() {
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
-  // 🟢 Fixed deletion
   const removeVariant = (indexToRemove: number) => {
     setVariants((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
@@ -163,7 +160,7 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 Send flat array
+      // 🟢 SEND AS SIMPLE ARRAY
       variants: (canUseVariants && variants.length > 0) ? variants : null,
     };
 
@@ -465,11 +462,13 @@ export default function ProductEdit() {
       </div>
 
       <div className="pe-actions">
-        {product && (
+        {/* 🟢 ADMIN ONLY DELETE BUTTON */}
+        {product && user?.role === "admin" && (
           <button type="button" onClick={handleDelete} className="pe-delete">
             Delete
           </button>
         )}
+        
         <button type="button" onClick={handleSave} disabled={saving || uploading} className="pe-save">
           {saving ? "Saving…" : product ? "Save changes" : "Add product"}
         </button>
