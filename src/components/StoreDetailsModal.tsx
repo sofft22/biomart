@@ -20,17 +20,14 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   const [loading, setLoading] = useState(true);
   const [showReset, setShowReset] = useState(false);
   
-  // STATE FOR LOGGING PAYMENT
   const [showLog, setShowLog] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState("starter"); // default
+  const [selectedPlan, setSelectedPlan] = useState("starter");
   const [logging, setLogging] = useState(false);
+  const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
 
-  // 🟢 STATE TO DETECT MOBILE
   const [isMobile, setIsMobile] = useState(false);
-
   const bodyRef = useRef<HTMLDivElement | null>(null);
 
-  // 🟢 DETECT SCREEN SIZE
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
@@ -53,7 +50,6 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   const handleLogPayment = async () => {
     setLogging(true);
     
-    // 🟢 AUTO-CALCULATE PRICE FROM PLANS.TS
     let amount = 0;
     if (selectedPlan === "starter") amount = PLAN_PRICES_MONTHLY.starter;
     else if (selectedPlan === "starter_quarterly") amount = PLAN_PRICES_QUARTERLY.starter;
@@ -67,11 +63,27 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
         body: JSON.stringify({ planId: selectedPlan, amount, note: "Manual Upgrade" })
       });
       setShowLog(false);
-      load();
+      load(); // Reload data to show new payment and plan
     } catch (e) {
       alert("Failed to log payment");
     }
     setLogging(false);
+  };
+
+  // 🟢 DELETE PAYMENT LOG AND RECALCULATE PLAN
+  const handleDeletePayment = async (paymentId: string) => {
+    if (!confirm("Are you sure you want to delete this payment? If this was their only active payment, the store will be downgraded to the Free plan.")) return;
+    
+    setDeletingPaymentId(paymentId);
+    try {
+      await fetch(`/api/admin/stores/${storeId}/payments/${paymentId}`, {
+        method: "DELETE",
+      });
+      load(); // Reload data from backend
+    } catch (e) {
+      alert("Failed to delete payment log");
+    }
+    setDeletingPaymentId(null);
   };
 
   return (
@@ -79,13 +91,11 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
       <div 
         className="admin-modal-backdrop" 
         onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-        // 🟢 Make backdrop padding 0 on mobile so modal touches edges
         style={{ padding: isMobile ? 0 : 24 }} 
       >
         <div 
           className="admin-store-modal" 
           style={{ 
-            // 🟢 FULL SCREEN ON MOBILE
             maxWidth: isMobile ? "100%" : 560, 
             width: isMobile ? "100%" : "auto",
             height: isMobile ? "100%" : "auto",
@@ -156,7 +166,6 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                       <div style={{ padding: 20, borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
                         <p style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Select Plan</p>
                         <div style={{ marginBottom: 16 }}>
-                          {/* 🟢 ONLY DROPDOWN, NO PRICE INPUT */}
                           <select 
                             value={selectedPlan}
                             onChange={(e) => setSelectedPlan(e.target.value)}
@@ -187,12 +196,29 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                           {data.payments.map((p: any) => (
-                            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                            <div key={p.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                               <div>
                                 <p style={{ fontSize: 15, fontWeight: 600, margin: 0 }}>₦{p.amount.toLocaleString()}</p>
                                 <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 0" }}>{formatDate(p.paid_at)} · {p.plan}</p>
                               </div>
-                              <span style={{ fontSize: 10, background: "var(--soft)", padding: "6px 10px", borderRadius: 6, fontWeight: 700, textTransform: "uppercase", color: "var(--green)" }}>{p.note}</span>
+                              
+                              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                <span style={{ fontSize: 10, background: "var(--soft)", padding: "6px 10px", borderRadius: 6, fontWeight: 700, textTransform: "uppercase", color: "var(--green)" }}>{p.note}</span>
+                                
+                                {/* 🟢 DELETE PAYMENT LOG BUTTON */}
+                                <button 
+                                  onClick={() => handleDeletePayment(p.id)}
+                                  disabled={deletingPaymentId === p.id}
+                                  style={{ background: "transparent", border: 0, padding: 4, color: "var(--danger)", cursor: deletingPaymentId === p.id ? "not-allowed" : "pointer", opacity: deletingPaymentId === p.id ? 0.5 : 0.7 }}
+                                  title="Delete payment & recalculate plan"
+                                >
+                                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    <line x1="10" y1="11" x2="10" y2="17" />
+                                    <line x1="14" y1="11" x2="14" y2="17" />
+                                  </svg>
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -234,7 +260,8 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
 
                   {/* ACTIONS AT THE END */}
                   <div style={{ display: "flex", gap: 12, marginTop: 32, paddingBottom: 16 }}>
-                    <a href={`/store/${data.slug}`} target="_blank" rel="noopener" className="admin-modal-btn ghost" style={{ flex: 1, textAlign: "center", padding: "14px" }}>
+                    {/* 🟢 FIXED: VIEW LIVE STORE (Root URL) */}
+                    <a href={`/${data.slug}`} target="_blank" rel="noopener" className="admin-modal-btn ghost" style={{ flex: 1, textAlign: "center", padding: "14px" }}>
                       Visit Store ↗
                     </a>
                     <button onClick={() => setShowReset(true)} className="admin-modal-btn ghost" style={{ flex: 1, padding: "14px" }}>
