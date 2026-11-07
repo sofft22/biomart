@@ -6,7 +6,6 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const sid = cookie.match(/sid=([^;]+)/)?.[1];
     if (!sid) return Response.json({ error: "Not logged in" }, { status: 401 });
 
-    // 🟢 FIXED: Ensure session is fetched
     const session = await env.DB.prepare(
       "SELECT user_id FROM sessions WHERE id = ? AND expires_at > ?"
     ).bind(sid, Date.now()).first<{ user_id: string }>();
@@ -41,11 +40,11 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("in_stock" in body || "inStock" in body) { updates.push("in_stock = ?"); values.push(inStock === false ? 0 : 1); }
     if (images.length > 0 || "image_url" in body) { updates.push("images = ?"); values.push(JSON.stringify(images)); }
     
-    // 🟢 WRAP IN { suggested: [] }
+    // 🟢 SAVE AS SIMPLE ARRAY
     if ("variants" in body) {
       updates.push("variants = ?");
       if (Array.isArray(body.variants) && body.variants.length > 0) {
-        values.push(JSON.stringify({ suggested: body.variants }));
+        values.push(JSON.stringify(body.variants));
       } else {
         values.push(null);
       }
