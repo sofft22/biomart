@@ -28,10 +28,10 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       return Response.json({ error: `Your plan allows ${limit.photos} photos per product. Upgrade for more.` }, { status: 403 });
     }
 
-    // 🟢 Wrap variants in the required object structure
+    // 🟢 SAVE AS A SIMPLE ARRAY. NO WRAPPING.
     let variantsJson = null;
     if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
-      variantsJson = JSON.stringify({ suggested: body.variants });
+      variantsJson = JSON.stringify(body.variants);
     }
 
     const id = crypto.randomUUID();
