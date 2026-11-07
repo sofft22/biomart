@@ -81,7 +81,7 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // Load Variants Safely
+    // 🟢 Safely load variants
     const rawVariants = (product as any).variants;
     if (rawVariants && Array.isArray(rawVariants.suggested)) {
       setVariants(rawVariants.suggested);
@@ -121,14 +121,9 @@ export default function ProductEdit() {
   const updateVariant = (i: number, patch: Partial<Variant>) =>
     setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
     
-  // 🟢 FIXED: Bulletproof variant removal
-    // 🟢 FIXED: Create a brand new array to force React to update state
+  // 🟢 Fixed deletion
   const removeVariant = (indexToRemove: number) => {
-    setVariants((prev) => {
-      const newArray = [...prev]; // Copy the array
-      newArray.splice(indexToRemove, 1); // Remove the item
-      return newArray; // Return the new array
-    });
+    setVariants((prev) => prev.filter((_, i) => i !== indexToRemove));
   };
 
   const numericPrice = Number(price) || 0;
@@ -146,8 +141,8 @@ export default function ProductEdit() {
     
     if (canUseVariants && variants.length > 0) {
       for (const v of variants) {
-        if (!v.label.trim()) return setError("Every variant must have a name (e.g. Size M)");
-        if (v.priceDelta <= 0) return setError("Every variant must have a price greater than 0");
+        if (!v.label.trim()) return setError("Every variant must have a name");
+        if (v.priceDelta <= 0) return setError("Every variant must have a price");
       }
     }
 
@@ -168,7 +163,7 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // If the array is empty, send null. Otherwise, send the array.
+      // 🟢 Send flat array
       variants: (canUseVariants && variants.length > 0) ? variants : null,
     };
 
