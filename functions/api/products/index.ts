@@ -28,7 +28,7 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       return Response.json({ error: `Your plan allows ${limit.photos} photos per product. Upgrade for more.` }, { status: 403 });
     }
 
-    // 🟢 FIX: Wrap in { suggested: [] }
+    // 🟢 Wrap variants in the required object structure
     let variantsJson = null;
     if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
       variantsJson = JSON.stringify({ suggested: body.variants });
@@ -49,7 +49,7 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       body.category || "",
       body.inStock === false ? 0 : 1,
       images,
-      variantsJson, // 🟢 Save the wrapped JSON
+      variantsJson,
       Date.now()
     ).run();
 
