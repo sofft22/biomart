@@ -20,9 +20,24 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       "SELECT id, email, role FROM users WHERE id = ?"
     ).bind(session.user_id).first<any>();
 
-    const store = user ? await env.DB.prepare(
+    let store = user ? await env.DB.prepare(
       "SELECT * FROM stores WHERE user_id = ?"
     ).bind(user.id).first<any>() : null;
+
+    // 🟢 AUTOMATIC EXPIRATION CHECK
+    if (store && store.plan !== "free" && store.paid_until && store.paid_until < Date.now()) {
+      try {
+        await env.DB.prepare(
+          "UPDATE stores SET plan = 'free', paid_until = null WHERE id = ?"
+        ).bind(store.id).run();
+        
+        // Update the local object so the response reflects the downgrade immediately
+        store.plan = "free";
+        store.paid_until = null;
+      } catch (e) {
+        console.error("Failed to auto-downgrade store", e);
+      }
+    }
 
     let products: any[] = [];
     if (store) {
