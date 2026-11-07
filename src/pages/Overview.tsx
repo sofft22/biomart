@@ -25,10 +25,10 @@ export default function Overview() {
   const productCap = limits?.products ?? 5;
   const atCap = productCap < 100000 && products.length >= productCap;
   
-  // 🟢 NEW: Clean root URL
+  // 🟢 Clean root URL
   const storeUrl = `${location.origin}/${store.slug}`;
 
-  // 🟢 ONBOARDING LOGIC: Check what is missing
+  // 🟢 ONBOARDING LOGIC
   const hasWhatsapp = !!store.whatsapp;
   const hasDetails = !!store.tagline && !!(store as any).categories;
   const hasBanner = !!(store as any).cover_url;
@@ -50,7 +50,20 @@ export default function Overview() {
         <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
       </div>
 
-      {/* 🟢 ONBOARDING CHECKLIST */}
+      {/* 🟢 STORE LINK SECTION (Moved to top) */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, padding: "24px", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, marginBottom: 32, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 4px" }}>Your store link</p>
+          <p style={{ fontSize: 16, fontWeight: 600, margin: 0, wordBreak: "break-all" }}>{storeUrl}</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button onClick={copyLink} className="dash-btn dash-btn-line">Copy</button>
+          <button onClick={() => setQrOpen(true)} className="dash-btn dash-btn-line">QR Code</button>
+          <a href={storeUrl} target="_blank" rel="noopener" className="dash-btn dash-btn-dark">View store ↗</a>
+        </div>
+      </div>
+
+      {/* 🟢 ONBOARDING CHECKLIST (Only shows if not ready) */}
       {!isStoreReady && (
         <div style={{ background: "var(--bg)", border: "1px solid var(--green)", borderRadius: 16, padding: 32, marginBottom: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, width: `${(completedSteps / 4) * 100}%`, height: 4, background: "var(--green)", transition: "width 0.5s ease" }} />
@@ -120,7 +133,7 @@ export default function Overview() {
         </div>
       )}
 
-      {/* 🟢 LIVE BANNER (Shows when complete) */}
+      {/* 🟢 LIVE BANNER (Shows only when checklist is complete) */}
       {isStoreReady && (
         <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: 24, marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
           <div>
@@ -165,19 +178,6 @@ export default function Overview() {
 
       <div style={{ marginBottom: 48 }}>
         <PlanCard />
-      </div>
-
-      {/* STORE LINK */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 24, padding: "24px 0", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", marginBottom: 48, flexWrap: "wrap" }}>
-        <div>
-          <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 4px" }}>Your store link</p>
-          <p style={{ fontSize: 15, fontWeight: 500, margin: 0, wordBreak: "break-all" }}>{storeUrl}</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={copyLink} className="dash-btn dash-btn-line">Copy</button>
-          <button onClick={() => setQrOpen(true)} className="dash-btn dash-btn-line">QR</button>
-          <a href={storeUrl} target="_blank" rel="noopener" className="dash-btn dash-btn-dark">View store</a>
-        </div>
       </div>
 
       {/* QUICK ACTIONS */}
