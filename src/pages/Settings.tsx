@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/Toast";
 import DashboardLayout from "../components/DashboardLayout";
@@ -8,6 +8,7 @@ import { store as storeApi, uploadImage } from "../lib/api";
 export default function Settings() {
   const { store, refresh } = useAuth();
   const toast = useToast();
+  const location = useLocation();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
@@ -35,6 +36,31 @@ export default function Settings() {
     useRef<HTMLInputElement>(null),
   ];
 
+  // 🟢 SMART ONBOARDING REFS
+  const detailsRef = useRef<HTMLElement>(null);
+  const whatsappRef = useRef<HTMLDivElement>(null);
+  const bannersRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("edit") === "true") {
+      setIsEditing(true);
+    }
+    
+    const scrollTo = params.get("scroll");
+    if (scrollTo) {
+      setTimeout(() => {
+        if (scrollTo === "whatsapp" && whatsappRef.current) {
+          whatsappRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else if (scrollTo === "details" && detailsRef.current) {
+          detailsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else if (scrollTo === "banners" && bannersRef.current) {
+          bannersRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+    }
+  }, [location.search]);
+
   useEffect(() => {
     if (!store) return;
     setName(store.name ?? "");
@@ -61,9 +87,7 @@ export default function Settings() {
     setBanners(loadedBanners.slice(0, 4));
   }, [store]);
 
-  // 🟢 LIVE SLUG CHECK LOGIC
   useEffect(() => {
-    // If they haven't typed a slug, or it's their current slug, do nothing
     if (!slug || slug === (store as any)?.slug) {
       setSlugStatus("idle");
       return;
@@ -82,7 +106,7 @@ export default function Settings() {
       } catch (err) {
         setSlugStatus("idle");
       }
-    }, 500); // 500ms debounce
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [slug, store]);
@@ -190,7 +214,7 @@ export default function Settings() {
       <div style={{ display: "flex", flexDirection: "column", gap: 32, marginTop: 32 }}>
         
         {/* STORE INFO */}
-        <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
+        <section ref={detailsRef} style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, scrollMarginTop: 80 }}>
           <h2 style={{ fontSize: 18, fontWeight: 700, margin: "0 0 24px" }}>Store Information</h2>
           
           {!isEditing ? (
@@ -226,7 +250,6 @@ export default function Settings() {
                     />
                   </div>
                   
-                  {/* 🟢 LIVE SLUG STATUS */}
                   {slug && slug !== (store as any)?.slug && (
                     <div style={{ marginTop: 6, fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
                       {slugStatus === "checking" && <span style={{ color: "var(--muted)" }}>Checking availability...</span>}
@@ -248,7 +271,7 @@ export default function Settings() {
                   <input className="pe-input" value={categories} placeholder="e.g. Banana Bread, Puff Puffs" onChange={(e) => setCategories(e.target.value)} />
                 </div>
                 
-                <div>
+                <div ref={whatsappRef} style={{ scrollMarginTop: 80 }}>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>WhatsApp Number</label>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <span style={{ padding: "10px 12px", background: "var(--soft)", border: "1px solid var(--line)", borderRight: "none", borderRadius: "8px 0 0 8px", fontSize: 13, color: "var(--muted)" }}>
@@ -283,7 +306,7 @@ export default function Settings() {
         </section>
 
         {/* STORE BANNERS */}
-        <section style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32 }}>
+        <section ref={bannersRef} style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 32, scrollMarginTop: 80 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 24 }}>
             <div>
               <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>Store Banners</h2>
