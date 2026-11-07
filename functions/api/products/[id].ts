@@ -18,46 +18,33 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const id = params.id as string;
     const body = await request.json() as any;
 
-    const inStock = body.inStock ?? body.in_stock ?? true;
-    let images: string[] = [];
-    if (Array.isArray(body.images)) images = body.images;
-    else if (body.image_url) images = [body.image_url, ...(body.image_urls ?? [])];
+    // 🟢 FORCE SAVE EVERYTHING AT ONCE (NO DYNAMIC LOOPS)
+    const name = body.name || "";
+    const price = body.price || 0;
+    const compare_at_price = body.compare_at_price ?? null;
+    const description = body.description || "";
+    const category = body.category || "";
+    const in_stock = (body.inStock ?? body.in_stock ?? true) ? 1 : 0;
     
-    const updates: string[] = [];
-    const values: any[] = [];
-
-    if ("name" in body) { updates.push("name = ?"); values.push(body.name || ""); }
-    if ("price" in body) { updates.push("price = ?"); values.push(body.price || 0); }
-    if ("compare_at_price" in body) { updates.push("compare_at_price = ?"); values.push(body.compare_at_price ?? null); }
-    if ("description" in body) { updates.push("description = ?"); values.push(body.description || ""); }
+    // Stringify images and variants directly
+    const images = JSON.stringify(body.images || [body.image_url].filter(Boolean));
     
-    if ("category_id" in body || "category" in body) { 
-      const cat = body.category_id || body.category || ""; 
-      updates.push("category = ?"); values.push(cat); 
-      try { updates.push("category_id = ?"); values.push(cat); } catch {} 
-    }
-    
-    if ("in_stock" in body || "inStock" in body) { updates.push("in_stock = ?"); values.push(inStock === false ? 0 : 1); }
-    if (images.length > 0 || "image_url" in body) { updates.push("images = ?"); values.push(JSON.stringify(images)); }
-    
-    // 🟢 SAVE AS SIMPLE ARRAY
-    if ("variants" in body) {
-      updates.push("variants = ?");
-      if (Array.isArray(body.variants) && body.variants.length > 0) {
-        values.push(JSON.stringify(body.variants));
-      } else {
-        values.push(null);
-      }
+    // 🟢 SAVE AS A SIMPLE JSON ARRAY
+    let variants = null;
+    if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
+      variants = JSON.stringify(body.variants);
     }
 
-    if (updates.length === 0) return Response.json({ ok: true });
-
-    values.push(id);
-    values.push(store.id);
-
-    await env.DB.prepare(`UPDATE products SET ${updates.join(", ")} WHERE id = ? AND store_id = ?`)
-      .bind(...values)
-      .run();
+    await env.DB.prepare(
+      `UPDATE products 
+       SET name = ?, price = ?, compare_at_price = ?, description = ?, 
+           category = ?, in_stock = ?, images = ?, variants = ? 
+       WHERE id = ? AND store_id = ?`
+    ).bind(
+      name, price, compare_at_price, description, 
+      category, in_stock, images, variants, 
+      id, store.id
+    ).run();
 
     if (store.slug) {
       await purgeStoreCache(store.slug, env, request.url);
@@ -65,8 +52,7 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
 
     return Response.json({ ok: true });
   } catch (e: any) {
-    console.error("Update product error:", e);
-    return Response.json({ error: "Database error: " + e.message }, { status: 500 });
+    return Response.json({ error: e.message }, { status: 500 });
   }
 };
 
