@@ -24,6 +24,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
   const [selectedPlan, setSelectedPlan] = useState("starter");
   const [logging, setLogging] = useState(false);
   const [deletingPaymentId, setDeletingPaymentId] = useState<string | null>(null);
+  const [isDowngrading, setIsDowngrading] = useState(false);
 
   const [isMobile, setIsMobile] = useState(false);
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -57,7 +58,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
     else if (selectedPlan === "pro_quarterly") amount = PLAN_PRICES_QUARTERLY.pro;
 
     try {
-      await fetch(`/api/admin/stores/${storeId}/payments`, {
+      await fetch(`/api/admin/stores/${storeId}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ planId: selectedPlan, amount, note: "Manual Upgrade" })
@@ -70,20 +71,36 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
     setLogging(false);
   };
 
-  // 🟢 DELETE PAYMENT LOG AND RECALCULATE PLAN
   const handleDeletePayment = async (paymentId: string) => {
-    if (!confirm("Are you sure you want to delete this payment? If this was their only active payment, the store will be downgraded to the Free plan.")) return;
+    if (!confirm("Delete this payment log? (Their plan will NOT change)")) return;
     
     setDeletingPaymentId(paymentId);
     try {
       await fetch(`/api/admin/stores/${storeId}/payments/${paymentId}`, {
         method: "DELETE",
       });
-      load(); // Reload data from backend
+      load(); 
     } catch (e) {
       alert("Failed to delete payment log");
     }
     setDeletingPaymentId(null);
+  };
+
+  const handleForceDowngrade = async () => {
+    if (!confirm("Are you sure you want to downgrade this store to Free?")) return;
+    
+    setIsDowngrading(true);
+    try {
+      await fetch(`/api/admin/stores/${storeId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ planId: "free", amount: 0, note: "Manual Downgrade" })
+      });
+      load();
+    } catch (e) {
+      alert("Failed to downgrade");
+    }
+    setIsDowngrading(false);
   };
 
   return (
@@ -127,7 +144,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
 
             {data && (
               <>
-                {/* 1. HEADER */}
+                {/* HEADER */}
                 <div style={{ padding: "32px 24px 20px", textAlign: "center" }}>
                   <div style={{ width: 72, height: 72, borderRadius: 24, background: "var(--ink)", color: "#fff", display: "grid", placeItems: "center", fontSize: 28, fontWeight: 700, margin: "0 auto 16px" }}>
                     {(data.name || "?").charAt(0).toUpperCase()}
@@ -136,7 +153,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                   <p style={{ fontSize: 14, color: "var(--muted)", margin: 0 }}>/{data.slug}</p>
                 </div>
 
-                {/* 2. STATS GRID */}
+                {/* STATS GRID */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, padding: "0 24px 24px" }}>
                   <div style={{ background: "var(--soft)", padding: "16px 12px", borderRadius: 12, textAlign: "center" }}>
                     <span style={{ display: "block", fontSize: 10, fontWeight: 700, color: "var(--muted)", textTransform: "uppercase" }}>Products</span>
@@ -154,7 +171,7 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                   </div>
                 </div>
 
-                {/* 3. BILLING SECTION */}
+                {/* BILLING SECTION */}
                 <div style={{ padding: "0 24px 24px" }}>
                   <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, overflow: "hidden" }}>
                     
@@ -165,13 +182,26 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                           ₦{(data.totalPaid || 0).toLocaleString()}
                         </p>
                       </div>
-                      <button 
-                        onClick={() => setShowLog(!showLog)} 
-                        className={showLog ? "admin-modal-btn ghost" : "admin-btn-primary"}
-                        style={{ padding: "10px 16px", fontSize: 13, borderRadius: 10 }}
-                      >
-                        {showLog ? "Cancel" : "+ Log Payment"}
-                      </button>
+                      
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {/* 🟢 FORCE DOWNGRADE BUTTON */}
+                        {data.plan !== "free" && (
+                          <button 
+                            onClick={handleForceDowngrade} 
+                            disabled={isDowngrading}
+                            style={{ background: "var(--danger-soft)", color: "var(--danger)", border: 0, padding: "10px 16px", fontSize: 13, borderRadius: 10, fontWeight: 600, cursor: "pointer" }}
+                          >
+                            {isDowngrading ? "..." : "Downgrade"}
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => setShowLog(!showLog)} 
+                          className={showLog ? "admin-modal-btn ghost" : "admin-btn-primary"}
+                          style={{ padding: "10px 16px", fontSize: 13, borderRadius: 10 }}
+                        >
+                          {showLog ? "Cancel" : "+ Log Payment"}
+                        </button>
+                      </div>
                     </div>
 
                     {showLog && (
@@ -217,12 +247,11 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                                 <span style={{ fontSize: 10, background: "var(--soft)", padding: "6px 10px", borderRadius: 6, fontWeight: 700, textTransform: "uppercase", color: "var(--green)" }}>{p.note}</span>
                                 
-                                {/* 🟢 DELETE PAYMENT LOG BUTTON */}
                                 <button 
                                   onClick={() => handleDeletePayment(p.id)}
                                   disabled={deletingPaymentId === p.id}
                                   style={{ background: "transparent", border: 0, padding: 4, color: "var(--danger)", cursor: deletingPaymentId === p.id ? "not-allowed" : "pointer", opacity: deletingPaymentId === p.id ? 0.5 : 0.7 }}
-                                  title="Delete payment & recalculate plan"
+                                  title="Delete payment (does not downgrade)"
                                 >
                                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                     <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -236,11 +265,10 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
                         </div>
                       )}
                     </div>
-
                   </div>
                 </div>
 
-                {/* 4. STORE INFO */}
+                {/* STORE INFO */}
                 <div style={{ padding: "0 24px" }}>
                   <h4 style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", marginBottom: 16 }}>Store Information</h4>
                   
@@ -272,7 +300,6 @@ export default function StoreDetailsModal({ storeId, onClose }: Props) {
 
                   {/* ACTIONS AT THE END */}
                   <div style={{ display: "flex", gap: 12, marginTop: 32, paddingBottom: 16 }}>
-                    {/* 🟢 FIXED: VIEW LIVE STORE (Root URL) */}
                     <a href={`/${data.slug}`} target="_blank" rel="noopener" className="admin-modal-btn ghost" style={{ flex: 1, textAlign: "center", padding: "14px" }}>
                       Visit Store ↗
                     </a>
