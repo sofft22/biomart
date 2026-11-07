@@ -81,13 +81,17 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // 🟢 LOAD AS SIMPLE ARRAY
-    const rawVariants = (product as any).variants;
-    if (Array.isArray(rawVariants)) {
-      setVariants(rawVariants);
-    } else {
-      setVariants([]);
+    // 🟢 FIX: Safely parse the variants array
+    let parsedVariants: Variant[] = [];
+    const raw = (product as any).variants;
+    
+    if (Array.isArray(raw)) {
+      parsedVariants = raw;
+    } else if (raw && Array.isArray(raw.suggested)) {
+      parsedVariants = raw.suggested;
     }
+    
+    setVariants(parsedVariants);
   }, [product]);
 
   const handleImageUpload = async (file: File) => {
