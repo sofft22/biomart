@@ -25,6 +25,7 @@ export default function Plan() {
 
   return (
     <DashboardLayout>
+      {/* Force bullet markers to be white on the dark "pop" card */}
       <style>{`
         .plan.pop ul li::marker { color: #fff !important; }
       `}</style>
@@ -114,8 +115,6 @@ export default function Plan() {
           <ul>
             <li>5 products</li>
             <li>1 photo per product</li>
-            <li className="no">No variants</li>
-            {/* 🟢 Removed Biomart Ad text */}
           </ul>
           <button
             disabled
@@ -143,8 +142,6 @@ export default function Plan() {
           <ul>
             <li>15 products</li>
             <li>3 photos per product</li>
-            <li className="no">No variants</li>
-            {/* 🟢 Removed Biomart Ad text */}
           </ul>
           <a
             href={getUpgradeLink("Starter")}
@@ -179,11 +176,9 @@ export default function Plan() {
             </span>
           </div>
 
-          <ul style={{ color: "#fff", listStyleType: "disc" }}>
+          <ul style={{ color: "#fff" }}>
             <li>Unlimited products</li>
             <li>10 photos per product</li>
-            <li>Product variants</li>
-            {/* 🟢 Removed Biomart Ad text */}
           </ul>
 
           <a
@@ -198,7 +193,7 @@ export default function Plan() {
         </div>
       </div>
 
-      {/* CUSTOM PLAN */}
+           {/* CUSTOM PLAN */}
       <div className="custom-plan-wrapper" style={{ marginTop: 24 }}>
         <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -207,7 +202,7 @@ export default function Plan() {
               Get a full online store built from scratch, tailored exactly to your brand's needs.
             </p>
             <div className="p" style={{ fontSize: 20, marginBottom: 16 }}>
-              <span>From ₦100,000</span>
+              <span>From ₦70,000</span>
             </div>
             
             <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
