@@ -335,91 +335,91 @@ export default function Landing() {
         </section>
 
                <section className="sec" id="pricing">
-          <div className="wrap">
-            <div className="sh reveal">
-              <span className="eyebrow">Pricing</span>
-              <h2 className="h-section">Start free. Upgrade when you're ready.</h2>
-            </div>
+  <div className="wrap">
+    <div className="sh reveal">
+      <span className="eyebrow">Pricing</span>
+      <h2 className="h-section">Start free. Upgrade when you're ready.</h2>
+    </div>
 
-            <div className="switch-wrap reveal" style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
-              <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
-                <button type="button" onClick={() => setBilling("m")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "m" ? "var(--bg)" : "transparent", color: billing === "m" ? "var(--ink)" : "var(--muted)" }}>
-                  Monthly
-                </button>
-                <button type="button" onClick={() => setBilling("q")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "q" ? "var(--bg)" : "transparent", color: billing === "q" ? "var(--ink)" : "var(--muted)", display: "flex", alignItems: "center", gap: 8 }}>
-                  Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
-                </button>
-              </div>
-            </div>
+    <div className="switch-wrap reveal" style={{ display: "flex", justifyContent: "center", margin: "32px 0" }}>
+      <div style={{ display: "inline-flex", background: "var(--soft)", padding: 4, borderRadius: 99, border: "1px solid var(--line)" }}>
+        <button type="button" onClick={() => setBilling("m")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "m" ? "var(--bg)" : "transparent", color: billing === "m" ? "var(--ink)" : "var(--muted)" }}>
+          Monthly
+        </button>
+        <button type="button" onClick={() => setBilling("q")} style={{ padding: "10px 24px", borderRadius: 99, fontSize: 13, fontWeight: 600, border: 0, cursor: "pointer", background: billing === "q" ? "var(--bg)" : "transparent", color: billing === "q" ? "var(--ink)" : "var(--muted)", display: "flex", alignItems: "center", gap: 8 }}>
+          Quarterly <span style={{ background: "var(--green)", color: "#fff", padding: "2px 8px", borderRadius: 99, fontSize: 10 }}>Save 8%</span>
+        </button>
+      </div>
+    </div>
 
-            <div className="plans">
-              <div className="plan reveal">
-                <h3>Free</h3>
-                <p className="desc">Test the waters.</p>
-                <div className="p"><span>₦0</span></div>
-                <ul>
-                  <li>5 products</li>
-                  <li>1 photo per product</li>
-                  <li className="no">No variants</li>
-                </ul>
-                <Link to={SIGNUP_URL} className="btn line">Start free</Link>
-              </div>
+    <div className="plans">
+      <div className="plan reveal">
+        <h3>Free</h3>
+        <p className="desc">Test the waters.</p>
+        <div className="p"><span>₦0</span></div>
+        <ul>
+          <li>5 products</li>
+          <li>1 photo per product</li>
+          <li className="no">No variants</li>
+        </ul>
+        <Link to={SIGNUP_URL} className="btn line">Start free</Link>
+      </div>
 
-              <div className="plan reveal">
-                <h3>Starter</h3>
-                <p className="desc">For the casual seller.</p>
-                <div className="p">
-                  <span>{billing === "m" ? "₦3,000" : "₦8,280"}</span>
-                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-                </div>
-                <ul>
-                  <li>15 products</li>
-                  <li>3 photos per product</li>
-                  <li className="no">No variants</li>
-                </ul>
-                <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
-              </div>
+      <div className="plan reveal">
+        <h3>Starter</h3>
+        <p className="desc">For the casual seller.</p>
+        <div className="p">
+          <span>{billing === "m" ? "₦3,000" : "₦8,280"}</span>
+          <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+        </div>
+        <ul>
+          <li>15 products</li>
+          <li>3 photos per product</li>
+          <li className="no">No variants</li>
+        </ul>
+        <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
+      </div>
 
-              <div className="plan pop reveal">
-                <span className="badge">Most Popular</span>
-                <h3>Pro</h3>
-                <p className="desc">For serious brands.</p>
-                <div className="p">
-                  <span>{billing === "m" ? "₦6,500" : "₦17,940"}</span>
-                  <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
-                </div>
-                <ul>
-                  <li>Unlimited products</li>
-                  <li>10 photos per product</li>
-                  <li>Product variants</li>
-                </ul>
-                <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
-              </div>
-            </div>
+      <div className="plan pop reveal">
+        <span className="badge">Most Popular</span>
+        <h3>Pro</h3>
+        <p className="desc">For serious brands.</p>
+        <div className="p">
+          <span>{billing === "m" ? "₦6,500" : "₦17,940"}</span>
+          <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
+        </div>
+        <ul>
+          <li>100 products</li> {/* 🟢 Changed from Unlimited */}
+          <li>10 photos per product</li>
+          <li>Product variants</li>
+        </ul>
+        <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
+      </div>
+    </div>
 
-            <div className="custom-plan-wrapper reveal">
-              <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <h3>Custom E-commerce</h3>
-                  <p className="desc">Get a full online store built from scratch, tailored exactly to your brand's needs.</p>
-                  <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦70,000</span></div>
-                  
-                  <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
-                    <li>Your own custom domain</li>
-                    <li>Advanced shopping cart & checkout</li>
-                    <li>Automated Paystack payments</li>
-                    <li>Automated order tracking & Branded Receipt Download</li>
-                    <li>Showing up in google searches</li>
-                    <li>Fully activated Coupons & Review systems</li>
-                  </ul>
-                </div>
-                <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
-                  Contact Sales {I.arrow}
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
+    <div className="custom-plan-wrapper reveal">
+      <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h3>Custom E-commerce</h3>
+          <p className="desc">Get a full online store built from scratch, tailored exactly to your brand's needs.</p>
+          <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦70,000</span></div>
+          
+          <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
+            <li>Your own custom domain</li>
+            <li>Advanced shopping cart & checkout</li>
+            <li>Automated Paystack payments</li>
+            <li>Automated order tracking & Branded Receipt Download</li>
+            <li>Showing up in google searches</li>
+            <li>Fully activated Coupons & Review systems</li>
+          </ul>
+        </div>
+        <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
+          Contact Sales {I.arrow}
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
 
         <section className="sec bg-soft" id="faq">
           <div className="wrap">
