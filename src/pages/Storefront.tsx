@@ -57,7 +57,7 @@ export default function Storefront() {
   const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10); // 🟢 10 per page
+  const [itemsPerPage] = useState(10);
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
@@ -70,8 +70,6 @@ export default function Storefront() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // 🟢 Removed the resize listener that was changing itemsPerPage. It stays at 10.
 
   useEffect(() => {
     if (!slug) return;
@@ -109,7 +107,7 @@ export default function Storefront() {
   }, []);
 
   const bannersList = useMemo(() => {
-    const list = [];
+    const list: string[] = [];
     if ((store as any)?.cover_url) list.push((store as any).cover_url);
     try {
       const extras = JSON.parse((store as any)?.extra_banners || "[]");
@@ -162,7 +160,8 @@ export default function Storefront() {
   }, [store]);
 
   const filtered = useMemo(() => {
-    let list = products;
+    // 🟢 FALLBACK: Use [] if products is undefined
+    let list = products || [];
     if (activeCategory !== "All") {
       list = list.filter((p) => (p as any).category === activeCategory);
     }
@@ -206,6 +205,7 @@ export default function Storefront() {
     }, 50);
   };
 
+  // 🟢 CRUCIAL: Do not render anything until loading is false and we have a store
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
   if (error || !store) return <div className="sf-loading">Store not found</div>;
 
