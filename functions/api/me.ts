@@ -63,7 +63,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const limits = {
       free: { products: 5, images: 1, photos: 1, variants: false },
       starter: { products: 15, images: 3, photos: 3, variants: false },
-      pro: { products: 100000, images: 10, photos: 10, variants: true },
+      pro: { products: 100, images: 10, photos: 10, variants: true }, // 🟢 Changed from 100000 to 100
     }[planName] || { products: 5, images: 1, photos: 1, variants: false };
 
     return Response.json({
@@ -71,8 +71,8 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       limits: { planName, products: limits.products, images: limits.images, photos: limits.photos, variants: limits.variants },
       plans: {
         free: { name: "Free", price: 0, products: 5, images: 1 },
-        starter: { name: "Starter", price: 3000, products: 20, images: 3 },
-        pro: { name: "Pro", price: 65000, products: 100000, images: 5 },
+        starter: { name: "Starter", price: 3000, products: 15, images: 3 }, // 🟢 Fixed 20 to 15
+        pro: { name: "Pro", price: 6500, products: 100, images: 10 }, // 🟢 Fixed price (65000 to 6500) and limit (100000 to 100)
       },
     }, { headers: noCacheHeaders });
   } catch (e: any) {
