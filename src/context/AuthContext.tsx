@@ -4,6 +4,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { auth } from "../lib/api";
@@ -30,39 +31,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [limits, setLimits] = useState<MeResponse["limits"] | null>(null);
   const [plans, setPlans] = useState<PlansMap | null>(null);
 
+  // Read current user without putting `user` in refresh's dep array
+  const userRef = useRef<User | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
+
+  // In-flight guard so concurrent refresh() calls collapse into one request
+  const inFlight = useRef<Promise<void> | null>(null);
+
   const refresh = useCallback(async (force = false) => {
-    // If not forcing, and we already have data, skip the fetch
-    if (!force && user !== null) {
+    // If we already have a user and this isn't a forced refresh, bail.
+    if (!force && userRef.current !== null) {
       setLoading(false);
       return;
     }
 
-    try {
-      const data = await auth.me();
-      setUser(data.user);
-      setStore(data.store as any); 
-      setProducts(data.products || []);
-      setLimits(data.limits);
-      setPlans(data.plans);
-    } catch {
-      setUser(null);
-      setStore(null);
-      setProducts([]);
-      setLimits(null);
-      setPlans(null);
-    } finally {
-      setLoading(false);
+    // If a request is already running, wait for it instead of firing another.
+    if (inFlight.current) {
+      return inFlight.current;
     }
-  }, [user]);
 
+    const run = (async () => {
+      try {
+        const data = await auth.me();
+        setUser(data.user);
+        setStore(data.store as any);
+        setProducts(data.products || []);
+        setLimits(data.limits);
+        setPlans(data.plans);
+      } catch {
+        setUser(null);
+        setStore(null);
+        setProducts([]);
+        setLimits(null);
+        setPlans(null);
+      } finally {
+        setLoading(false);
+        inFlight.current = null;
+      }
+    })();
+
+    inFlight.current = run;
+    return run;
+  }, []); // ← NO dependencies. `refresh` identity is stable forever.
+
+  // Run exactly once on mount.
+  const didInit = useRef(false);
   useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
     refresh();
   }, [refresh]);
 
   return (
     <Ctx.Provider
       value={{
-        loading, user, store, products, limits, plans, refresh, setProducts,
+        loading,
+        user,
+        store,
+        products,
+        limits,
+        plans,
+        refresh,
+        setProducts,
       }}
     >
       {children}
