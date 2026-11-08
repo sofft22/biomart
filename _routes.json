@@ -6,7 +6,6 @@
     "/src/*",
     "/favicon.ico",
     "/index.html",
-    "/api/*",
     "/dashboard/*",
     "/login",
     "/signup",
