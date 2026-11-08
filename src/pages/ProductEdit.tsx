@@ -37,6 +37,7 @@ export default function ProductEdit() {
   const isPro = plan === "pro" || plan === "lifetime";
   
   const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
+  // We keep the UI check to show the "Upgrade" message, but we allow saving if data exists
   const canUseVariants = isPro;
 
   const availableCategories = (currentStore as any)?.categories 
@@ -79,7 +80,7 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // 🟢 Safely load variants
+    // Safely load variants
     const raw = (product as any).variants;
     if (Array.isArray(raw)) {
       setVariants(raw);
@@ -128,7 +129,7 @@ export default function ProductEdit() {
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add a photo");
     
-    if (canUseVariants && variants.length > 0) {
+    if (variants.length > 0) {
       for (const v of variants) {
         if (!v.label.trim()) return setError("Every variant must have a name");
         if (v.priceDelta <= 0) return setError("Every variant must have a price");
@@ -152,10 +153,10 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      variants: (canUseVariants && variants.length > 0) ? variants : null,
+      // 🟢 THE FIX: Always send variants if they exist, regardless of plan limit
+      variants: variants.length > 0 ? variants : null,
     };
 
-    // 🟢 LOG EXACTLY WHAT WE ARE SENDING
     console.log("🚀 SENDING PAYLOAD TO BACKEND:", payload);
 
     try {
@@ -278,30 +279,28 @@ export default function ProductEdit() {
         <section className="pe-section">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
-            {canUseVariants && <button type="button" onClick={addVariant} className="pe-add-variant">+ Add Variant</button>}
+            {canUseVariants ? (
+              <button type="button" onClick={addVariant} className="pe-add-variant">+ Add Variant</button>
+            ) : (
+              <Link to="/plan" style={{ fontSize: 12, fontWeight: 600, color: "var(--green)" }}>Upgrade to unlock</Link>
+            )}
           </div>
 
-          {!canUseVariants ? (
-            <div style={{ borderTop: "1px solid var(--line)", padding: "16px 0" }}>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Upgrade to Pro to unlock variants.</p>
-            </div>
-          ) : (
-            variants.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {variants.map((v, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
-                    <input className="pe-input" value={v.label} onChange={(e) => updateVariant(i, { label: e.target.value })} placeholder="e.g. Size M" style={{ flex: 1, border: 0, background: "transparent" }} />
-                    <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
-                      <input type="number" value={v.priceDelta || ""} onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })} style={{ width: 70, border: 0, background: "transparent", outline: "none" }} />
-                    </div>
-                    <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)" }}>
-                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                    </button>
+          {variants.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {variants.map((v, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
+                  <input className="pe-input" value={v.label} onChange={(e) => updateVariant(i, { label: e.target.value })} placeholder="e.g. Size M" style={{ flex: 1, border: 0, background: "transparent" }} />
+                  <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
+                    <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
+                    <input type="number" value={v.priceDelta || ""} onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })} style={{ width: 70, border: 0, background: "transparent", outline: "none" }} />
                   </div>
-                ))}
-              </div>
-            )
+                  <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)" }}>
+                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </section>
         {error && <p className="pe-error">{error}</p>}
