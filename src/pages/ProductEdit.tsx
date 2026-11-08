@@ -143,7 +143,7 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
-    const payload: any = {
+        const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
@@ -153,8 +153,8 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 THE FIX: Always send variants if they exist, regardless of plan limit
-      variants: variants.length > 0 ? variants : null,
+      // 🟢 FORCE AN ARRAY
+      variants: variants || [], 
     };
 
     console.log("🚀 SENDING PAYLOAD TO BACKEND:", payload);
