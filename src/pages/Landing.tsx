@@ -334,7 +334,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="sec" id="pricing">
+               <section className="sec" id="pricing">
           <div className="wrap">
             <div className="sh reveal">
               <span className="eyebrow">Pricing</span>
@@ -361,7 +361,6 @@ export default function Landing() {
                   <li>5 products</li>
                   <li>1 photo per product</li>
                   <li className="no">No variants</li>
-                  <li className="no">Biomart ad on storefront</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn line">Start free</Link>
               </div>
@@ -370,14 +369,13 @@ export default function Landing() {
                 <h3>Starter</h3>
                 <p className="desc">For the casual seller.</p>
                 <div className="p">
-                  <span>{billing === "m" ? "₦2,000" : "₦5,500"}</span>
+                  <span>{billing === "m" ? "₦3,000" : "₦8,280"}</span>
                   <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
                 </div>
                 <ul>
                   <li>15 products</li>
                   <li>3 photos per product</li>
                   <li className="no">No variants</li>
-                  <li className="no">Biomart ad on storefront</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn line">Get Starter</Link>
               </div>
@@ -387,14 +385,13 @@ export default function Landing() {
                 <h3>Pro</h3>
                 <p className="desc">For serious brands.</p>
                 <div className="p">
-                  <span>{billing === "m" ? "₦5,000" : "₦13,500"}</span>
+                  <span>{billing === "m" ? "₦6,500" : "₦17,940"}</span>
                   <span className="per">{billing === "m" ? "/month" : "/quarter"}</span>
                 </div>
                 <ul>
                   <li>Unlimited products</li>
                   <li>10 photos per product</li>
                   <li>Product variants</li>
-                  <li>No Biomart ad</li>
                 </ul>
                 <Link to={SIGNUP_URL} className="btn">Get Pro</Link>
               </div>
@@ -408,13 +405,13 @@ export default function Landing() {
                   <div className="p" style={{ fontSize: 20, marginBottom: 16 }}><span>From ₦70,000</span></div>
                   
                   <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
-              <li>Your own custom domain</li>
-              <li>Advanced shopping cart & checkout</li>
-              <li>Automated Paystack payments</li>
-              <li>Automated order tracking & Branded Receipt Download</li>
-              <li>Showing up in google searches</li>
-              <li>Fully activated Coupons & Review systems</li>
-            </ul>
+                    <li>Your own custom domain</li>
+                    <li>Advanced shopping cart & checkout</li>
+                    <li>Automated Paystack payments</li>
+                    <li>Automated order tracking & Branded Receipt Download</li>
+                    <li>Showing up in google searches</li>
+                    <li>Fully activated Coupons & Review systems</li>
+                  </ul>
                 </div>
                 <a href={wa("Hi Biomart, I'd like a quote for a custom e-commerce website.")} target="_blank" rel="noopener noreferrer" className="btn" style={{ marginTop: 16, flexShrink: 0 }}>
                   Contact Sales {I.arrow}
