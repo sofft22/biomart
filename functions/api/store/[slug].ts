@@ -62,7 +62,6 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
     });
     
     // Fire and forget cache put
-    const ctx = { waitUntil: (p: Promise<any>) => p }; // Fallback if ctx isn't passed
     cache.put(cacheKey, response.clone()).catch(() => {});
 
     return response;
