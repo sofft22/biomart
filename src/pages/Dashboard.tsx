@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
-import { store as storeApi, products as productsApi } from "../lib/api";
+import { products as productsApi } from "../lib/api";
 import { getCategories } from "../lib/storeData";
 import { useToast } from "../components/Toast";
 import type { Category, Product } from "../types";
@@ -15,30 +15,15 @@ function formatPrice(n: number): string {
 
 export default function Dashboard() {
   const nav = useNavigate();
-  const { store: currentStore, products: cachedProducts, refresh } = useAuth();
+  // 🟢 Just pull products directly from auth, no local state needed.
+  const { store: currentStore, products, refresh } = useAuth();
   const toast = useToast();
 
-  const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<SortKey>("manual");
-  const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (cachedProducts && cachedProducts.length > 0) {
-      setProducts(cachedProducts);
-    } else if (currentStore?.slug) {
-      setLoading(true);
-      storeApi.public(currentStore.slug)
-        .then((data) => {
-          setProducts((data as any).products ?? []);
-        })
-        .catch(() => setProducts([]))
-        .finally(() => setLoading(false));
-    }
-  }, [currentStore?.slug, cachedProducts]);
 
   useEffect(() => {
     if (!currentStore?.slug) return;
@@ -101,7 +86,6 @@ export default function Dashboard() {
     setDeletingId(id);
     try {
       await productsApi.remove(id);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
       await refresh(true); 
       toast.show("Product deleted successfully");
     } catch (err) {
@@ -113,7 +97,6 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      {/* 🟢 INCREASED HEADER SPACING */}
       <div className="dash-head" style={{ padding: 0, marginBottom: 40 }}>
         <p className="dash-head-eyebrow">Catalogue</p>
         <h1 className="dash-title">
@@ -127,7 +110,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* 🟢 AIRIER TOOLBAR */}
       <div className="pr-toolbar" style={{ marginBottom: 28 }}>
         <div className="pr-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -178,19 +160,13 @@ export default function Dashboard() {
         </select>
       </div>
 
-      {/* 🟢 TAP TO EDIT HEADER */}
-      {!loading && filtered.length > 0 && (
+      {filtered.length > 0 && (
         <div style={{ textAlign: "right", padding: "0 16px 20px", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
           Tap to edit product
         </div>
       )}
 
-      {loading ? (
-        <div className="dash-empty">
-          <div className="dash-spinner" style={{ margin: "0 auto 16px" }} />
-          <p className="dash-empty-sub">Loading products...</p>
-        </div>
-      ) : filtered.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="dash-empty">
           <div className="dash-empty-icon">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -227,10 +203,10 @@ export default function Dashboard() {
                   alignItems: "center", 
                   justifyContent: "space-between", 
                   gap: 16,
-                  padding: "20px 16px", // 🟢 INCREASED PADDING
-                  background: "var(--bg)", // 🟢 ADDED BG
-                  border: "1px solid var(--line)", // 🟢 ADDED BORDER
-                  borderRadius: 16 // 🟢 ADDED RADIUS
+                  padding: "20px 16px",
+                  background: "var(--bg)",
+                  border: "1px solid var(--line)",
+                  borderRadius: 16
                 }}
               >
                 <button 
@@ -261,14 +237,10 @@ export default function Dashboard() {
                     </div>
                     <p className="pr-item-meta" style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
                       {formatPrice(p.price)}
-                      {typeof (p as any).views === "number" && (
-                        <> · {(p as any).views} {(p as any).views === 1 ? "view" : "views"}</>
-                      )}
                     </p>
                   </div>
                 </button>
 
-                {/* 🟢 DELETE BUTTON */}
                 <button 
                   onClick={(e) => handleDelete(e, p.id, p.name)}
                   disabled={isDeleting}
