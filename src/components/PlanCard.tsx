@@ -1,12 +1,16 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getPlanStatus, PLAN_DAYS } from "../lib/plans";
+import { getPlanStatus, getLimit } from "../lib/plans";
 
 export default function PlanCard() {
   const { store } = useAuth();
   if (!store) return null;
 
   const status = getPlanStatus(store.plan || "free", store.paid_until);
+  
+  // 🟢 Fetch limits dynamically so you never have to hardcode "100" again
+  const freeLimit = getLimit("free");
+  const proLimit = getLimit("pro");
 
   // 🟢 LOGIC FOR FREE USERS
   if (status.status === "free") {
@@ -19,7 +23,7 @@ export default function PlanCard() {
           </div>
         </div>
         <p className="ov-plan-sub">
-          You have 5 products and 1 photo per product. Upgrade to Pro to unlock unlimited products, 10 photos, and product variants.
+          You have {freeLimit.products} products and {freeLimit.photos} photo per product. Upgrade to Pro to unlock {proLimit.products} products, {proLimit.photos} photos, and product variants.
         </p>
         <Link to="/plan" className="dash-btn dash-btn-dark" style={{ marginTop: 16, display: "inline-flex" }}>
           View Upgrade Plans
