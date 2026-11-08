@@ -3,6 +3,8 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { store as storeApi } from "../lib/api";
@@ -30,31 +32,46 @@ export function StoreProvider({
   const [products, setProducts] = useState<Product[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const reload = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = (await storeApi.public(slug)) as StorefrontResponse;
-      setStore(data.store);
-      setProducts(data.products || []);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Could not load store.");
-      setStore(null);
-      setProducts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // In-flight guard: multiple reload() calls collapse into one request.
+  const inFlight = useRef<Promise<void> | null>(null);
 
-  useEffect(() => {
+  const reload = useCallback(async () => {
     if (!slug) {
       setLoading(false);
       setError("No store specified.");
       return;
     }
-    reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    if (inFlight.current) {
+      return inFlight.current;
+    }
+
+    const run = (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = (await storeApi.public(slug)) as StorefrontResponse;
+        setStore(data.store);
+        setProducts(data.products || []);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Could not load store.");
+        setStore(null);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+        inFlight.current = null;
+      }
+    })();
+
+    inFlight.current = run;
+    return run;
   }, [slug]);
+
+  // Fetch once per slug change. `reload` is stable per slug, so this fires
+  // exactly once when slug changes and never again from re-renders.
+  useEffect(() => {
+    reload();
+  }, [reload]);
 
   return (
     <Ctx.Provider value={{ loading, store, products, error, reload }}>
