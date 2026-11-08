@@ -62,6 +62,8 @@ export default function Storefront() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(true);
 
+  // --- HOOKS START ---
+  
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -182,6 +184,25 @@ export default function Storefront() {
     return sorted;
   }, [products, query, sort, activeCategory]);
 
+  // --- HOOKS END ---
+
+  // 🟢 THE ULTIMATE FIX: Stop rendering if data isn't ready.
+  // This prevents any component below from crashing on undefined arrays.
+  if (loading) {
+    return <div className="sf-loading"><div className="sf-spinner" /></div>;
+  }
+
+  if (error || !store) {
+    return (
+      <div className="sf-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 600 }}>Store not found</h2>
+        <p style={{ color: 'var(--muted)' }}>This store might have been deleted or the link is incorrect.</p>
+      </div>
+    );
+  }
+
+  // 🟢 Now that we know store is NOT null, it is safe to use it below.
+
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -205,10 +226,6 @@ export default function Storefront() {
     }, 50);
   };
 
-  // 🟢 SAFETY CHECK: If loading or no store, return early
-  if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
-  if (error || !store) return <div className="sf-loading">Store not found</div>;
-
   const brand = splitBrandName(store.name);
   const tagline = (store as any).tagline || "";
   const heroTitle = (store as any).hero_title || ""; 
@@ -216,19 +233,14 @@ export default function Storefront() {
   const hasCustomBanner = bannersList.length > 0;
 
   const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
-
   const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
 
   return (
     <div className="sf-shell">
+      {/* HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease", zIndex: 50 }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button 
-            onClick={scrollToTop} 
-            className="sf-wordmark" 
-            aria-label={store.name} 
-            style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}
-          >
+          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
             {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
             {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
           </button>
@@ -241,6 +253,7 @@ export default function Storefront() {
         </div>
       </header>
 
+      {/* HERO BANNER CAROUSEL */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
           <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
@@ -265,6 +278,7 @@ export default function Storefront() {
         </section>
       )}
 
+      {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
@@ -352,6 +366,7 @@ export default function Storefront() {
         )}
       </section>
 
+      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
