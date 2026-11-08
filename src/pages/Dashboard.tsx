@@ -113,7 +113,8 @@ export default function Dashboard() {
 
   return (
     <DashboardLayout>
-      <div className="dash-head" style={{ padding: 0 }}>
+      {/* 🟢 INCREASED HEADER SPACING */}
+      <div className="dash-head" style={{ padding: 0, marginBottom: 40 }}>
         <p className="dash-head-eyebrow">Catalogue</p>
         <h1 className="dash-title">
           Your <em>products</em>.
@@ -126,7 +127,8 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="pr-toolbar">
+      {/* 🟢 AIRIER TOOLBAR */}
+      <div className="pr-toolbar" style={{ marginBottom: 28 }}>
         <div className="pr-search">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="7" />
@@ -147,7 +149,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <div className="pr-filterbar">
+      <div className="pr-filterbar" style={{ marginBottom: 28 }}>
         <nav className="pr-tabs">
           {categoryTabs.map((c) => {
             const active = category === c.id;
@@ -176,8 +178,9 @@ export default function Dashboard() {
         </select>
       </div>
 
+      {/* 🟢 TAP TO EDIT HEADER */}
       {!loading && filtered.length > 0 && (
-        <div style={{ textAlign: "right", padding: "0 16px 8px", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
+        <div style={{ textAlign: "right", padding: "0 16px 20px", fontSize: 12, color: "var(--muted)", fontStyle: "italic" }}>
           Tap to edit product
         </div>
       )}
@@ -202,13 +205,13 @@ export default function Dashboard() {
             {products.length === 0 ? "Add your first one — it takes 30 seconds." : "Try a different search or category."}
           </p>
           {products.length === 0 && (
-            <button onClick={() => nav("/dashboard/product")} className="dash-btn dash-btn-dark" style={{ marginTop: 20 }}>
+            <button onClick={() => nav("/dashboard/product")} className="dash-btn dash-btn-dark" style={{ marginTop: 24 }}>
               + Add your first product
             </button>
           )}
         </div>
       ) : (
-        <div className="pr-list">
+        <div className="pr-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {filtered.map((p) => {
             const productCategory = categories.find((c) => c.id === p.category_id)?.label || p.category;
             const isDeleting = deletingId === p.id;
@@ -223,24 +226,30 @@ export default function Dashboard() {
                   display: "flex", 
                   alignItems: "center", 
                   justifyContent: "space-between", 
-                  gap: 12
+                  gap: 16,
+                  padding: "20px 16px", // 🟢 INCREASED PADDING
+                  background: "var(--bg)", // 🟢 ADDED BG
+                  border: "1px solid var(--line)", // 🟢 ADDED BORDER
+                  borderRadius: 16 // 🟢 ADDED RADIUS
                 }}
               >
                 <button 
                   onClick={() => nav(`/dashboard/product/${p.id}`)} 
                   className="pr-item-body" 
-                  style={{ flex: 1, textAlign: "left" }} 
+                  style={{ flex: 1, textAlign: "left", display: "flex", alignItems: "center", gap: 16 }} 
                 >
-                  <div className="pr-item-thumb">
+                  <div className="pr-item-thumb" style={{ width: 64, height: 64, borderRadius: 12, overflow: "hidden", flexShrink: 0 }}>
                     {p.image_url ? (
-                      <img src={p.image_url} alt={p.name} loading="lazy" decoding="async" />
+                      <img src={p.image_url} alt={p.name} loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
-                      <span className="pr-item-initial">{p.name.charAt(0).toUpperCase()}</span>
+                      <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", background: "var(--soft)", color: "var(--muted)", fontSize: 18, fontWeight: 700 }}>
+                        {p.name.charAt(0).toUpperCase()}
+                      </div>
                     )}
                   </div>
-                  <div className="pr-item-info">
+                  <div className="pr-item-info" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                      <p className="pr-item-name" style={{ margin: 0 }}>{p.name}</p>
+                      <p className="pr-item-name" style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>{p.name}</p>
                       {productCategory && (
                         <span style={{ 
                           fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em",
@@ -250,7 +259,7 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="pr-item-meta" style={{ marginTop: 4 }}>
+                    <p className="pr-item-meta" style={{ margin: 0, fontSize: 13, color: "var(--muted)" }}>
                       {formatPrice(p.price)}
                       {typeof (p as any).views === "number" && (
                         <> · {(p as any).views} {(p as any).views === 1 ? "view" : "views"}</>
@@ -259,7 +268,7 @@ export default function Dashboard() {
                   </div>
                 </button>
 
-                {/* 🟢 DELETE BUTTON (Available for everyone) */}
+                {/* 🟢 DELETE BUTTON */}
                 <button 
                   onClick={(e) => handleDelete(e, p.id, p.name)}
                   disabled={isDeleting}
@@ -281,7 +290,7 @@ export default function Dashboard() {
                   {isDeleting ? (
                     <div className="dash-spinner" style={{ width: 16, height: 16, borderTopColor: "var(--muted)" }} />
                   ) : (
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                       <line x1="10" y1="11" x2="10" y2="17" />
                       <line x1="14" y1="11" x2="14" y2="17" />
