@@ -20,11 +20,9 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
       },
     });
 
-    // Try to parse JSON safely
     const data = await res.json().catch(() => null);
 
     if (!res.ok) {
-      // Grab the clean English message from the backend
       const errorMessage =
         (data as any)?.error || `Request failed with status ${res.status}`;
       throw new ApiError(errorMessage, res.status);
@@ -33,7 +31,6 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
     return data as T;
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
-    // Network error (offline, DNS fail, etc)
     throw new ApiError("Network error. Please check your internet connection.", 0);
   }
 }
@@ -50,9 +47,21 @@ export const auth = {
 
 /* ── Store ── */
 export const store = {
-  public: (slug: string) =>
-    apiFetch<StorefrontResponse>(`/api/store/${encodeURIComponent(slug)}`),
-  // 🟢 CHANGED TO ANY SO IT NEVER STRIPS NEW FIELDS
+  // 🟢 FIXED: Public storefront data does not need cookies, so we omit them to allow caching.
+  public: async (slug: string) => {
+    const res = await fetch(`/api/store/${encodeURIComponent(slug)}`, {
+      method: "GET",
+      // Notice: NO credentials: "include" here. This allows Cloudflare to cache it.
+      headers: { "Accept": "application/json" },
+    });
+    
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      throw new ApiError((data as any)?.error || "Failed to load store", res.status);
+    }
+    return res.json() as Promise<StorefrontResponse>;
+  },
+  
   update: (body: any) =>
     apiFetch<void>("/api/store", { method: "PUT", body: JSON.stringify(body) }),
 };
