@@ -18,18 +18,19 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const id = params.id as string;
     const body = await request.json() as any;
 
+    // 🟢 LOG WHAT THE BACKEND RECEIVES
+    console.log("📥 BACKEND RECEIVED VARIANTS:", body.variants);
+
     const inStock = body.inStock ?? body.in_stock ?? true;
     let images: string[] = [];
     if (Array.isArray(body.images)) images = body.images;
     else if (body.image_url) images = [body.image_url, ...(body.image_urls ?? [])];
     
-    // 🟢 FORCE VARIANTS TO BE SAVED AS A JSON STRING
     let variantsJson = null;
     if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
       variantsJson = JSON.stringify(body.variants);
     }
 
-    // 🟢 STATIC, HARDCODED QUERY (No dynamic loops that can skip fields)
     await env.DB.prepare(
       `UPDATE products 
        SET name = ?, price = ?, compare_at_price = ?, description = ?, category = ?, 
@@ -43,7 +44,7 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
       body.category || "",
       inStock === false ? 0 : 1,
       JSON.stringify(images),
-      variantsJson, // 🟢 Saved explicitly here
+      variantsJson,
       id,
       store.id
     ).run();
