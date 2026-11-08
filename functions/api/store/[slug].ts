@@ -2,16 +2,24 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
   try {
     const slug = params.slug as string;
     
-    // 🟢 1. Check Cloudflare Cache First
+    // 1. Create a clean cache key (Strip cookies/auth so it actually caches)
+    const url = new URL(request.url);
+    const cacheKey = new Request(url.toString(), {
+      method: "GET",
+      headers: { "Accept": "application/json" }
+    });
+
     const cache = caches.default;
-    const cacheKey = new Request(request.url, request);
     let response = await cache.match(cacheKey);
 
     if (response) {
-      return response; // 🟢 0 ROWS READ! Served instantly from cache.
+      // Add a header to prove it's hitting the cache when you check DevTools
+      const cachedResponse = new Response(response.body, response);
+      cachedResponse.headers.set("X-Cache-Status", "HIT");
+      return cachedResponse;
     }
 
-    // 2. If not in cache, query the database
+    // 2. Query the DB
     const store = await env.DB.prepare(
       "SELECT * FROM stores WHERE slug = ?"
     ).bind(slug).first<any>();
@@ -45,14 +53,16 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, par
       })
     };
 
-    // 🟢 3. Save to Cache for 24 hours (86400 seconds)
+    // 3. Save to Cache
     response = Response.json(data, {
       headers: {
-        "Cache-Control": "public, max-age=3600, s-maxage=86400", // Cache for 1 day
+        "Cache-Control": "public, max-age=0, s-maxage=86400", 
+        "X-Cache-Status": "MISS"
       }
     });
     
     // Fire and forget cache put
+    const ctx = { waitUntil: (p: Promise<any>) => p }; // Fallback if ctx isn't passed
     cache.put(cacheKey, response.clone()).catch(() => {});
 
     return response;
