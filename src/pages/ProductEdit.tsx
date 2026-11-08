@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
-import { products as productsApi, uploadImage, store as storeApi } from "../lib/api";
+import { products as productsApi, uploadImage } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { naira } from "../lib/format";
 import type { Product } from "../types";
@@ -9,10 +9,11 @@ import type { Product } from "../types";
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
   const nav = useNavigate();
-  const { store: currentStore, refresh } = useAuth();
+  const { store: currentStore, products: cachedProducts, refresh } = useAuth();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loadingProduct, setLoadingProduct] = useState(!!id);
+  // 🟢 Find the product instantly from cache, no fetch needed!
+  const product = id ? cachedProducts.find((p) => p.id === id) ?? null : null;
+  const loadingProduct = !!id && !product && !cachedProducts.length; // Only true if cache is still loading
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -36,28 +37,7 @@ export default function ProductEdit() {
     ? (currentStore as any).categories.split(",").map((c: string) => c.trim()).filter(Boolean)
     : [];
 
-  useEffect(() => {
-    refresh(true);
-  }, [refresh]);
-
-  useEffect(() => {
-    if (!id || !currentStore?.slug) { 
-      setLoadingProduct(false); 
-      return; 
-    }
-    (async () => {
-      setLoadingProduct(true);
-      try {
-        const data = await storeApi.public(currentStore.slug);
-        const found = (data.products as Product[] | undefined)?.find((x) => x.id === id) ?? null;
-        setProduct(found);
-      } catch {
-        setProduct(null);
-      }
-      setLoadingProduct(false);
-    })();
-  }, [id, currentStore?.slug]);
-
+  // 🟢 Populate form when product is found in cache
   useEffect(() => {
     if (!product) return;
     setName(product.name);
