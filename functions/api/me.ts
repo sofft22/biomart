@@ -71,8 +71,8 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
       limits: { planName, products: limits.products, images: limits.images, photos: limits.photos, variants: limits.variants },
       plans: {
         free: { name: "Free", price: 0, products: 5, images: 1 },
-        starter: { name: "Starter", price: 2500, products: 20, images: 3 },
-        pro: { name: "Pro", price: 6000, products: 100000, images: 5 },
+        starter: { name: "Starter", price: 3000, products: 20, images: 3 },
+        pro: { name: "Pro", price: 65000, products: 100000, images: 5 },
       },
     }, { headers: noCacheHeaders });
   } catch (e: any) {
