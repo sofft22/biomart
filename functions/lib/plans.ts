@@ -2,15 +2,16 @@ export type PlanId = "free" | "starter" | "pro";
 
 export interface PlanLimit {
   visible: number;
+  products: number; // 🟢 Added this to match your backend checks
   photos: number;
   variants: boolean;
 }
 
 // 🟢 CORE LIMITS
 export const PLAN_LIMITS: Record<PlanId, PlanLimit> = {
-  free:    { visible: 5,      photos: 1,  variants: false },
-  starter: { visible: 15,     photos: 3,  variants: false },
-  pro:     { visible: 100000, photos: 10, variants: true  },
+  free:    { visible: 5,  products: 5,  photos: 1,  variants: false },
+  starter: { visible: 15, products: 15, photos: 3,  variants: false },
+  pro:     { visible: 100, products: 100, photos: 10, variants: true  }, // 🟢 Changed from 100000 to 100
 };
 
 // 🟢 MONTHLY PRICES
