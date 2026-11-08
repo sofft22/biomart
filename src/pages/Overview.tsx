@@ -48,29 +48,7 @@ export default function Overview() {
         <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
       </div>
 
-      {/* 🟢 TOP GRID (ONLY PRODUCTS STAT NOW) */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 24, marginBottom: 32 }}>
-        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 4px" }}>Products listed</p>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <p style={{ fontSize: 28, fontWeight: 700, margin: 0, lineHeight: 1, color: atCap ? "var(--danger)" : "var(--ink)" }}>
-                {products.length}
-              </p>
-              <p style={{ fontSize: 16, fontWeight: 500, color: "var(--muted)", margin: 0 }}>
-                / {productCap < 100000 ? productCap : "∞"}
-              </p>
-            </div>
-          </div>
-          {atCap && (
-            <Link to="/plan" className="dash-btn dash-btn-dark" style={{ padding: "8px 16px", fontSize: 12 }}>
-              Upgrade
-            </Link>
-          )}
-        </div>
-      </div>
-
-      {/* 🟢 ONBOARDING CHECKLIST */}
+      {/* 🟢 ONBOARDING CHECKLIST (Shows only if store isn't ready) */}
       {!isStoreReady && (
         <div style={{ background: "var(--bg)", border: "1px solid var(--green)", borderRadius: 16, padding: 32, marginBottom: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, width: `${(completedSteps / 4) * 100}%`, height: 4, background: "var(--green)", transition: "width 0.5s ease" }} />
@@ -140,14 +118,13 @@ export default function Overview() {
 
       {/* 🟢 LIVE BANNER WITH INTEGRATED STORE LINK */}
       {isStoreReady && (
-        <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: "24px 32px", marginBottom: 32 }}>
+        <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: "24px 32px", marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
             <div>
               <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 4px" }}>Your store is live! 🎉</h2>
               <p style={{ fontSize: 14, opacity: 0.9, margin: 0 }}>You are ready to start receiving orders.</p>
             </div>
             
-            {/* Action Buttons */}
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={() => setQrOpen(true)} style={{ background: "rgba(255,255,255,0.15)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", padding: "10px 16px", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.25)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.15)"}>
                 QR Code
@@ -158,8 +135,7 @@ export default function Overview() {
             </div>
           </div>
 
-          {/* Integrated Link Bar */}
-          <div style={{ marginTop: 24, background: "rgba(0,0,0,0.15)", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
+          <div style={{ marginTop: 20, background: "rgba(0,0,0,0.15)", borderRadius: 10, padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <p style={{ margin: 0, fontSize: 14, fontWeight: 500, wordBreak: "break-all" }}>{storeUrl}</p>
             <button onClick={copyLink} style={{ background: "#fff", color: "var(--green)", border: 0, padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
               Copy Link
@@ -167,6 +143,26 @@ export default function Overview() {
           </div>
         </div>
       )}
+
+      {/* 🟢 PRODUCTS LIMIT STAT BOX (Now below the banner) */}
+      <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
+        <div>
+          <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 4px" }}>Products listed</p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <p style={{ fontSize: 28, fontWeight: 700, margin: 0, lineHeight: 1, color: atCap ? "var(--danger)" : "var(--ink)" }}>
+              {products.length}
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: "var(--muted)", margin: 0 }}>
+              / {productCap < 100000 ? productCap : "∞"}
+            </p>
+          </div>
+        </div>
+        {atCap && (
+          <Link to="/plan" className="dash-btn dash-btn-dark" style={{ padding: "8px 16px", fontSize: 12 }}>
+            Upgrade
+          </Link>
+        )}
+      </div>
 
       <div style={{ marginBottom: 48 }}>
         <PlanCard />
