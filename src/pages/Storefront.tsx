@@ -107,6 +107,7 @@ export default function Storefront() {
   }, []);
 
   const bannersList = useMemo(() => {
+    if (!store) return [];
     const list: string[] = [];
     if ((store as any)?.cover_url) list.push((store as any).cover_url);
     try {
@@ -160,7 +161,6 @@ export default function Storefront() {
   }, [store]);
 
   const filtered = useMemo(() => {
-    // 🟢 FALLBACK: Use [] if products is undefined
     let list = products || [];
     if (activeCategory !== "All") {
       list = list.filter((p) => (p as any).category === activeCategory);
@@ -205,7 +205,7 @@ export default function Storefront() {
     }, 50);
   };
 
-  // 🟢 CRUCIAL: Do not render anything until loading is false and we have a store
+  // 🟢 SAFETY CHECK: If loading or no store, return early
   if (loading) return <div className="sf-loading"><div className="sf-spinner" /></div>;
   if (error || !store) return <div className="sf-loading">Store not found</div>;
 
@@ -221,7 +221,6 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* HEADER */}
       <header className={headerClasses} style={{ transition: "all 0.3s ease", zIndex: 50 }}>
         <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <button 
@@ -242,101 +241,44 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL */}
       {hasCustomBanner && (
         <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
-          
-          <div 
-            style={{ 
-              display: "flex", height: "100%", width: "100%",
-              transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none",
-              transform: `translateX(-${currentBannerIndex * 100}%)`
-            }}
-          >
+          <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
             {displayBanners.map((url, idx) => (
-              <div 
-                key={idx} 
-                style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff" }}
-              >
-                <img 
-                  src={url} 
-                  alt={`Banner ${(idx % bannersList.length) + 1}`} 
-                  loading="eager" 
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
-                />
+              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff" }}>
+                <img src={url} alt={`Banner ${(idx % bannersList.length) + 1}`} loading="eager" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
             ))}
           </div>
-          
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
-          
-          <div 
-            className="sf-banner-text" 
-            style={{ 
-              position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", 
-              justifyContent: "flex-end", alignItems: "center", 
-              paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 
-            }}
-          >
+          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
             {heroTitle && (
-              <h1 
-                className="sf-banner-tagline"
-                style={{ 
-                  fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", 
-                  fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", 
-                  lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, 
-                  textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px",
-                }}
-              >
+              <h1 className="sf-banner-tagline" style={{ fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px" }}>
                 {renderHeroTitle(heroTitle)}
               </h1>
             )}
-            
-            <button 
-              onClick={() => scrollToShopAll()} 
-              className="sf-banner-cta"
-              style={{ 
-                background: "#fff", color: "#000", padding: "16px 32px", 
-                fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16,
-                pointerEvents: "auto"
-              }}
-            >
+            <button onClick={() => scrollToShopAll()} className="sf-banner-cta" style={{ background: "#fff", color: "#000", padding: "16px 32px", fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16, pointerEvents: "auto" }}>
               SHOP NOW 
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}>
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
           </div>
         </section>
       )}
 
-      {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
-        
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
-          
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
-            <button 
-              onClick={() => setCategoryOpen(!categoryOpen)}
-              style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}
-            >
+            <button onClick={() => setCategoryOpen(!categoryOpen)} style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
               <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", fontSize: "clamp(1.5rem, 4vw, 2rem)" }}>
                 {query ? `Search` : activeCategory === "All" ? "Shop all" : activeCategory}
               </h2>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}>
-                <path d={categoryOpen ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} />
-              </svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><path d={categoryOpen ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} /></svg>
             </button>
-
             {categoryOpen && categoriesList.length > 0 && (
               <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 200, zIndex: 50, overflow: "hidden" }}>
                 <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
                   {["All", ...categoriesList].map((cat: string) => (
-                    <button
-                      key={cat}
-                      onClick={() => { setActiveCategory(cat); setCurrentPage(1); setCategoryOpen(false); setQuery(""); }}
-                      style={{ padding: "12px 20px", textAlign: "left", background: activeCategory === cat && !query ? "var(--soft)" : "transparent", border: "none", fontSize: 14, fontWeight: activeCategory === cat && !query ? 600 : 500, color: "var(--text)", cursor: "pointer" }}
-                    >
+                    <button key={cat} onClick={() => { setActiveCategory(cat); setCurrentPage(1); setCategoryOpen(false); setQuery(""); }} style={{ padding: "12px 20px", textAlign: "left", background: activeCategory === cat && !query ? "var(--soft)" : "transparent", border: "none", fontSize: 14, fontWeight: activeCategory === cat && !query ? 600 : 500, color: "var(--text)", cursor: "pointer" }}>
                       {cat === "All" ? "Shop All" : cat}
                     </button>
                   ))}
@@ -344,37 +286,19 @@ export default function Storefront() {
               </div>
             )}
           </div>
-
           <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
-            
             <button onClick={() => setSearchOpen(!searchOpen)} style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
             </button>
-
             <div ref={sortRef} style={{ position: "relative" }}>
-              <button 
-                onClick={() => setSortOpen(!sortOpen)}
-                style={{ background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", padding: 6, width: "34px", height: "34px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)" }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "16px", height: "16px" }}>
-                  <path d="M3 6h18M6 12h12M10 18h4" />
-                </svg>
+              <button onClick={() => setSortOpen(!sortOpen)} style={{ background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", padding: 6, width: "34px", height: "34px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "16px", height: "16px" }}><path d="M3 6h18M6 12h12M10 18h4" /></svg>
               </button>
-
               {sortOpen && (
                 <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 160, zIndex: 50, overflow: "hidden" }}>
                   <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
-                    {[
-                      { key: "new", label: "Newest" },
-                      { key: "price-asc", label: "Price: Low to High" },
-                      { key: "price-desc", label: "Price: High to Low" },
-                      { key: "name", label: "Name: A-Z" }
-                    ].map((opt) => (
-                      <button
-                        key={opt.key}
-                        onClick={() => { setSort(opt.key as SortKey); setCurrentPage(1); setSortOpen(false); }}
-                        style={{ padding: "12px 20px", textAlign: "left", background: sort === opt.key ? "var(--soft)" : "transparent", border: "none", fontSize: 13, fontWeight: sort === opt.key ? 600 : 500, color: "var(--text)", cursor: "pointer" }}
-                      >
+                    {[{ key: "new", label: "Newest" }, { key: "price-asc", label: "Price: Low to High" }, { key: "price-desc", label: "Price: High to Low" }, { key: "name", label: "Name: A-Z" }].map((opt) => (
+                      <button key={opt.key} onClick={() => { setSort(opt.key as SortKey); setCurrentPage(1); setSortOpen(false); }} style={{ padding: "12px 20px", textAlign: "left", background: sort === opt.key ? "var(--soft)" : "transparent", border: "none", fontSize: 13, fontWeight: sort === opt.key ? 600 : 500, color: "var(--text)", cursor: "pointer" }}>
                         {opt.label}
                       </button>
                     ))}
@@ -382,21 +306,13 @@ export default function Storefront() {
                 </div>
               )}
             </div>
-            
           </div>
         </div>
 
         {searchOpen && (
           <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-            <input 
-              type="search" 
-              value={query} 
-              onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} 
-              placeholder="Search products…" 
-              autoFocus 
-              style={{ background: "transparent", border: "none", outline: "none", width: "100%", fontSize: 14, color: "var(--text)" }}
-            />
+            <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} placeholder="Search products…" autoFocus style={{ background: "transparent", border: "none", outline: "none", width: "100%", fontSize: 14, color: "var(--text)" }} />
             <button onClick={() => { setSearchOpen(false); setQuery(""); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Cancel</button>
           </div>
         )}
@@ -408,100 +324,43 @@ export default function Storefront() {
             <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
               {paginatedProducts.map((p, i) => (
                 <div key={p.id}>
-                  <ProductCard 
-                    product={p} 
-                    index={i} 
-                    priority={i < 4} 
-                    onClick={() => handleOpenProduct(p)} 
-                    onAddToCart={() => handleAddToCart(p, 1, null, p.price)} 
-                  />
+                  <ProductCard product={p} index={i} priority={i < 4} onClick={() => handleOpenProduct(p)} onAddToCart={() => handleAddToCart(p, 1, null, p.price)} />
                 </div>
               ))}
             </div>
-            
-            {/* 🟢 SMART PREMIUM PAGINATION */}
             {totalPages > 1 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 64 }}>
-                
-                <button 
-                  disabled={currentPage === 1} 
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  style={{
-                    width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "1px solid var(--line)", background: "transparent", cursor: currentPage === 1 ? "not-allowed" : "pointer",
-                    opacity: currentPage === 1 ? 0.3 : 1, transition: "all 0.2s ease"
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-                    <path d="M15 18l-6-6 6-6" />
-                  </svg>
+                <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--line)", background: "transparent", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.3 : 1, transition: "all 0.2s ease" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><path d="M15 18l-6-6 6-6" /></svg>
                 </button>
-
                 <div style={{ display: "flex", gap: 8 }}>
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
                     if (totalPages > 5 && Math.abs(currentPage - page) > 2) return null;
                     return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        style={{
-                          width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease",
-                          border: "1px solid",
-                          borderColor: currentPage === page ? "var(--ink)" : "transparent",
-                          background: currentPage === page ? "var(--ink)" : "transparent",
-                          color: currentPage === page ? "var(--bg)" : "var(--text)",
-                        }}
-                      >
+                      <button key={page} onClick={() => handlePageChange(page)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease", border: "1px solid", borderColor: currentPage === page ? "var(--ink)" : "transparent", background: currentPage === page ? "var(--ink)" : "transparent", color: currentPage === page ? "var(--bg)" : "var(--text)" }}>
                         {page}
                       </button>
                     );
                   })}
                 </div>
-
-                <button 
-                  disabled={currentPage === totalPages} 
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  style={{
-                    width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                    border: "1px solid var(--line)", background: "transparent", cursor: currentPage === totalPages ? "not-allowed" : "pointer",
-                    opacity: currentPage === totalPages ? 0.3 : 1, transition: "all 0.2s ease"
-                  }}
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-                    <path d="M9 18l6-6-6-6" />
-                  </svg>
+                <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--line)", background: "transparent", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.3 : 1, transition: "all 0.2s ease" }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><path d="M9 18l6-6-6-6" /></svg>
                 </button>
-
               </div>
             )}
           </>
         )}
       </section>
 
-      {/* FOOTER */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "1fr", 
-            gap: "48px", 
-            paddingBottom: "48px", 
-            borderBottom: "1px solid rgba(255,255,255,0.1)" 
-          }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
             <style>{`
               @media (min-width: 768px) {
-                .sf-footer-grid {
-                  grid-template-columns: 2fr 1fr 1fr 1fr !important; 
-                  gap: 32px !important;
-                }
-                .sf-footer-mobile-stack {
-                  display: contents !important; 
-                }
+                .sf-footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr !important; gap: 32px !important; }
+                .sf-footer-mobile-stack { display: contents !important; }
               }
             `}</style>
-            
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
@@ -511,14 +370,7 @@ export default function Storefront() {
                 {tagline || "Curated essentials for the modern wardrobe."}
               </p>
             </div>
-
-            <div className="sf-footer-mobile-stack" style={{ 
-              display: "grid", 
-              gridTemplateColumns: "1fr 1fr", 
-              gap: "32px",
-              gridColumn: "1 / -1"
-            }}>
-              
+            <div className="sf-footer-mobile-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", gridColumn: "1 / -1" }}>
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -527,53 +379,29 @@ export default function Storefront() {
                   {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
                 </div>
               </div>
-
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
                 {address ? (
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>
-                    {address}
-                  </a>
+                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>{address}</a>
                 ) : (
                   <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
                 )}
               </div>
-
               <div className="hidden md:block"></div>
-
             </div>
-
           </div>
-
-          <div style={{ 
-            display: "flex", 
-            flexDirection: "row", 
-            flexWrap: "wrap", 
-            justifyContent: "space-between", 
-            alignItems: "center", 
-            gap: 16, 
-            paddingTop: 32, 
-            fontSize: 13, 
-            color: "rgba(255,255,255,0.4)", 
-            width: "100%" 
-          }}>
+          <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <svg viewBox="0 0 60 64" width="14" height="14" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
               Powered by biomart
             </div>
           </div>
-
         </div>
       </footer>
 
       {openProduct && (
-        <ProductModal 
-          product={openProduct} products={products} store={store} 
-          onClose={() => setOpenProduct(null)} 
-          onAddToCart={(qty, variant, priceDelta) => { handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0)); }} 
-          onOpenProduct={(p) => handleOpenProduct(p)} 
-        />
+        <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => { handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0)); }} onOpenProduct={(p) => handleOpenProduct(p)} />
       )}
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </div>
