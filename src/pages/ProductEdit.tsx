@@ -1,15 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { products as productsApi, uploadImage, store as storeApi } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { naira } from "../lib/format";
 import type { Product } from "../types";
-
-interface Variant {
-  label: string;
-  priceDelta: number; 
-}
 
 export default function ProductEdit() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +22,6 @@ export default function ProductEdit() {
 
   const [inStock, setInStock] = useState(true);
   const [images, setImages] = useState<string[]>([]);
-  const [variants, setVariants] = useState<Variant[]>([]);
 
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,14 +31,10 @@ export default function ProductEdit() {
   const isPro = plan === "pro" || plan === "lifetime";
   
   const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
-  const canUseVariants = isPro;
 
   const availableCategories = (currentStore as any)?.categories 
     ? (currentStore as any).categories.split(",").map((c: string) => c.trim()).filter(Boolean)
     : [];
-
-  // 🟢 THE FIX: Lock the form so it only loads data ONCE
-  const hasLoadedData = useRef(false);
 
   useEffect(() => {
     refresh(true);
@@ -69,8 +59,7 @@ export default function ProductEdit() {
   }, [id, currentStore?.slug]);
 
   useEffect(() => {
-    if (!product || hasLoadedData.current) return;
-    
+    if (!product) return;
     setName(product.name);
     setDescription(product.description ?? "");
     setPrice(String(product.price));
@@ -82,17 +71,6 @@ export default function ProductEdit() {
     setCategory((product as any).category || "");
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
-    
-    const raw = (product as any).variants;
-    if (Array.isArray(raw)) {
-      setVariants(raw);
-    } else if (raw && Array.isArray(raw.suggested)) {
-      setVariants(raw.suggested);
-    } else {
-      setVariants([]);
-    }
-
-    hasLoadedData.current = true;
   }, [product]);
 
   const handleImageUpload = async (file: File) => {
@@ -116,13 +94,6 @@ export default function ProductEdit() {
     setImages(next);
   };
 
-  const addVariant = () => setVariants((v) => [...v, { label: "", priceDelta: Number(price) || 0 }]);
-  const updateVariant = (i: number, patch: Partial<Variant>) =>
-    setVariants((prev) => prev.map((v, idx) => (idx === i ? { ...v, ...patch } : v)));
-  const removeVariant = (indexToRemove: number) => {
-    setVariants((prev) => prev.filter((_, i) => i !== indexToRemove));
-  };
-
   const numericPrice = Number(price) || 0;
   const numericWas = Number(wasPrice) || 0;
   const hasValidWas = numericWas > numericPrice && numericPrice > 0;
@@ -132,13 +103,6 @@ export default function ProductEdit() {
     if (!name.trim()) return setError("Add a name");
     if (!price || Number(price) <= 0) return setError("Add a price");
     if (images.length === 0) return setError("Add a photo");
-    
-    if (variants.length > 0) {
-      for (const v of variants) {
-        if (!v.label.trim()) return setError("Every variant must have a name");
-        if (v.priceDelta <= 0) return setError("Every variant must have a price");
-      }
-    }
 
     if (wasPrice && numericWas <= numericPrice) {
       return setError("Compare-at price must be higher than price");
@@ -147,7 +111,6 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
-    // 🟢 1. Main Payload (WITHOUT variants)
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
@@ -161,25 +124,9 @@ export default function ProductEdit() {
     };
 
     try {
-      let productId = product?.id;
-
-      // 🟢 2. Save main product
-      if (product) {
-        await productsApi.update(product.id, payload);
-      } else {
-        const res = await productsApi.create(payload);
-        productId = res.id;
-      }
+      if (product) await productsApi.update(product.id, payload);
+      else await productsApi.create(payload);
       
-      // 🟢 3. Save variants separately
-      if (productId) {
-        await fetch(`/api/products/${productId}/variants`, {
-          method: "PUT",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ variants }),
-        });
-      }
-
       await refresh(true); 
       nav("/dashboard/products");
     } catch (err) {
@@ -293,35 +240,6 @@ export default function ProductEdit() {
           <button type="button" onClick={() => setInStock(!inStock)} className={`pd-toggle ${inStock ? "on" : ""}`} aria-label="Toggle stock"><span /></button>
         </section>
 
-        <section className="pe-section">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <label className="pe-label" style={{ margin: 0 }}>Variants</label>
-            {canUseVariants && <button type="button" onClick={addVariant} className="pe-add-variant">+ Add Variant</button>}
-          </div>
-
-          {!canUseVariants ? (
-            <div style={{ borderTop: "1px solid var(--line)", padding: "16px 0" }}>
-              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Upgrade to Pro to unlock variants.</p>
-            </div>
-          ) : (
-            variants.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {variants.map((v, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
-                    <input className="pe-input" value={v.label} onChange={(e) => updateVariant(i, { label: e.target.value })} placeholder="e.g. Size M" style={{ flex: 1, border: 0, background: "transparent" }} />
-                    <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
-                      <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
-                      <input type="number" value={v.priceDelta || ""} onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })} style={{ width: 70, border: 0, background: "transparent", outline: "none" }} />
-                    </div>
-                    <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)" }}>
-                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )
-          )}
-        </section>
         {error && <p className="pe-error">{error}</p>}
       </div>
 
