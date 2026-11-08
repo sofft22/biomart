@@ -159,7 +159,7 @@ export default function ProductEdit() {
       image_url: imageUrl,
       image_urls: imageUrls,
       // 🟢 Force it to send the current array
-      variants: [...variants], 
+      variants: variants.length > 0 ? variants : [], 
     };
 
     console.log("🚀 SENDING PAYLOAD TO BACKEND:", payload);
