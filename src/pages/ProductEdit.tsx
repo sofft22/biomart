@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DashboardLayout from "../components/DashboardLayout";
 import { products as productsApi, uploadImage, store as storeApi } from "../lib/api";
@@ -37,12 +37,14 @@ export default function ProductEdit() {
   const isPro = plan === "pro" || plan === "lifetime";
   
   const photoLimit = isPro ? 10 : plan === "starter" ? 3 : 1;
-  // We keep the UI check to show the "Upgrade" message, but we allow saving if data exists
   const canUseVariants = isPro;
 
   const availableCategories = (currentStore as any)?.categories 
     ? (currentStore as any).categories.split(",").map((c: string) => c.trim()).filter(Boolean)
     : [];
+
+  // 🟢 THE FIX: Lock the form so it only loads data ONCE
+  const hasLoadedData = useRef(false);
 
   useEffect(() => {
     refresh(true);
@@ -67,7 +69,8 @@ export default function ProductEdit() {
   }, [id, currentStore?.slug]);
 
   useEffect(() => {
-    if (!product) return;
+    if (!product || hasLoadedData.current) return;
+    
     setName(product.name);
     setDescription(product.description ?? "");
     setPrice(String(product.price));
@@ -80,7 +83,6 @@ export default function ProductEdit() {
     setInStock((product as any).inStock ?? product.in_stock ?? true);
     setImages(product.images ?? []);
     
-    // Safely load variants
     const raw = (product as any).variants;
     if (Array.isArray(raw)) {
       setVariants(raw);
@@ -89,6 +91,9 @@ export default function ProductEdit() {
     } else {
       setVariants([]);
     }
+
+    // Mark as loaded so it never overwrites your inputs again
+    hasLoadedData.current = true;
   }, [product]);
 
   const handleImageUpload = async (file: File) => {
@@ -143,7 +148,7 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
-        const payload: any = {
+    const payload: any = {
       name: name.trim(),
       description: description.trim(),
       price: Number(price),
@@ -153,8 +158,8 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 FORCE AN ARRAY
-      variants: variants || [], 
+      // 🟢 Force it to send the current array
+      variants: [...variants], 
     };
 
     console.log("🚀 SENDING PAYLOAD TO BACKEND:", payload);
@@ -279,28 +284,30 @@ export default function ProductEdit() {
         <section className="pe-section">
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
             <label className="pe-label" style={{ margin: 0 }}>Variants</label>
-            {canUseVariants ? (
-              <button type="button" onClick={addVariant} className="pe-add-variant">+ Add Variant</button>
-            ) : (
-              <Link to="/plan" style={{ fontSize: 12, fontWeight: 600, color: "var(--green)" }}>Upgrade to unlock</Link>
-            )}
+            {canUseVariants && <button type="button" onClick={addVariant} className="pe-add-variant">+ Add Variant</button>}
           </div>
 
-          {variants.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {variants.map((v, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
-                  <input className="pe-input" value={v.label} onChange={(e) => updateVariant(i, { label: e.target.value })} placeholder="e.g. Size M" style={{ flex: 1, border: 0, background: "transparent" }} />
-                  <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
-                    <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
-                    <input type="number" value={v.priceDelta || ""} onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })} style={{ width: 70, border: 0, background: "transparent", outline: "none" }} />
-                  </div>
-                  <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)" }}>
-                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
-                  </button>
-                </div>
-              ))}
+          {!canUseVariants ? (
+            <div style={{ borderTop: "1px solid var(--line)", padding: "16px 0" }}>
+              <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>Upgrade to Pro to unlock variants.</p>
             </div>
+          ) : (
+            variants.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {variants.map((v, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 10, padding: "8px 12px" }}>
+                    <input className="pe-input" value={v.label} onChange={(e) => updateVariant(i, { label: e.target.value })} placeholder="e.g. Size M" style={{ flex: 1, border: 0, background: "transparent" }} />
+                    <div style={{ display: "flex", alignItems: "center", background: "var(--soft)", borderRadius: 6, padding: "0 8px" }}>
+                      <span style={{ fontSize: 12, color: "var(--muted)", marginRight: 4 }}>₦</span>
+                      <input type="number" value={v.priceDelta || ""} onChange={(e) => updateVariant(i, { priceDelta: Number(e.target.value) || 0 })} style={{ width: 70, border: 0, background: "transparent", outline: "none" }} />
+                    </div>
+                    <button type="button" onClick={() => removeVariant(i)} style={{ background: "transparent", border: 0, color: "var(--danger)" }}>
+                       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )
           )}
         </section>
         {error && <p className="pe-error">{error}</p>}
