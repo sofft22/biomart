@@ -18,20 +18,16 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const id = params.id as string;
     const body = await request.json() as any;
 
-    // 🟢 FORCE VARIANT PARSING
-    let variantsJson = null;
-    if (body.variants) {
-      if (typeof body.variants === 'string') {
-        variantsJson = body.variants;
-      } else if (Array.isArray(body.variants) && body.variants.length > 0) {
-        variantsJson = JSON.stringify(body.variants);
-      }
-    }
+    const inStock = body.inStock ?? body.in_stock ?? true;
+    let images: string[] = [];
+    if (Array.isArray(body.images)) images = body.images;
+    else if (body.image_url) images = [body.image_url, ...(body.image_urls ?? [])];
 
+    // 🟢 Notice we removed variants from this query entirely
     await env.DB.prepare(
       `UPDATE products 
        SET name = ?, price = ?, compare_at_price = ?, description = ?, category = ?, 
-           in_stock = ?, images = ?, variants = ? 
+           in_stock = ?, images = ?
        WHERE id = ? AND store_id = ?`
     ).bind(
       body.name || "",
@@ -39,9 +35,8 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
       body.compare_at_price ?? null,
       body.description || "",
       body.category || "",
-      body.inStock === false ? 0 : 1,
-      JSON.stringify(body.images || [body.image_url].filter(Boolean)),
-      variantsJson, 
+      inStock === false ? 0 : 1,
+      JSON.stringify(images),
       id,
       store.id
     ).run();
