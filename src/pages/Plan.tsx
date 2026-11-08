@@ -3,14 +3,9 @@ import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { PLAN_PRICES_MONTHLY, PLAN_PRICES_QUARTERLY } from "../lib/plans";
 
-/**
- * Single source of truth for Biomart's sales/support WhatsApp number.
- * Everything that contacts *us* (upgrades, quotes, support) uses this.
- */
 const BIOMART_WHATSAPP = "2347072789513";
 
-/** Build a wa.me link to Biomart sales with a pre-filled message. */
-const biomartWa = (message) =>
+const biomartWa = (message: string) =>
   `https://wa.me/${BIOMART_WHATSAPP}?text=${encodeURIComponent(message)}`;
 
 export default function Plan() {
@@ -21,13 +16,8 @@ export default function Plan() {
   const storeName = store?.name || "my store";
   const storeSlug = store?.slug || "my-store";
 
-  // Seller's own number — only ever used for customer-facing order links,
-  // never for upgrade requests.
-  const sellerWhatsApp = store?.whatsapp?.replace(/\D/g, "") || "";
-
-  const getUpgradeLink = (planName) => {
+  const getUpgradeLink = (planName: string) => {
     const cycle = isQuarterly ? "Quarterly" : "Monthly";
-    // 🟢 FIXED: Uses the actual store name, not just the slug
     return biomartWa(
       `Hi Biomart, I'd like to upgrade my store (${storeName}) to the ${planName} (${cycle}) plan. Please send me the payment details.`
     );
@@ -35,7 +25,6 @@ export default function Plan() {
 
   return (
     <DashboardLayout>
-      {/* Force bullet markers to be white on the dark "pop" card */}
       <style>{`
         .plan.pop ul li::marker { color: #fff !important; }
       `}</style>
@@ -126,7 +115,7 @@ export default function Plan() {
             <li>5 products</li>
             <li>1 photo per product</li>
             <li className="no">No variants</li>
-            <li className="no">Biomart ad on storefront</li>
+            {/* 🟢 Removed Biomart Ad text */}
           </ul>
           <button
             disabled
@@ -155,7 +144,7 @@ export default function Plan() {
             <li>15 products</li>
             <li>3 photos per product</li>
             <li className="no">No variants</li>
-            <li className="no">Biomart ad on storefront</li>
+            {/* 🟢 Removed Biomart Ad text */}
           </ul>
           <a
             href={getUpgradeLink("Starter")}
@@ -190,11 +179,11 @@ export default function Plan() {
             </span>
           </div>
 
-          <ul style={{ color: "#fff" }}>
+          <ul style={{ color: "#fff", listStyleType: "disc" }}>
             <li>Unlimited products</li>
             <li>10 photos per product</li>
             <li>Product variants</li>
-            <li>No Biomart ad</li>
+            {/* 🟢 Removed Biomart Ad text */}
           </ul>
 
           <a
@@ -209,7 +198,7 @@ export default function Plan() {
         </div>
       </div>
 
-           {/* CUSTOM PLAN */}
+      {/* CUSTOM PLAN */}
       <div className="custom-plan-wrapper" style={{ marginTop: 24 }}>
         <div className="plan custom-plan" style={{ alignItems: "flex-start" }}>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -218,17 +207,16 @@ export default function Plan() {
               Get a full online store built from scratch, tailored exactly to your brand's needs.
             </p>
             <div className="p" style={{ fontSize: 20, marginBottom: 16 }}>
-              <span>From ₦70,000</span>
+              <span>From ₦100,000</span>
             </div>
             
-            {/* 🟢 CLEAN BULLET LIST (NO CUSTOM TICKS) */}
             <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
               <li>Your own custom domain</li>
               <li>Advanced shopping cart & checkout</li>
               <li>Automated Paystack payments</li>
-              <li>Automated order tracking & Branded Receipt Download</li>
-              <li>Showing up in google searches</li>
-              <li>Fully activated Coupons & Review systems</li>
+              <li>Automated order tracking</li>
+              <li>Custom branding & UI design</li>
+              <li>Priority lifetime support</li>
             </ul>
           </div>
           
