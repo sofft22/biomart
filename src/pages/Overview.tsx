@@ -6,7 +6,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import PlanCard from "../components/PlanCard";
 
 export default function Overview() {
-  const { user, store, products, loading } = useAuth();
+  const { user, store, products, limits, loading } = useAuth();
   const toast = useToast();
   const nav = useNavigate();
   const [qrOpen, setQrOpen] = useState(false);
@@ -21,6 +21,10 @@ export default function Overview() {
   if (!user || !store) return null;
 
   const storeUrl = `${location.origin}/${store.slug}`;
+
+  // 🟢 LIMIT CALCULATIONS
+  const productCap = limits?.products ?? 5;
+  const atCap = productCap < 100000 && products.length >= productCap;
 
   // 🟢 ONBOARDING LOGIC
   const hasWhatsapp = !!store.whatsapp;
@@ -44,8 +48,43 @@ export default function Overview() {
         <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
       </div>
 
-      {/* 🟢 THE SINGLE BIG BANNER */}
-      {!isStoreReady ? (
+      {/* 🟢 TOP SECTION: STORE LINK & PRODUCTS LIMIT */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, marginBottom: 32 }}>
+        
+        {/* STORE LINK BOX */}
+        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div>
+            <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 8px" }}>Your store link</p>
+            <p style={{ fontSize: 16, fontWeight: 600, margin: 0, wordBreak: "break-all" }}>{storeUrl}</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
+            <button onClick={copyLink} className="dash-btn dash-btn-line" style={{ flex: 1 }}>Copy</button>
+            <button onClick={() => setQrOpen(true)} className="dash-btn dash-btn-line" style={{ flex: 1 }}>QR Code</button>
+            <a href={storeUrl} target="_blank" rel="noopener" className="dash-btn dash-btn-dark" style={{ flex: 1, textAlign: "center" }}>View ↗</a>
+          </div>
+        </div>
+
+        {/* PRODUCTS LIMIT BOX */}
+        <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: 24, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 8px" }}>Products listed</p>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+            <p style={{ fontSize: "clamp(28px, 5vw, 36px)", fontWeight: 700, margin: 0, lineHeight: 1, color: atCap ? "var(--danger)" : "var(--ink)" }}>
+              {products.length}
+            </p>
+            <p style={{ fontSize: 16, fontWeight: 500, color: "var(--muted)", margin: 0 }}>
+              / {productCap < 100000 ? productCap : "∞"}
+            </p>
+          </div>
+          {atCap && (
+            <p style={{ fontSize: 12, color: "var(--danger)", marginTop: 8, margin: 0, fontWeight: 500 }}>
+              Limit reached. <Link to="/plan" style={{ color: "var(--danger)", fontWeight: 700, textDecoration: "underline" }}>Upgrade</Link>
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* 🟢 ONBOARDING CHECKLIST */}
+      {!isStoreReady && (
         <div style={{ background: "var(--bg)", border: "1px solid var(--green)", borderRadius: 16, padding: 32, marginBottom: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, width: `${(completedSteps / 4) * 100}%`, height: 4, background: "var(--green)", transition: "width 0.5s ease" }} />
           
@@ -110,31 +149,18 @@ export default function Overview() {
             </div>
           </div>
         </div>
-      ) : (
-        /* 🟢 LIVE BANNER WITH INTEGRATED STORE LINK */
-        <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: "32px", marginBottom: 32 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
-            <div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, margin: "0 0 8px" }}>Your store is live! 🎉</h2>
-              <p style={{ fontSize: 15, opacity: 0.9, margin: 0 }}>Share your link to start receiving orders on WhatsApp.</p>
-            </div>
-            
-            <div style={{ display: "flex", gap: 12 }}>
-              <button onClick={() => setQrOpen(true)} style={{ background: "rgba(255,255,255,0.2)", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.3)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.2)"}>
-                QR Code
-              </button>
-              <a href={storeUrl} target="_blank" rel="noopener" style={{ background: "transparent", color: "#fff", border: "1px solid rgba(255,255,255,0.3)", padding: "12px 20px", borderRadius: 10, fontSize: 13, fontWeight: 600, textDecoration: "none", display: "flex", alignItems: "center", gap: 8, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.1)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                View Store ↗
-              </a>
-            </div>
-          </div>
+      )}
 
-          <div style={{ marginTop: 32, background: "rgba(0,0,0,0.15)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 500, wordBreak: "break-all" }}>{storeUrl}</p>
-            <button onClick={copyLink} style={{ background: "#fff", color: "var(--green)", border: 0, padding: "10px 24px", borderRadius: 8, fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}>
-              Copy Link
-            </button>
+      {/* 🟢 LIVE BANNER (Shows only when checklist is complete) */}
+      {isStoreReady && (
+        <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: 24, marginBottom: 32, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: "0 0 4px" }}>Your store is live! 🎉</h2>
+            <p style={{ fontSize: 14, opacity: 0.9, margin: 0 }}>You are ready to start receiving orders.</p>
           </div>
+          <button onClick={copyLink} style={{ background: "#fff", color: "var(--green)", border: 0, padding: "12px 24px", borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            Copy Store Link
+          </button>
         </div>
       )}
 
