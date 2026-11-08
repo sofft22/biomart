@@ -2,15 +2,16 @@ export type PlanId = "free" | "starter" | "pro";
 
 export interface PlanLimit {
   visible: number;
+  products: number; // 🟢 Added this so frontend checks don't break
   photos: number;
   variants: boolean;
 }
 
 // 🟢 CORE LIMITS (Now includes variants)
 export const PLAN_LIMITS: Record<PlanId, PlanLimit> = {
-  free:    { visible: 5,      photos: 1,  variants: false },
-  starter: { visible: 15,     photos: 3,  variants: false },
-  pro:     { visible: 100000, photos: 10, variants: true  },
+  free:    { visible: 5,  products: 5,  photos: 1,  variants: false },
+  starter: { visible: 15, products: 15, photos: 3,  variants: false },
+  pro:     { visible: 100, products: 100, photos: 10, variants: true  }, // 🟢 Changed to 100
 };
 
 // 🟢 MONTHLY PRICES (Updated to 3000 and 6500)
@@ -64,7 +65,7 @@ export function getPlanStatus(
   if (diff < 0) {
     const graceLeft = daysLeft + GRACE_DAYS;
     if (graceLeft <= 0) {
-      return { status: "downgraded", plan, daysLeft: 0, label: "Downgraded" };
+    return { status: "downgraded", plan, daysLeft: 0, label: "Downgraded" };
     }
     return {
       status: "expired",
