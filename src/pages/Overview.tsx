@@ -22,11 +22,9 @@ export default function Overview() {
 
   const storeUrl = `${location.origin}/${store.slug}`;
 
-  // 🟢 LIMIT CALCULATIONS
   const productCap = limits?.products ?? 5;
   const atCap = productCap < 100000 && products.length >= productCap;
 
-  // 🟢 ONBOARDING LOGIC
   const hasWhatsapp = !!store.whatsapp;
   const hasDetails = !!store.tagline && !!(store as any).categories;
   const hasBanner = !!(store as any).cover_url;
@@ -42,13 +40,11 @@ export default function Overview() {
 
   return (
     <DashboardLayout>
-      {/* Header */}
       <div className="dash-head" style={{ padding: 0, marginBottom: 32 }}>
         <p className="dash-head-eyebrow">Overview</p>
         <h1 className="dash-title">Hey, <em>{store.name || "there"}</em>.</h1>
       </div>
 
-      {/* 🟢 ONBOARDING CHECKLIST (Shows only if store isn't ready) */}
       {!isStoreReady && (
         <div style={{ background: "var(--bg)", border: "1px solid var(--green)", borderRadius: 16, padding: 32, marginBottom: 32, position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, width: `${(completedSteps / 4) * 100}%`, height: 4, background: "var(--green)", transition: "width 0.5s ease" }} />
@@ -57,7 +53,6 @@ export default function Overview() {
           <p style={{ fontSize: 14, color: "var(--muted)", margin: "0 0 24px" }}>Follow these steps to get your store ready for customers.</p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Step 1: WhatsApp */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, background: hasWhatsapp ? "var(--soft)" : "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, opacity: hasWhatsapp ? 0.6 : 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: hasWhatsapp ? "var(--green)" : "transparent", border: hasWhatsapp ? "none" : "2px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
@@ -71,7 +66,6 @@ export default function Overview() {
               {!hasWhatsapp && <button onClick={() => nav("/settings?edit=true&scroll=whatsapp")} className="dash-btn dash-btn-dark" style={{ padding: "8px 16px", fontSize: 12 }}>Add Number</button>}
             </div>
 
-            {/* Step 2: Store Details */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, background: hasDetails ? "var(--soft)" : "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, opacity: hasDetails ? 0.6 : 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: hasDetails ? "var(--green)" : "transparent", border: hasDetails ? "none" : "2px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
@@ -85,7 +79,6 @@ export default function Overview() {
               {!hasDetails && <button onClick={() => nav("/settings?edit=true&scroll=details")} className="dash-btn dash-btn-dark" style={{ padding: "8px 16px", fontSize: 12 }}>Add Details</button>}
             </div>
 
-            {/* Step 3: Banner */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, background: hasBanner ? "var(--soft)" : "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, opacity: hasBanner ? 0.6 : 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: hasBanner ? "var(--green)" : "transparent", border: hasBanner ? "none" : "2px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
@@ -99,7 +92,6 @@ export default function Overview() {
               {!hasBanner && <button onClick={() => nav("/settings?edit=true&scroll=banners")} className="dash-btn dash-btn-dark" style={{ padding: "8px 16px", fontSize: 12 }}>Upload Banner</button>}
             </div>
 
-            {/* Step 4: Product */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: 16, background: hasProducts ? "var(--soft)" : "var(--bg)", border: "1px solid var(--line)", borderRadius: 12, opacity: hasProducts ? 0.6 : 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: hasProducts ? "var(--green)" : "transparent", border: hasProducts ? "none" : "2px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}>
@@ -116,7 +108,6 @@ export default function Overview() {
         </div>
       )}
 
-      {/* 🟢 LIVE BANNER WITH INTEGRATED STORE LINK */}
       {isStoreReady && (
         <div style={{ background: "var(--green)", color: "#fff", borderRadius: 16, padding: "24px 32px", marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
@@ -144,7 +135,6 @@ export default function Overview() {
         </div>
       )}
 
-      {/* 🟢 PRODUCTS LIMIT STAT BOX (Now below the banner) */}
       <div style={{ background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 16, padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
         <div>
           <p style={{ fontSize: 13, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600, margin: "0 0 4px" }}>Products listed</p>
@@ -168,7 +158,6 @@ export default function Overview() {
         <PlanCard />
       </div>
 
-      {/* QUICK ACTIONS */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         <Link to="/dashboard/product" style={{ padding: 20, border: "1px solid var(--line)", borderRadius: 16, display: "flex", gap: 16, alignItems: "center", textDecoration: "none", color: "inherit", background: "var(--bg)" }}>
           <span style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 48, height: 48, borderRadius: 12, background: "var(--green)", color: "#fff" }}>
@@ -201,7 +190,6 @@ export default function Overview() {
         </Link>
       </div>
 
-      {/* QR MODAL */}
       {qrOpen && (
         <div className="ov-qr-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setQrOpen(false); }}>
           <div className="ov-qr-modal">
