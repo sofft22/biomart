@@ -13,18 +13,18 @@ export const PLAN_LIMITS: Record<PlanId, PlanLimit> = {
   pro:     { visible: 100000, photos: 10, variants: true  },
 };
 
-// 🟢 MONTHLY PRICES
+// 🟢 MONTHLY PRICES (Updated to 3000 and 6500)
 export const PLAN_PRICES_MONTHLY: Record<PlanId, number> = {
   free: 0,
-  starter: 2000,
-  pro: 5000,
+  starter: 3000,
+  pro: 6500,
 };
 
-// 🟢 QUARTERLY PRICES (3 Months)
+// 🟢 QUARTERLY PRICES (3 Months) (Updated with 8% off)
 export const PLAN_PRICES_QUARTERLY: Record<PlanId, number> = {
   free: 0,
-  starter: 5500,
-  pro: 13500,
+  starter: 8280,  // 3000 * 3 = 9000 - 8% off
+  pro: 17940,     // 6500 * 3 = 19500 - 8% off
 };
 
 export const PLAN_DAYS = 30;
