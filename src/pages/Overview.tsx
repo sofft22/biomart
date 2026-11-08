@@ -22,8 +22,9 @@ export default function Overview() {
 
   const storeUrl = `${location.origin}/${store.slug}`;
 
+  // 🟢 Pull directly from limits (which is 100 for Pro now)
   const productCap = limits?.products ?? 5;
-  const atCap = productCap < 100000 && products.length >= productCap;
+  const atCap = products.length >= productCap;
 
   const hasWhatsapp = !!store.whatsapp;
   const hasDetails = !!store.tagline && !!(store as any).categories;
@@ -143,7 +144,7 @@ export default function Overview() {
               {products.length}
             </p>
             <p style={{ fontSize: 16, fontWeight: 500, color: "var(--muted)", margin: 0 }}>
-              / {productCap < 100000 ? productCap : "∞"}
+              / {productCap} {/* 🟢 Now directly shows 100 */}
             </p>
           </div>
         </div>
