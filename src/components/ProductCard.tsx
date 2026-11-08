@@ -22,8 +22,6 @@ export const ProductCard = memo(function ProductCard({
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const hasVariants = !!product.variants && product.variants.suggested.length > 0;
-
   const images = [product.image_url, ...(product.image_urls ?? [])].filter(
     (u): u is string => !!u
   );
@@ -35,10 +33,10 @@ export const ProductCard = memo(function ProductCard({
   // Check for discount
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
 
+  // 🟢 Since there are no variants, quick action ALWAYS adds to cart directly
   const handleQuickAction = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (hasVariants) onClick();
-    else onAddToCart();
+    onAddToCart();
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -146,12 +144,12 @@ export const ProductCard = memo(function ProductCard({
 
         {inStock && (
           <div className="pc-hover-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* 🟢 BLACK & WHITE HOVER: Default is Black BG / White Text. Hover is White BG / Black Text */}
+            {/* 🟢 Button text is now always 'Add to bag' */}
             <button 
               onClick={handleQuickAction} 
               className="bg-black text-white px-6 py-3 text-[11px] font-bold uppercase tracking-[0.15em] rounded-md shadow-lg transition-all duration-300 hover:bg-white hover:text-black"
             >
-              {hasVariants ? 'Choose options' : 'Add to bag'}
+              Add to bag
             </button>
           </div>
         )}
