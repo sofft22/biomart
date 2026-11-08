@@ -18,17 +18,14 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     const id = params.id as string;
     const body = await request.json() as any;
 
-    // 🟢 LOG WHAT THE BACKEND RECEIVES
-    console.log("📥 BACKEND RECEIVED VARIANTS:", body.variants);
-
-    const inStock = body.inStock ?? body.in_stock ?? true;
-    let images: string[] = [];
-    if (Array.isArray(body.images)) images = body.images;
-    else if (body.image_url) images = [body.image_url, ...(body.image_urls ?? [])];
-    
+    // 🟢 FORCE VARIANT PARSING
     let variantsJson = null;
-    if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
-      variantsJson = JSON.stringify(body.variants);
+    if (body.variants) {
+      if (typeof body.variants === 'string') {
+        variantsJson = body.variants;
+      } else if (Array.isArray(body.variants) && body.variants.length > 0) {
+        variantsJson = JSON.stringify(body.variants);
+      }
     }
 
     await env.DB.prepare(
@@ -42,9 +39,9 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
       body.compare_at_price ?? null,
       body.description || "",
       body.category || "",
-      inStock === false ? 0 : 1,
-      JSON.stringify(images),
-      variantsJson,
+      body.inStock === false ? 0 : 1,
+      JSON.stringify(body.images || [body.image_url].filter(Boolean)),
+      variantsJson, 
       id,
       store.id
     ).run();
