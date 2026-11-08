@@ -92,7 +92,6 @@ export default function ProductEdit() {
       setVariants([]);
     }
 
-    // Mark as loaded so it never overwrites your inputs again
     hasLoadedData.current = true;
   }, [product]);
 
@@ -148,6 +147,7 @@ export default function ProductEdit() {
     setSaving(true);
     const [imageUrl, ...imageUrls] = images;
 
+    // 🟢 1. Main Payload (WITHOUT variants)
     const payload: any = {
       name: name.trim(),
       description: description.trim(),
@@ -158,16 +158,28 @@ export default function ProductEdit() {
       inStock: inStock,
       image_url: imageUrl,
       image_urls: imageUrls,
-      // 🟢 Force it to send the current array
-      variants: variants.length > 0 ? variants : [], 
     };
 
-    console.log("🚀 SENDING PAYLOAD TO BACKEND:", payload);
-
     try {
-      if (product) await productsApi.update(product.id, payload);
-      else await productsApi.create(payload);
+      let productId = product?.id;
+
+      // 🟢 2. Save main product
+      if (product) {
+        await productsApi.update(product.id, payload);
+      } else {
+        const res = await productsApi.create(payload);
+        productId = res.id;
+      }
       
+      // 🟢 3. Save variants separately
+      if (productId) {
+        await fetch(`/api/products/${productId}/variants`, {
+          method: "PUT",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ variants }),
+        });
+      }
+
       await refresh(true); 
       nav("/dashboard/products");
     } catch (err) {
