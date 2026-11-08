@@ -20,7 +20,19 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
     
     const plan = store.plan ?? "free";
     const limit = getLimit(plan);
-    
+
+    // 🟢 NEW: ENFORCE PRODUCT LIMIT
+    const currentProducts = await env.DB.prepare(
+      "SELECT COUNT(*) as count FROM products WHERE store_id = ?"
+    ).bind(store.id).first<{ count: number }>();
+
+    if (currentProducts && currentProducts.count >= limit.products) {
+      return Response.json(
+        { error: `Your ${plan} plan allows up to ${limit.products} products. Upgrade to add more.` }, 
+        { status: 403 }
+      );
+    }
+
     const images = JSON.stringify(body.images || [body.image_url].filter(Boolean));
     const imageCount = (body.images || [body.image_url].filter(Boolean)).length;
     
@@ -28,7 +40,6 @@ export const onRequestPost: PagesFunction<{ DB: D1Database }> = async ({ env, re
       return Response.json({ error: `Your plan allows ${limit.photos} photos per product. Upgrade for more.` }, { status: 403 });
     }
 
-    // 🟢 SAVE AS A SIMPLE ARRAY. NO WRAPPING.
     let variantsJson = null;
     if (body.variants && Array.isArray(body.variants) && body.variants.length > 0) {
       variantsJson = JSON.stringify(body.variants);
