@@ -1,7 +1,7 @@
 import { useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
-import { PLAN_PRICES_MONTHLY, PLAN_PRICES_QUARTERLY } from "../lib/plans";
+import { PLAN_PRICES_MONTHLY, PLAN_PRICES_QUARTERLY, getLimit } from "../lib/plans";
 
 const BIOMART_WHATSAPP = "2347072789513";
 
@@ -14,7 +14,9 @@ export default function Plan() {
 
   const currentPlan = store?.plan || "free";
   const storeName = store?.name || "my store";
-  const storeSlug = store?.slug || "my-store";
+  
+  // 🟢 Dynamically fetch limits
+  const proLimit = getLimit("pro");
 
   const getUpgradeLink = (planName: string) => {
     const cycle = isQuarterly ? "Quarterly" : "Monthly";
@@ -177,8 +179,8 @@ export default function Plan() {
           </div>
 
           <ul style={{ color: "#fff" }}>
-            <li>Unlimited products</li>
-            <li>10 photos per product</li>
+            <li>{proLimit.products} products</li> {/* 🟢 Changed from Unlimited */}
+            <li>{proLimit.photos} photos per product</li>
           </ul>
 
           <a
