@@ -69,10 +69,7 @@ export function ProductModal({
 
   const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
   
-  // The base price + selected variant price
   const displayPrice = selectedVariant ? selectedVariant.priceDelta : product.price;
-  
-  // Total price for the button
   const totalPrice = displayPrice * qty;
   
   const displayCompare = !selectedVariant && product.compare_at_price != null 
@@ -211,6 +208,10 @@ How do I proceed with the payment and delivery process?`;
                     fetchPriority="high"
                     decoding="async"
                     onLoad={() => setMainImgLoaded(true)}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+                      e.currentTarget.onerror = null;
+                    }}
                     draggable={false}
                     className={`h-full w-full object-cover transition-opacity duration-500 ${
                       mainImgLoaded ? 'opacity-100' : 'opacity-0'
@@ -243,7 +244,15 @@ How do I proceed with the payment and delivery process?`;
                         border: i === activeImage ? `1px solid ${CHARCOAL}` : `1px solid var(--line)`,
                       }}
                     >
-                      <img src={src} alt="thumbnail" className="h-full w-full object-cover" />
+                      <img 
+                        src={src} 
+                        alt="thumbnail" 
+                        className="h-full w-full object-cover" 
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                          e.currentTarget.onerror = null;
+                        }}
+                      />
                     </button>
                   ))}
                 </div>
@@ -408,6 +417,10 @@ How do I proceed with the payment and delivery process?`;
                           src={p.image_url}
                           alt={`${p.name}`}
                           loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                            e.currentTarget.onerror = null;
+                          }}
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
                       )}
@@ -449,6 +462,10 @@ How do I proceed with the payment and delivery process?`;
             alt={mainAlt} 
             className="max-h-full max-w-full object-contain"
             onClick={(e) => e.stopPropagation()} 
+            onError={(e) => {
+              e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+              e.currentTarget.onerror = null;
+            }}
           />
         </div>
       )}
