@@ -150,6 +150,10 @@ export default function CartDrawer({ open, onClose }: Props) {
                       <img
                         src={it.image}
                         alt={it.name}
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                          e.currentTarget.onerror = null;
+                        }}
                         style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                       />
                     ) : null}
