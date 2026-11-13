@@ -1,424 +1,476 @@
-import { useState, useMemo, useEffect, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { useStoreContext } from "../context/StoreContext";
-import { useCart } from "../context/CartContext";
-import { track } from "../lib/api";
-import ProductCard from "../components/ProductCard";
-import ProductModal from "../components/ProductModal";
-import CartDrawer from "../components/CartDrawer";
-import type { Product } from "../types";
+import { useState, useRef, useMemo, useEffect } from 'react';
+import { naira } from '../lib/format';
+import type { Product, Store } from '../types';
 
-type SortKey = "new" | "price-asc" | "price-desc" | "name";
-
-function titleCase(s: string): string {
-  return (s || "").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+interface Props {
+  product: Product;
+  products: Product[];
+  store: Store;
+  onClose: () => void;
+  onAddToCart: (
+    qty: number,
+    variant?: string,
+    variantPriceDelta?: number,
+    opts?: { silent?: boolean }
+  ) => void;
+  onOpenProduct: (p: Product) => void;
 }
 
-function splitBrandName(name: string): { first: string; second: string } {
-  const parts = (name || "").trim().split(/\s+/);
-  if (parts.length <= 1) return { first: parts[0] || "", second: "" };
-  return { first: parts[0], second: parts.slice(1).join(" ") };
+const CHARCOAL = '#1A1A1A';
+const BRAND_GREEN = '#0F7A4A';
+const ASH_GREY = '#6B6B6B';
+const MUTED = 'rgba(26,26,26,0.5)';
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
-function renderHeroTitle(title: string) {
-  if (!title) return null;
-  const firstSpaceIdx = title.indexOf(" ");
-  if (firstSpaceIdx === -1) return <span>{title}</span>;
-  const line1 = title.substring(0, firstSpaceIdx);
-  const line2 = title.substring(firstSpaceIdx + 1);
-  return (
-    <span style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <span>{line1}</span>
-      <span>{line2}</span>
-    </span>
-  );
+// 🟢 SMART WHATSAPP FORMATTER
+function formatWhatsApp(phone: string) {
+  let clean = (phone || "").replace(/\D/g, "");
+  if (clean.startsWith("0")) clean = "234" + clean.substring(1);
+  return clean;
 }
 
-export default function Storefront() {
-  const { slug = "" } = useParams<{ slug: string }>();
-  const { loading, store, products, error } = useStoreContext();
-  const cart = useCart();
+export function ProductModal({
+  product,
+  products,
+  store,
+  onClose,
+  onAddToCart,
+  onOpenProduct,
+}: Props) {
+  const [qty, setQty] = useState(1);
+  const [selectedVariantLabel, setSelectedVariantLabel] = useState<string | null>(null);
+  const [activeImage, setActiveImage] = useState(0);
+  const [mainImgLoaded, setMainImgLoaded] = useState(false);
+  const [addedFlash, setAddedFlash] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isZoomed, setIsZoomed] = useState(false);
 
-  const [openProduct, setOpenProduct] = useState<Product | null>(null);
-  const [cartOpen, setCartOpen] = useState(false);
-  const [sort, setSort] = useState<SortKey>("new");
-  const [query, setQuery] = useState("");
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+  const modalScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const images = [product.image_url, ...(product.image_urls ?? [])]
+    .filter((u): u is string => !!u)
+    .slice(0, 6);
+  const currentImage = images[activeImage] ?? product.image_url;
+
+  const mainAlt = `${product.name} — biomart`;
+
+  const variants = product.variants?.suggested ?? [];
+  const hasVariants = variants.length > 0;
+
+  const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
   
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [categoryOpen, setCategoryOpen] = useState(false);
-  const [sortOpen, setSortOpen] = useState(false);
+  const displayPrice = selectedVariant ? selectedVariant.priceDelta : product.price;
+  const totalPrice = displayPrice * qty;
   
-  const categoryRef = useRef<HTMLDivElement>(null);
-  const sortRef = useRef<HTMLDivElement>(null);
+  const displayCompare = !selectedVariant && product.compare_at_price != null 
+    ? product.compare_at_price 
+    : null;
 
-  const [headerHidden, setHeaderHidden] = useState(false);
-  const [headerSolid, setHeaderSolid] = useState(false);
-  const lastYRef = useRef(0);
+  const canAdd = !hasVariants || selectedVariantLabel !== null;
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
+  const pairs = useMemo(() => {
+    if (!products || products.length === 0) return [];
+    const others = products.filter((p) => p.id !== product.id);
+    const shuffled = shuffle(others);
+    return shuffled.slice(0, 4);
+  }, [products, product.id]);
 
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(true);
-
-  // --- HOOKS START ---
-  
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
-      if (sortRef.current && !sortRef.current.contains(event.target as Node)) setSortOpen(false);
+    if (isZoomed) document.body.style.overflow = 'hidden';
+    else document.body.style.overflow = 'unset';
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isZoomed]);
+
+  const goToImage = (i: number) => {
+    if (i === activeImage) return;
+    setMainImgLoaded(false);
+    setActiveImage(i);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (deltaX < 0 && activeImage < images.length - 1) goToImage(activeImage + 1);
+      else if (deltaX > 0 && activeImage > 0) goToImage(activeImage - 1);
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
-  useEffect(() => {
-    if (!slug) return;
-    const key = `biomart:tracked:store:${slug}`;
-    if (sessionStorage.getItem(key)) return;
-    sessionStorage.setItem(key, "1");
-    track.storeVisit(slug).catch(() => {});
-  }, [slug]);
+  const handleAdd = () => {
+    if (!canAdd) return;
+    onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
+    setAddedFlash(true);
+    setTimeout(() => setAddedFlash(false), 1400);
+  };
 
-  useEffect(() => {
-    let ticking = false;
-    const update = () => {
-      const y = window.scrollY;
-      const last = lastYRef.current;
-      const diff = y - last;
-      const atTop = y < 40;
+  const handleOrder = () => {
+    if (!canAdd) return;
+    onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
+    
+    const phone = formatWhatsApp(store.whatsapp);
+    
+    const formattedLineTotal = naira(totalPrice);
+    
+    const text = `Hello ${store.name},
+    
+I want to order:
+    
+${product.name} ${selectedVariantLabel ? `(${selectedVariantLabel})` : ''} x ${qty} = ${formattedLineTotal}
+    
+Total: ${formattedLineTotal}
+    
+How do I proceed with the payment and delivery process?`;
+    
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank");
+    onClose();
+  };
 
-      setHeaderSolid(y > 120);
-      if (atTop) setHeaderHidden(false);
-      else if (diff > 6 && y > 200) setHeaderHidden(true);
-      else if (diff < -6) setHeaderHidden(false);
+  const handleShareWhatsApp = () => {
+    const url = window.location.href;
+    const text = `Check out ${product.name}`;
+    const phone = formatWhatsApp(store.whatsapp);
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(`${text} — ${url}`)}`, '_blank');
+  };
 
-      lastYRef.current = y;
-      ticking = false;
-    };
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(update);
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    update();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const bannersList = useMemo(() => {
-    if (!store) return [];
-    const list: string[] = [];
-    if ((store as any)?.cover_url) list.push((store as any).cover_url);
+  const handleCopyLink = async () => {
     try {
-      const extras = JSON.parse((store as any)?.extra_banners || "[]");
-      if (Array.isArray(extras)) list.push(...extras);
-    } catch (e) {}
-    return list.filter(Boolean).slice(0, 4);
-  }, [store]);
-
-  useEffect(() => {
-    bannersList.forEach((url) => {
-      const img = new Image();
-      img.src = url;
-    });
-  }, [bannersList]);
-
-  useEffect(() => {
-    if (bannersList.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => prev + 1);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [bannersList.length]);
-
-  useEffect(() => {
-    if (currentBannerIndex === bannersList.length) {
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setCurrentBannerIndex(0);
-        setTimeout(() => setIsTransitioning(true), 50); 
-      }, 600);
-      return () => clearTimeout(timer);
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      window.prompt('Copy this link:', window.location.href);
     }
-  }, [currentBannerIndex, bannersList.length]);
-
-  const categoriesList = useMemo(() => {
-    const raw = (store as any)?.categories;
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw.filter(Boolean);
-    if (typeof raw === "string") {
-      const trimmed = raw.trim();
-      if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) return parsed;
-        } catch (e) {}
-      }
-      return trimmed.split(",").map((c: string) => c.trim()).filter(Boolean);
-    }
-    return [];
-  }, [store]);
-
-  const filtered = useMemo(() => {
-    let list = products || [];
-    if (activeCategory !== "All") {
-      list = list.filter((p) => (p as any).category === activeCategory);
-    }
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      list = list.filter((p) => p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q));
-    }
-    const sorted = [...list];
-    switch (sort) {
-      case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
-      case "price-desc": sorted.sort((a, b) => b.price - a.price); break;
-      case "name": sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
-      case "new":
-      default:
-        sorted.sort((a, b) => new Date((b as any).created_at ?? 0).getTime() - new Date((a as any).created_at ?? 0).getTime());
-        break;
-    }
-    return sorted;
-  }, [products, query, sort, activeCategory]);
-
-  // --- HOOKS END ---
-
-  // 🟢 THE ULTIMATE FIX: Stop rendering if data isn't ready.
-  // This prevents any component below from crashing on undefined arrays.
-  if (loading) {
-    return <div className="sf-loading"><div className="sf-spinner" /></div>;
-  }
-
-  if (error || !store) {
-    return (
-      <div className="sf-loading" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', gap: 16 }}>
-        <h2 style={{ fontSize: 24, fontWeight: 600 }}>Store not found</h2>
-        <p style={{ color: 'var(--muted)' }}>This store might have been deleted or the link is incorrect.</p>
-      </div>
-    );
-  }
-
-  // 🟢 Now that we know store is NOT null, it is safe to use it below.
-
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const paginatedProducts = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  const handleOpenProduct = (p: Product) => setOpenProduct(p);
-  const handleAddToCart = (product: Product, qty: number, variant: string | null, unitPrice: number) => {
-    cart.add(product, qty, variant, unitPrice);
   };
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
-  const scrollToShopAll = () => document.getElementById("shop-all")?.scrollIntoView({ behavior: "smooth" });
-
-  const handlePageChange = (newPage: number) => {
-    setCurrentPage(newPage);
-    setTimeout(() => {
-      const section = document.getElementById("shop-all");
-      if (section) {
-        const yOffset = -80; 
-        const y = section.getBoundingClientRect().top + window.scrollY + yOffset;
-        window.scrollTo({ top: y, behavior: "smooth" });
-      }
-    }, 50);
-  };
-
-  const brand = splitBrandName(store.name);
-  const tagline = (store as any).tagline || "";
-  const heroTitle = (store as any).hero_title || ""; 
-  const address = (store as any).address || "";
-  const hasCustomBanner = bannersList.length > 0;
-
-  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
-  const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
 
   return (
-    <div className="sf-shell">
-      {/* HEADER */}
-      <header className={headerClasses} style={{ transition: "all 0.3s ease", zIndex: 50 }}>
-        <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
-            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
+    <>
+      <div
+        className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 sm:items-center"
+        onClick={onClose}
+      >
+        <div
+          ref={modalScrollRef}
+          onClick={(e) => e.stopPropagation()}
+          className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
+          style={{ backgroundColor: 'var(--bg)', color: 'var(--ink)' }}
+        >
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            className="absolute right-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors duration-300"
+            style={{ backgroundColor: 'rgba(255,255,255,0.8)', color: CHARCOAL }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = BRAND_GREEN)}
+            onMouseLeave={(e) => (e.currentTarget.style.color = CHARCOAL)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="h-5 w-5">
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
-          <div className="sf-head-actions" style={{ flexShrink: 0 }}>
-            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
-              {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
-            </button>
-          </div>
-        </div>
-      </header>
 
-      {/* HERO BANNER CAROUSEL */}
-      {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
-          <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
-            {displayBanners.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff" }}>
-                <img src={url} alt={`Banner ${(idx % bannersList.length) + 1}`} loading="eager" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div className="grid grid-cols-1 sm:grid-cols-2">
+            
+            {/* IMAGE COLUMN */}
+            <div style={{ backgroundColor: 'var(--bg)' }}>
+              <div
+                className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in"
+                style={{ backgroundColor: 'var(--bg)' }}
+                onClick={() => setIsZoomed(true)}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+              >
+                {!mainImgLoaded && (
+                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'var(--bg)' }} />
+                )}
+                {currentImage && (
+                  <img
+                    key={currentImage}
+                    src={currentImage}
+                    alt={mainAlt}
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    onLoad={() => setMainImgLoaded(true)}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+                      e.currentTarget.onerror = null;
+                    }}
+                    draggable={false}
+                    className={`h-full w-full object-cover transition-opacity duration-500 ${
+                      mainImgLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  />
+                )}
+
+                {images.length > 1 && (
+                  <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:hidden">
+                    {images.map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-1.5 rounded-full transition-all ${
+                          i === activeImage ? 'w-5 bg-charcoal' : 'w-1.5 bg-charcoal/40'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
-            ))}
-          </div>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
-          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
-            {heroTitle && (
-              <h1 className="sf-banner-tagline" style={{ fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px" }}>
-                {renderHeroTitle(heroTitle)}
-              </h1>
-            )}
-            <button onClick={() => scrollToShopAll()} className="sf-banner-cta" style={{ background: "#fff", color: "#000", padding: "16px 32px", fontSize: "13px", letterSpacing: "0.05em", fontWeight: 600, flexShrink: 0, marginTop: 16, pointerEvents: "auto" }}>
-              SHOP NOW 
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </button>
-          </div>
-        </section>
-      )}
 
-      {/* SHOP ALL SECTION */}
-      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
-          <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
-            <button onClick={() => setCategoryOpen(!categoryOpen)} style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-              <h2 className="sf-section-title" style={{ margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%", fontSize: "clamp(1.5rem, 4vw, 2rem)" }}>
-                {query ? `Search` : activeCategory === "All" ? "Shop all" : activeCategory}
-              </h2>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><path d={categoryOpen ? "M18 15l-6-6-6 6" : "M6 9l6 6 6-6"} /></svg>
-            </button>
-            {categoryOpen && categoriesList.length > 0 && (
-              <div style={{ position: "absolute", top: "100%", left: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 200, zIndex: 50, overflow: "hidden" }}>
-                <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
-                  {["All", ...categoriesList].map((cat: string) => (
-                    <button key={cat} onClick={() => { setActiveCategory(cat); setCurrentPage(1); setCategoryOpen(false); setQuery(""); }} style={{ padding: "12px 20px", textAlign: "left", background: activeCategory === cat && !query ? "var(--soft)" : "transparent", border: "none", fontSize: 14, fontWeight: activeCategory === cat && !query ? 600 : 500, color: "var(--text)", cursor: "pointer" }}>
-                      {cat === "All" ? "Shop All" : cat}
+              {images.length > 1 && (
+                <div className="hidden gap-2 p-4 sm:flex">
+                  {images.map((src, i) => (
+                    <button
+                      key={i}
+                      onClick={(e) => { e.stopPropagation(); goToImage(i); }}
+                      className="aspect-square w-16 overflow-hidden transition-colors"
+                      style={{
+                        border: i === activeImage ? `1px solid ${CHARCOAL}` : `1px solid var(--line)`,
+                      }}
+                    >
+                      <img 
+                        src={src} 
+                        alt="thumbnail" 
+                        className="h-full w-full object-cover" 
+                        onError={(e) => {
+                          e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                          e.currentTarget.onerror = null;
+                        }}
+                      />
                     </button>
                   ))}
                 </div>
+              )}
+            </div>
+
+            {/* CONTENT COLUMN */}
+            <div className="flex flex-col p-6 sm:p-10" style={{ backgroundColor: 'var(--bg)' }}>
+              
+              <h2
+                className="text-[26px] leading-[1.15] tracking-[-0.02em] sm:text-[32px]"
+                style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
+              >
+                {product.name}
+              </h2>
+
+              <div className="mt-4 flex items-baseline gap-3">
+                <p className="text-[20px] font-semibold tracking-tight" style={{ color: ASH_GREY }}>
+                  {naira(displayPrice)}
+                </p>
+                {displayCompare && (
+                  <p className="text-[14px] line-through opacity-40" style={{ color: ASH_GREY }}>
+                    {naira(displayCompare)}
+                  </p>
+                )}
               </div>
-            )}
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "0 0 auto" }}>
-            <button onClick={() => setSearchOpen(!searchOpen)} style={{ background: "transparent", border: "none", padding: 6, cursor: "pointer", color: "var(--text)", display: "flex" }}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 20, height: 20 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-            </button>
-            <div ref={sortRef} style={{ position: "relative" }}>
-              <button onClick={() => setSortOpen(!sortOpen)} style={{ background: "transparent", border: "1px solid var(--line)", borderRadius: "100px", padding: 6, width: "34px", height: "34px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text)" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: "16px", height: "16px" }}><path d="M3 6h18M6 12h12M10 18h4" /></svg>
-              </button>
-              {sortOpen && (
-                <div style={{ position: "absolute", top: "100%", right: 0, marginTop: 12, background: "#fff", border: "1px solid rgba(0,0,0,0.08)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.1)", minWidth: 160, zIndex: 50, overflow: "hidden" }}>
-                  <div style={{ display: "flex", flexDirection: "column", padding: "8px 0" }}>
-                    {[{ key: "new", label: "Newest" }, { key: "price-asc", label: "Price: Low to High" }, { key: "price-desc", label: "Price: High to Low" }, { key: "name", label: "Name: A-Z" }].map((opt) => (
-                      <button key={opt.key} onClick={() => { setSort(opt.key as SortKey); setCurrentPage(1); setSortOpen(false); }} style={{ padding: "12px 20px", textAlign: "left", background: sort === opt.key ? "var(--soft)" : "transparent", border: "none", fontSize: 13, fontWeight: sort === opt.key ? 600 : 500, color: "var(--text)", cursor: "pointer" }}>
-                        {opt.label}
-                      </button>
-                    ))}
+
+              {product.description && (
+                <p className="mt-6 text-[15px] leading-[1.7] opacity-70" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                  {product.description}
+                </p>
+              )}
+
+              {/* VARIANTS */}
+              {hasVariants && product.in_stock && (
+                <div className="mt-8">
+                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                    Select Option {selectedVariantLabel ? '' : '· Required'}
+                  </p>
+                  <div className="flex flex-wrap gap-2.5">
+                    {variants.map((v) => {
+                      const active = selectedVariantLabel === v.label;
+                      
+                      return (
+                        <button
+                          key={v.label}
+                          onClick={() => setSelectedVariantLabel(v.label)}
+                          className="rounded-[8px] px-5 py-3 text-[12px] font-semibold tracking-[0.05em] transition-all duration-300 flex items-center gap-2"
+                          style={{
+                            border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
+                            backgroundColor: active ? CHARCOAL : 'transparent',
+                            color: active ? '#fff' : CHARCOAL,
+                          }}
+                        >
+                          <span>{v.label}</span>
+                          <span style={{ color: active ? 'rgba(255,255,255,0.7)' : MUTED, fontSize: 11 }}>
+                            {naira(v.priceDelta)}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-        </div>
 
-        {searchOpen && (
-          <div style={{ marginBottom: 32, display: "flex", alignItems: "center", gap: 12, background: "var(--soft)", padding: "10px 16px", borderRadius: 12 }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18, opacity: 0.5 }}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></svg>
-            <input type="search" value={query} onChange={(e) => { setQuery(e.target.value); setCurrentPage(1); }} placeholder="Search products…" autoFocus style={{ background: "transparent", border: "none", outline: "none", width: "100%", fontSize: 14, color: "var(--text)" }} />
-            <button onClick={() => { setSearchOpen(false); setQuery(""); }} style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--muted)", fontSize: 12, fontWeight: 600 }}>Cancel</button>
-          </div>
-        )}
-
-        {paginatedProducts.length === 0 ? (
-          <div className="sf-empty"><h3 className="sf-empty-title">Nothing here yet</h3></div>
-        ) : (
-          <>
-            <div className="sf-grid-all" style={{ gap: "64px 20px" }}>
-              {paginatedProducts.map((p, i) => (
-                <div key={p.id}>
-                  <ProductCard product={p} index={i} priority={i < 4} onClick={() => handleOpenProduct(p)} onAddToCart={() => handleAddToCart(p, 1, null, p.price)} />
-                </div>
-              ))}
-            </div>
-            {totalPages > 1 && (
-              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, marginTop: 64 }}>
-                <button disabled={currentPage === 1} onClick={() => handlePageChange(currentPage - 1)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--line)", background: "transparent", cursor: currentPage === 1 ? "not-allowed" : "pointer", opacity: currentPage === 1 ? 0.3 : 1, transition: "all 0.2s ease" }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><path d="M15 18l-6-6 6-6" /></svg>
-                </button>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                    if (totalPages > 5 && Math.abs(currentPage - page) > 2) return null;
-                    return (
-                      <button key={page} onClick={() => handlePageChange(page)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s ease", border: "1px solid", borderColor: currentPage === page ? "var(--ink)" : "transparent", background: currentPage === page ? "var(--ink)" : "transparent", color: currentPage === page ? "var(--bg)" : "var(--text)" }}>
-                        {page}
+              {/* QUANTITY & ACTIONS */}
+              {product.in_stock && (
+                <div className="mt-auto pt-8">
+                  <div className="flex items-center gap-4 mb-6">
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                      Quantity
+                    </span>
+                    <div className="inline-flex items-stretch overflow-hidden rounded-[8px]" style={{ border: `1px solid var(--line)` }}>
+                      <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-11 w-11 items-center justify-center text-lg hover:bg-black/5 transition-colors">
+                        −
                       </button>
-                    );
-                  })}
-                </div>
-                <button disabled={currentPage === totalPages} onClick={() => handlePageChange(currentPage + 1)} style={{ width: 36, height: 36, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--line)", background: "transparent", cursor: currentPage === totalPages ? "not-allowed" : "pointer", opacity: currentPage === totalPages ? 0.3 : 1, transition: "all 0.2s ease" }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}><path d="M9 18l6-6-6-6" /></svg>
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </section>
+                      <span className="flex h-11 w-12 items-center justify-center text-[15px] font-semibold border-x" style={{ borderColor: 'var(--line)' }}>
+                        {qty}
+                      </span>
+                      <button onClick={() => setQty(qty + 1)} className="flex h-11 w-11 items-center justify-center text-lg hover:bg-black/5 transition-colors">
+                        +
+                      </button>
+                    </div>
+                  </div>
 
-      {/* FOOTER */}
-      <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
-        <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
-            <style>{`
-              @media (min-width: 768px) {
-                .sf-footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr !important; gap: 32px !important; }
-                .sf-footer-mobile-stack { display: contents !important; }
-              }
-            `}</style>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
-              <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
-                {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
-                {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
-              </div>
-              <p style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
-                {tagline || "Curated essentials for the modern wardrobe."}
-              </p>
-            </div>
-            <div className="sf-footer-mobile-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", gridColumn: "1 / -1" }}>
-              <div>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
-                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
-                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
+                  <div className="grid grid-cols-2 gap-3 mb-8">
+                    <button
+                      onClick={handleAdd}
+                      disabled={!canAdd}
+                      className="w-full rounded-[10px] py-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300"
+                      style={{
+                        backgroundColor: canAdd ? (addedFlash ? BRAND_GREEN : CHARCOAL) : 'rgba(26,26,26,0.1)',
+                        color: canAdd ? '#fff' : MUTED,
+                        cursor: canAdd ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      {addedFlash ? 'Added ✓' : `Add to Bag — ${naira(totalPrice)}`}
+                    </button>
+
+                    <button
+                      onClick={handleOrder}
+                      disabled={!canAdd}
+                      className="flex w-full items-center justify-center gap-2 rounded-[10px] py-4 text-[11px] font-bold uppercase tracking-[0.15em] transition-all duration-300 shadow-md"
+                      style={{
+                        backgroundColor: canAdd ? BRAND_GREEN : 'rgba(15,122,74,0.3)',
+                        color: '#fff',
+                        cursor: canAdd ? 'pointer' : 'not-allowed',
+                      }}
+                    >
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
+                      </svg>
+                      Order Now — {naira(totalPrice)}
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-6 border-t" style={{ borderColor: 'var(--line)' }}>
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                      Share
+                    </span>
+                    <button onClick={handleShareWhatsApp} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>
+                    </button>
+                    <button onClick={handleCopyLink} className="flex h-10 w-10 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" strokeLinecap="round" /></svg>
+                    </button>
+                    {copied && <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: BRAND_GREEN }}>Copied!</span>}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
-                {address ? (
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>{address}</a>
-                ) : (
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
-                )}
-              </div>
-              <div className="hidden md:block"></div>
+              )}
+
+              {!product.in_stock && (
+                <p className="mt-8 rounded-[10px] py-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] border opacity-50">
+                  Sold Out
+                </p>
+              )}
             </div>
           </div>
-          <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
-            <span>© 2026 {titleCase(store.name)}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <svg viewBox="0 0 60 64" width="14" height="14" fill="none" stroke="#25D366" strokeWidth="3.2" strokeLinejoin="round" strokeLinecap="round"><path d="M10 20H50L55 54Q55.4 58 51.5 58H8.5Q4.6 58 5 54Z" /><path d="M20 26V14A10 10 0 0 1 40 14V26" /></svg>
-              Powered by biomart
+
+          {/* FREQUENTLY BOUGHT TOGETHER */}
+          {pairs.length > 0 && (
+            <div className="px-6 py-12 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
+              <h3 className="text-[20px] sm:text-[24px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
+                Frequently Bought Together
+              </h3>
+              <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+                {pairs.map((p) => (
+                  <button
+                    key={p.id}
+                    onClick={() => {
+                      setActiveImage(0);
+                      setSelectedVariantLabel(null);
+                      setMainImgLoaded(false);
+                      onOpenProduct(p);
+                      modalScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className="group text-left flex flex-col cursor-pointer"
+                  >
+                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}>
+                      {p.image_url && (
+                        <img
+                          src={p.image_url}
+                          alt={`${p.name}`}
+                          loading="lazy"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                            e.currentTarget.onerror = null;
+                          }}
+                          className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        />
+                      )}
+                    </div>
+                    <div className="mt-3 flex flex-col gap-1 w-full">
+                      <p className="text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                        {p.name}
+                      </p>
+                      <div className="flex items-baseline gap-1 mt-0">
+                        <span className="text-[14px] font-extrabold tracking-tight" style={{ color: ASH_GREY }}>
+                          {naira(p.price)}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
-      </footer>
+      </div>
 
-      {openProduct && (
-        <ProductModal product={openProduct} products={products} store={store} onClose={() => setOpenProduct(null)} onAddToCart={(qty, variant, priceDelta) => { handleAddToCart(openProduct, qty, variant ?? null, openProduct.price + (priceDelta ?? 0)); }} onOpenProduct={(p) => handleOpenProduct(p)} />
+      {/* FULLSCREEN ZOOM OVERLAY */}
+      {isZoomed && currentImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10"
+          onClick={() => setIsZoomed(false)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
+            onClick={() => setIsZoomed(false)}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8">
+              <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+            </svg>
+          </button>
+          <img 
+            src={currentImage} 
+            alt={mainAlt} 
+            className="max-h-full max-w-full object-contain"
+            onClick={(e) => e.stopPropagation()} 
+            onError={(e) => {
+              e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+              e.currentTarget.onerror = null;
+            }}
+          />
+        </div>
       )}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
-    </div>
+    </>
   );
 }
+
+export default ProductModal;
