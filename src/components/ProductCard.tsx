@@ -62,6 +62,10 @@ export const ProductCard = memo(function ProductCard({
               fetchPriority={priority ? 'high' : 'auto'}
               decoding="async"
               onLoad={() => setImgLoaded(true)}
+              onError={(e) => {
+                e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                e.currentTarget.onerror = null;
+              }}
               className={`pc-img object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${hasSecondImage ? 'has-second' : ''}`}
             />
           )}
@@ -71,6 +75,10 @@ export const ProductCard = memo(function ProductCard({
               alt={`${product.name} — alternate view`}
               loading="lazy"
               decoding="async"
+              onError={(e) => {
+                e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                e.currentTarget.onerror = null;
+              }}
               className="pc-img pc-img-alt object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105"
             />
           )}
@@ -87,6 +95,10 @@ export const ProductCard = memo(function ProductCard({
                     loading={i === 0 && priority ? 'eager' : 'lazy'}
                     decoding="async"
                     onLoad={i === 0 ? () => setImgLoaded(true) : undefined}
+                    onError={(e) => {
+                      e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                      e.currentTarget.onerror = null;
+                    }}
                     className="pc-img object-cover w-full h-full"
                   />
                 </div>
@@ -144,7 +156,6 @@ export const ProductCard = memo(function ProductCard({
 
         {inStock && (
           <div className="pc-hover-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {/* 🟢 Button text is now always 'Add to bag' */}
             <button 
               onClick={handleQuickAction} 
               className="bg-black text-white px-6 py-3 text-[11px] font-bold uppercase tracking-[0.15em] rounded-md shadow-lg transition-all duration-300 hover:bg-white hover:text-black"
