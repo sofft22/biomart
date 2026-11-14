@@ -19,10 +19,14 @@ export const ProductCard = memo(function ProductCard({
   showNew = false,
   index = 0,
 }: Props) {
+  // 🟢 SAFETY CHECK: If product is undefined, don't render anything
+  if (!product) return null;
+
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const images = [product.image_url, ...(product.image_urls ?? [])].filter(
+  // 🟢 SAFE IMAGE ACCESS
+  const images = [product?.image_url, ...(product?.image_urls ?? [])].filter(
     (u): u is string => !!u
   );
 
@@ -30,10 +34,8 @@ export const ProductCard = memo(function ProductCard({
   const altText = `${product.name} — biomart`;
   const inStock = (product as any).inStock ?? (product as any).in_stock ?? true;
 
-  // Check for discount
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
 
-  // 🟢 Since there are no variants, quick action ALWAYS adds to cart directly
   const handleQuickAction = (e: React.MouseEvent) => {
     e.stopPropagation();
     onAddToCart();
@@ -108,7 +110,6 @@ export const ProductCard = memo(function ProductCard({
             <div className="pc-no-image flex items-center justify-center h-full">No image</div>
           )}
           
-          {/* Indicators */}
           {hasSecondImage && (
             <div 
               style={{
@@ -166,7 +167,6 @@ export const ProductCard = memo(function ProductCard({
         )}
       </button>
 
-      {/* Meta Section */}
       <button onClick={onClick} className="pc-meta mt-3 flex flex-col gap-1 text-left w-full">
         <p 
           className="pc-name text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]"
