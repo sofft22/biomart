@@ -231,7 +231,7 @@ export default function Storefront() {
 
       {/* HERO BANNER CAROUSEL - Native CSS Scroll Snap (Zero glitches on mobile) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
+        <section className="sf-banner" style={{ height: "70vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
           
           <div 
             ref={scrollContainerRef}
@@ -249,7 +249,7 @@ export default function Storefront() {
             className="hide-scrollbar"
           >
             {bannersList.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, scrollSnapAlign: "center", position: "relative" }}>
+              <div key={idx} style={{ flex: "0 0 100%", height: "100%", scrollSnapAlign: "start", position: "relative" }}>
                 <img 
                   src={url} 
                   alt={`Banner ${idx + 1}`} 
@@ -258,7 +258,7 @@ export default function Storefront() {
                     e.currentTarget.src = "https://placehold.co/1200x800/1a1a1a/ffffff?text=Banner+Unavailable";
                     e.currentTarget.onerror = null;
                   }}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }} 
                 />
               </div>
             ))}
@@ -276,23 +276,6 @@ export default function Storefront() {
               SHOP NOW 
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
-
-            {/* Dot Indicators */}
-            {bannersList.length > 1 && (
-              <div style={{ display: "flex", gap: 8, marginTop: 24, pointerEvents: "auto" }}>
-                {bannersList.map((_, i) => (
-                  <button 
-                    key={i} 
-                    onClick={() => {
-                      if (scrollContainerRef.current) {
-                        scrollContainerRef.current.scrollTo({ left: scrollContainerRef.current.clientWidth * i, behavior: "smooth" });
-                      }
-                    }}
-                    style={{ width: 8, height: 8, borderRadius: "50%", background: currentBannerIndex === i ? "#fff" : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s ease" }}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         </section>
       )}
