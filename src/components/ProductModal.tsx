@@ -262,9 +262,10 @@ How do I proceed with the payment and delivery process?`;
             {/* CONTENT COLUMN */}
             <div className="flex flex-col p-5 sm:p-10" style={{ backgroundColor: 'var(--bg)' }}>
               
+              {/* 🟢 UPDATED: Using the elegant serif font for the product name */}
               <h2
-                className="text-[24px] leading-[1.15] tracking-[-0.02em] sm:text-[32px] pr-12 sm:pr-0"
-                style={{ color: CHARCOAL, fontWeight: 600, textTransform: 'capitalize' }}
+                className="text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px] pr-12 sm:pr-0"
+                style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}
               >
                 {product.name}
               </h2>
@@ -281,7 +282,7 @@ How do I proceed with the payment and delivery process?`;
               </div>
 
               {product.description && (
-                <p className="mt-4 text-[14px] sm:text-[15px] leading-[1.7] opacity-70" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                <p className="mt-4 text-[14px] sm:text-[15px] leading-[1.7] opacity-70" style={{ color: CHARCOAL }}>
                   {product.description}
                 </p>
               )}
@@ -338,7 +339,6 @@ How do I proceed with the payment and delivery process?`;
                     </div>
                   </div>
 
-                  {/* STACKED ON MOBILE, SIDE-BY-SIDE ON DESKTOP */}
                   <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 mb-6">
                     <button
                       onClick={handleAdd}
@@ -396,7 +396,7 @@ How do I proceed with the payment and delivery process?`;
           {/* FREQUENTLY BOUGHT TOGETHER */}
           {pairs.length > 0 && (
             <div className="px-5 py-10 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
-              <h3 className="text-[18px] sm:text-[24px] font-semibold tracking-tight" style={{ color: CHARCOAL }}>
+              <h3 className="text-[20px] sm:text-[24px]" style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}>
                 Frequently Bought Together
               </h3>
               <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
@@ -427,11 +427,12 @@ How do I proceed with the payment and delivery process?`;
                       )}
                     </div>
                     <div className="mt-3 flex flex-col gap-1 w-full">
-                      <p className="text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]" style={{ color: CHARCOAL, textTransform: 'capitalize' }}>
+                      {/* 🟢 UPDATED: Using the elegant serif font here too */}
+                      <p className="text-[15px] md:text-[16px] truncate leading-[1.2]" style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}>
                         {p.name}
                       </p>
                       <div className="flex items-baseline gap-1 mt-0">
-                        <span className="text-[14px] font-extrabold tracking-tight" style={{ color: ASH_GREY }}>
+                        <span className="text-[13px] font-medium tracking-tight opacity-70" style={{ color: ASH_GREY }}>
                           {naira(p.price)}
                         </span>
                       </div>
