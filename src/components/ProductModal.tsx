@@ -18,8 +18,7 @@ interface Props {
 
 const CHARCOAL = '#1A1A1A';
 const BRAND_GREEN = '#0F7A4A';
-const ASH_GREY = '#6B6B6B';
-const MUTED = 'rgba(26,26,26,0.5)';
+const MUTED = '#8E8E8E';
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];
@@ -30,7 +29,6 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-// 🟢 SMART WHATSAPP FORMATTER
 function formatWhatsApp(phone: string) {
   let clean = (phone || "").replace(/\D/g, "");
   if (clean.startsWith("0")) clean = "234" + clean.substring(1);
@@ -61,14 +59,12 @@ export function ProductModal({
     .filter((u): u is string => !!u)
     .slice(0, 6);
   const currentImage = images[activeImage] ?? product.image_url;
-
   const mainAlt = `${product.name} — biomart`;
 
   const variants = product.variants?.suggested ?? [];
   const hasVariants = variants.length > 0;
 
   const selectedVariant = variants.find((v) => v.label === selectedVariantLabel);
-  
   const displayPrice = selectedVariant ? selectedVariant.priceDelta : product.price;
   const totalPrice = displayPrice * qty;
   
@@ -81,8 +77,7 @@ export function ProductModal({
   const pairs = useMemo(() => {
     if (!products || products.length === 0) return [];
     const others = products.filter((p) => p.id !== product.id);
-    const shuffled = shuffle(others);
-    return shuffled.slice(0, 4);
+    return shuffle(others).slice(0, 4);
   }, [products, product.id]);
 
   useEffect(() => {
@@ -126,7 +121,6 @@ export function ProductModal({
     onAddToCart(qty, selectedVariantLabel ?? undefined, displayPrice, { silent: true });
     
     const phone = formatWhatsApp(store.whatsapp);
-    
     const formattedLineTotal = naira(totalPrice);
     
     const text = `Hello ${store.name},
@@ -163,41 +157,38 @@ How do I proceed with the payment and delivery process?`;
   return (
     <>
       <div
-        className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/60 sm:items-center"
+        className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/40 backdrop-blur-sm sm:items-center sm:p-6"
         onClick={onClose}
       >
         <div
           ref={modalScrollRef}
           onClick={(e) => e.stopPropagation()}
-          className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[92vh] sm:max-w-5xl"
-          style={{ backgroundColor: 'var(--bg)', color: 'var(--ink)' }}
+          className="relative flex h-full w-full flex-col overflow-y-auto sm:h-auto sm:max-h-[90vh] sm:max-w-6xl bg-white shadow-2xl"
+          style={{ backgroundColor: 'var(--bg)', color: CHARCOAL }}
         >
+          {/* Elegant Close Button */}
           <button
             onClick={onClose}
             aria-label="Close"
-            className="fixed right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors duration-300 sm:absolute"
-            style={{ backgroundColor: 'rgba(255,255,255,0.8)', color: CHARCOAL }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = BRAND_GREEN)}
-            onMouseLeave={(e) => (e.currentTarget.style.color = CHARCOAL)}
+            className="fixed right-4 top-4 z-[60] flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur-md transition-all hover:scale-105 sm:absolute sm:right-6 sm:top-6"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="h-5 w-5">
               <path d="M6 6l12 12M18 6L6 18" />
             </svg>
           </button>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2">
+          <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] h-full">
             
-            {/* IMAGE COLUMN */}
-            <div style={{ backgroundColor: 'var(--bg)' }}>
+            {/* LEFT: IMAGE GALLERY */}
+            <div className="relative flex flex-col" style={{ backgroundColor: 'var(--bg)' }}>
               <div
-                className="relative block aspect-[4/5] w-full overflow-hidden cursor-zoom-in sm:aspect-square"
-                style={{ backgroundColor: 'var(--bg)' }}
+                className="relative w-full aspect-[4/5] md:aspect-auto md:h-full min-h-[400px] cursor-zoom-in overflow-hidden"
                 onClick={() => setIsZoomed(true)}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
               >
                 {!mainImgLoaded && (
-                  <div className="absolute inset-0 animate-pulse" style={{ backgroundColor: 'var(--bg)' }} />
+                  <div className="absolute inset-0 animate-pulse bg-black/5" />
                 )}
                 {currentImage && (
                   <img
@@ -209,23 +200,24 @@ How do I proceed with the payment and delivery process?`;
                     decoding="async"
                     onLoad={() => setMainImgLoaded(true)}
                     onError={(e) => {
-                      e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+                      e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
                       e.currentTarget.onerror = null;
                     }}
                     draggable={false}
-                    className={`h-full w-full object-cover transition-opacity duration-500 ${
-                      mainImgLoaded ? 'opacity-100' : 'opacity-0'
+                    className={`h-full w-full object-cover transition-all duration-700 ease-out ${
+                      mainImgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
                     }`}
                   />
                 )}
 
+                {/* Mobile Swipe Indicators */}
                 {images.length > 1 && (
-                  <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-1.5 sm:hidden">
+                  <div className="absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 gap-2 md:hidden">
                     {images.map((_, i) => (
                       <span
                         key={i}
-                        className={`h-1.5 rounded-full transition-all ${
-                          i === activeImage ? 'w-5 bg-charcoal' : 'w-1.5 bg-charcoal/40'
+                        className={`h-1 rounded-full transition-all duration-300 ${
+                          i === activeImage ? 'w-6 bg-white' : 'w-2 bg-white/50'
                         }`}
                       />
                     ))}
@@ -233,23 +225,23 @@ How do I proceed with the payment and delivery process?`;
                 )}
               </div>
 
+              {/* Desktop Thumbnails - Minimalist */}
               {images.length > 1 && (
-                <div className="hidden gap-2 p-4 sm:flex">
+                <div className="hidden gap-3 px-8 py-6 md:flex">
                   {images.map((src, i) => (
                     <button
                       key={i}
                       onClick={(e) => { e.stopPropagation(); goToImage(i); }}
-                      className="aspect-square w-16 overflow-hidden transition-colors"
-                      style={{
-                        border: i === activeImage ? `1px solid ${CHARCOAL}` : `1px solid var(--line)`,
-                      }}
+                      className={`aspect-square w-16 overflow-hidden transition-all duration-300 ${
+                        i === activeImage ? 'opacity-100 ring-1 ring-black ring-offset-2' : 'opacity-40 hover:opacity-100'
+                      }`}
                     >
                       <img 
                         src={src} 
                         alt="thumbnail" 
                         className="h-full w-full object-cover" 
                         onError={(e) => {
-                          e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                          e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
                           e.currentTarget.onerror = null;
                         }}
                       />
@@ -259,58 +251,58 @@ How do I proceed with the payment and delivery process?`;
               )}
             </div>
 
-            {/* CONTENT COLUMN */}
-            <div className="flex flex-col p-5 sm:p-10" style={{ backgroundColor: 'var(--bg)' }}>
+            {/* RIGHT: PRODUCT DETAILS */}
+            <div className="flex flex-col p-6 sm:p-10 md:p-12 bg-white">
               
-              {/* 🟢 UPDATED: Matched to global serif font */}
-              <h2
-                className="text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px] pr-12 sm:pr-0"
-                style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}
-              >
-                {product.name}
-              </h2>
-
-              <div className="mt-3 flex items-baseline gap-3">
-                <p className="text-[18px] sm:text-[20px] font-semibold tracking-tight" style={{ color: ASH_GREY }}>
-                  {naira(displayPrice)}
-                </p>
-                {displayCompare && (
-                  <p className="text-[14px] line-through opacity-40" style={{ color: ASH_GREY }}>
-                    {naira(displayCompare)}
+              {/* Header */}
+              <div className="mb-6">
+                <h2
+                  className="text-[28px] md:text-[38px] leading-[1.1] tracking-[-0.02em] mb-4 pr-10 md:pr-0"
+                  style={{ fontFamily: "var(--serif)", fontWeight: 400 }}
+                >
+                  {product.name}
+                </h2>
+                <div className="flex items-baseline gap-4">
+                  <p className="text-[20px] font-medium tracking-tight" style={{ color: CHARCOAL }}>
+                    {naira(displayPrice)}
                   </p>
-                )}
+                  {displayCompare && (
+                    <p className="text-[15px] line-through opacity-40">
+                      {naira(displayCompare)}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {product.description && (
-                <p className="mt-4 text-[14px] sm:text-[15px] leading-[1.7] opacity-70" style={{ color: CHARCOAL }}>
+                <p className="mb-8 text-[14px] leading-[1.8] text-black/60 font-light">
                   {product.description}
                 </p>
               )}
 
-              {/* VARIANTS */}
+              {/* Variants */}
               {hasVariants && product.in_stock && (
-                <div className="mt-6">
-                  <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                <div className="mb-8">
+                  <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.2em] text-black/40">
                     Select Option {selectedVariantLabel ? '' : '· Required'}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {variants.map((v) => {
                       const active = selectedVariantLabel === v.label;
-                      
                       return (
                         <button
                           key={v.label}
                           onClick={() => setSelectedVariantLabel(v.label)}
-                          className="rounded-[8px] px-4 py-2.5 text-[12px] font-semibold tracking-[0.05em] transition-all duration-300 flex items-center gap-2"
+                          className="rounded-full px-5 py-2.5 text-[12px] transition-all duration-300 flex items-center gap-2 border"
                           style={{
-                            border: `1px solid ${active ? CHARCOAL : 'var(--line)'}`,
+                            borderColor: active ? CHARCOAL : 'rgba(0,0,0,0.15)',
                             backgroundColor: active ? CHARCOAL : 'transparent',
                             color: active ? '#fff' : CHARCOAL,
                           }}
                         >
-                          <span>{v.label}</span>
-                          <span style={{ color: active ? 'rgba(255,255,255,0.7)' : MUTED, fontSize: 11 }}>
-                            {naira(v.priceDelta)}
+                          <span className="font-medium">{v.label}</span>
+                          <span className="text-[10px] opacity-60">
+                            +{naira(v.priceDelta)}
                           </span>
                         </button>
                       );
@@ -319,37 +311,32 @@ How do I proceed with the payment and delivery process?`;
                 </div>
               )}
 
-              {/* QUANTITY & ACTIONS */}
-              {product.in_stock && (
-                <div className="mt-auto pt-6">
-                  <div className="flex items-center gap-4 mb-5">
-                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+              {/* Actions */}
+              {product.in_stock ? (
+                <div className="mt-auto">
+                  {/* Quantity - Minimal */}
+                  <div className="flex items-center justify-between mb-6 pb-6 border-b border-black/10">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-black/40">
                       Quantity
                     </span>
-                    <div className="inline-flex items-stretch overflow-hidden rounded-[8px]" style={{ border: `1px solid var(--line)` }}>
-                      <button onClick={() => setQty(Math.max(1, qty - 1))} className="flex h-10 w-10 items-center justify-center text-lg hover:bg-black/5 transition-colors">
-                        −
-                      </button>
-                      <span className="flex h-10 w-12 items-center justify-center text-[15px] font-semibold border-x" style={{ borderColor: 'var(--line)' }}>
-                        {qty}
-                      </span>
-                      <button onClick={() => setQty(qty + 1)} className="flex h-10 w-10 items-center justify-center text-lg hover:bg-black/5 transition-colors">
-                        +
-                      </button>
+                    <div className="flex items-center gap-6">
+                      <button onClick={() => setQty(Math.max(1, qty - 1))} className="text-xl font-light text-black/50 hover:text-black transition-colors px-2">−</button>
+                      <span className="text-[16px] font-medium w-4 text-center">{qty}</span>
+                      <button onClick={() => setQty(qty + 1)} className="text-xl font-light text-black/50 hover:text-black transition-colors px-2">+</button>
                     </div>
                   </div>
 
-                  {/* 🟢 UPDATED: Side-by-side flex layout for mobile, with clamped text to prevent clipping */}
-                  <div className="flex flex-row gap-2 mb-6 w-full">
+                  {/* Buttons - Side by side mobile, perfectly scaled */}
+                  <div className="flex flex-row gap-3 w-full mb-8">
                     <button
                       onClick={handleAdd}
                       disabled={!canAdd}
-                      className="flex-1 min-w-0 rounded-[10px] py-3.5 sm:py-4 text-[clamp(9px,2.8vw,11px)] font-bold uppercase transition-all duration-300"
+                      className="flex-1 min-w-0 rounded-lg py-4 text-[clamp(10px,2.5vw,12px)] font-bold uppercase tracking-[0.1em] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
                       style={{
-                        backgroundColor: canAdd ? (addedFlash ? BRAND_GREEN : CHARCOAL) : 'rgba(26,26,26,0.1)',
-                        color: canAdd ? '#fff' : MUTED,
+                        backgroundColor: canAdd ? (addedFlash ? BRAND_GREEN : CHARCOAL) : 'rgba(0,0,0,0.05)',
+                        color: canAdd ? '#fff' : 'rgba(0,0,0,0.3)',
                         cursor: canAdd ? 'pointer' : 'not-allowed',
-                        letterSpacing: '0.05em'
+                        boxShadow: canAdd && !addedFlash ? '0 4px 14px 0 rgba(0,0,0,0.1)' : 'none',
                       }}
                     >
                       <span className="truncate block px-1">
@@ -360,57 +347,55 @@ How do I proceed with the payment and delivery process?`;
                     <button
                       onClick={handleOrder}
                       disabled={!canAdd}
-                      className="flex-1 min-w-0 flex items-center justify-center gap-1.5 rounded-[10px] py-3.5 sm:py-4 text-[clamp(9px,2.8vw,11px)] font-bold uppercase transition-all duration-300 shadow-md"
+                      className="flex-1 min-w-0 flex items-center justify-center gap-2 rounded-lg py-4 text-[clamp(10px,2.5vw,12px)] font-bold uppercase tracking-[0.1em] transition-all duration-300 border border-black/20 hover:bg-black hover:text-white hover:-translate-y-0.5 hover:shadow-lg"
                       style={{
-                        backgroundColor: canAdd ? BRAND_GREEN : 'rgba(15,122,74,0.3)',
-                        color: '#fff',
+                        backgroundColor: 'transparent',
+                        color: CHARCOAL,
                         cursor: canAdd ? 'pointer' : 'not-allowed',
-                        letterSpacing: '0.05em'
+                        opacity: canAdd ? 1 : 0.5
                       }}
                     >
                       <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
                       </svg>
                       <span className="truncate pr-1">
-                        Order Now — {naira(totalPrice)}
+                        Order Now
                       </span>
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-4 pt-5 border-t" style={{ borderColor: 'var(--line)' }}>
-                    <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: MUTED }}>
+                  {/* Share - Minimal Icons */}
+                  <div className="flex items-center gap-6 justify-center">
+                    <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/30">
                       Share
                     </span>
-                    <button onClick={handleShareWhatsApp} className="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                    <button onClick={handleShareWhatsApp} className="text-black/40 hover:text-black transition-colors">
                       <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" /></svg>
                     </button>
-                    <button onClick={handleCopyLink} className="flex h-9 w-9 items-center justify-center rounded-full bg-black/5 hover:bg-black/10 transition-colors">
+                    <button onClick={handleCopyLink} className="text-black/40 hover:text-black transition-colors">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4"><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 0 1 2-2h10" strokeLinecap="round" /></svg>
                     </button>
-                    {copied && <span className="text-[11px] font-bold uppercase tracking-[0.15em]" style={{ color: BRAND_GREEN }}>Copied!</span>}
+                    {copied && <span className="text-[10px] font-bold uppercase tracking-[0.1em]" style={{ color: BRAND_GREEN }}>Copied!</span>}
                   </div>
                 </div>
-              )}
-
-              {!product.in_stock && (
-                <p className="mt-6 rounded-[10px] py-4 text-center text-[11px] font-bold uppercase tracking-[0.15em] border opacity-50">
+              ) : (
+                <div className="mt-6 rounded-lg py-4 text-center text-[11px] font-bold uppercase tracking-[0.2em] border border-black/10 bg-black/5 text-black/50">
                   Sold Out
-                </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* FREQUENTLY BOUGHT TOGETHER */}
           {pairs.length > 0 && (
-            <div className="px-5 py-10 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
-              {/* 🟢 UPDATED: Matched to global serif font */}
+            <div className="px-6 py-12 md:px-12 md:py-16 border-t border-black/10">
               <h3 
-                className="text-[20px] sm:text-[24px]" 
-                style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}
+                className="text-[22px] md:text-[26px] mb-8" 
+                style={{ fontFamily: "var(--serif)", fontWeight: 400 }}
               >
                 Frequently Bought Together
               </h3>
-              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-4 md:gap-6">
                 {pairs.map((p) => (
                   <button
                     key={p.id}
@@ -423,26 +408,26 @@ How do I proceed with the payment and delivery process?`;
                     }}
                     className="group text-left flex flex-col cursor-pointer"
                   >
-                    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg" style={{ backgroundColor: 'var(--bg)' }}>
+                    <div className="relative aspect-[4/5] w-full overflow-hidden bg-black/5">
                       {p.image_url && (
                         <img
                           src={p.image_url}
                           alt={`${p.name}`}
                           loading="lazy"
                           onError={(e) => {
-                            e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image";
+                            e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
                             e.currentTarget.onerror = null;
                           }}
                           className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         />
                       )}
                     </div>
-                    <div className="mt-3 flex flex-col gap-1 w-full">
-                      <p className="text-[15px] md:text-[16px] truncate leading-[1.2]" style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}>
+                    <div className="mt-4 flex flex-col gap-1 w-full">
+                      <p className="text-[14px] md:text-[15px] truncate leading-[1.3]" style={{ fontFamily: "var(--serif)", fontWeight: 400 }}>
                         {p.name}
                       </p>
                       <div className="flex items-baseline gap-1 mt-0">
-                        <span className="text-[13px] font-medium tracking-tight opacity-70" style={{ color: ASH_GREY }}>
+                        <span className="text-[12px] font-medium tracking-tight text-black/50">
                           {naira(p.price)}
                         </span>
                       </div>
@@ -458,24 +443,24 @@ How do I proceed with the payment and delivery process?`;
       {/* FULLSCREEN ZOOM OVERLAY */}
       {isZoomed && currentImage && (
         <div 
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 sm:p-10 backdrop-blur-sm"
           onClick={() => setIsZoomed(false)}
         >
           <button 
-            className="absolute top-6 right-6 text-white/70 hover:text-white transition-colors"
+            className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors"
             onClick={() => setIsZoomed(false)}
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-8 w-8">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-8 w-8">
               <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
             </svg>
           </button>
           <img 
             src={currentImage} 
             alt={mainAlt} 
-            className="max-h-full max-w-full object-contain"
+            className="max-h-full max-w-full object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()} 
             onError={(e) => {
-              e.currentTarget.src = "https://placehold.co/600x800/ebd9c8/1a1a1a?text=Image+Unavailable";
+              e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image+Unavailable";
               e.currentTarget.onerror = null;
             }}
           />
