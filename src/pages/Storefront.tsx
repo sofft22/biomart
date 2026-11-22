@@ -218,22 +218,22 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Reduced height, centered image (contain) */}
+      {/* HERO BANNER CAROUSEL - Full width, centered, cover (no black bars) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#111", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
+        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#000", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
           <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
             {displayBanners.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#111", position: "relative" }}>
+              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#000", position: "relative" }}>
                 <img 
                   src={url} 
                   alt={`Banner ${(idx % bannersList.length) + 1}`} 
                   loading="eager" 
                   onError={(e) => {
-                    e.currentTarget.src = "https://placehold.co/1200x800/ebd9c8/1a1a1a?text=Banner+Unavailable";
+                    e.currentTarget.src = "https://placehold.co/1200x800/1a1a1a/ffffff?text=Banner+Unavailable";
                     e.currentTarget.onerror = null;
                   }}
-                  // 🟢 CHANGED: objectFit is now "contain" to prevent cropping
-                  style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} 
+                  // 🟢 FIXED: objectFit is "cover" to fill the screen, objectPosition is "center" to keep the focus in the middle
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} 
                 />
               </div>
             ))}
