@@ -52,6 +52,16 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if ("tiktok" in body) { updates.push("tiktok = ?"); values.push(body.tiktok || null); }
     if ("cover_url" in body) { updates.push("cover_url = ?"); values.push(body.cover_url || null); }
     if ("categories" in body) { updates.push("categories = ?"); values.push(body.categories || null); }
+    
+    // 🟢 THIS IS THE FIX: Added the handler for extra_banners
+    if ("extra_banners" in body) { 
+      updates.push("extra_banners = ?"); 
+      let extras = body.extra_banners;
+      if (extras && typeof extras !== 'string') {
+        extras = JSON.stringify(extras);
+      }
+      values.push(extras || null); 
+    }
 
     if ("gallery_urls" in body) { 
       updates.push("gallery_urls = ?"); 
@@ -67,7 +77,6 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
         .bind(...values)
         .run();
     } catch (dbError: any) {
-      // 🟢 CATCH UNIQUE CONSTRAINT ERROR FOR SLUG
       if (dbError.message.includes("UNIQUE constraint failed")) {
         return Response.json({ error: "That store link is already taken. Please choose another one." }, { status: 400 });
       }
