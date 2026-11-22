@@ -52,8 +52,6 @@ export default function Storefront() {
   const categoryRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  const [headerSolid, setHeaderSolid] = useState(false);
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
 
@@ -78,17 +76,6 @@ export default function Storefront() {
     sessionStorage.setItem(key, "1");
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
-
-  // Header Sticky Fix
-  useEffect(() => {
-    const handleScroll = () => {
-      // Add a solid background when scrolling down
-      setHeaderSolid(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll(); // Check initial state
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   const bannersList = useMemo(() => {
     if (!store) return [];
@@ -211,21 +198,19 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = bannersList.length > 0;
 
-  // Changed header classes to use simple solid background logic
-  const headerClasses = `sf-head ${headerSolid || !hasCustomBanner ? "sf-head-solid" : ""}`;
   const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
 
   return (
     <div className="sf-shell">
-      {/* HEADER - Made bigger with increased padding, and sticky via CSS classes */}
-      <header className={headerClasses} style={{ position: "sticky", top: 0, zIndex: 50, transition: "background-color 0.3s ease" }}>
-        <div className="sf-head-inner" style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
+      {/* HEADER - Simple, non-sticky, scrolls with the page */}
+      <header className="sf-head" style={{ position: "relative", zIndex: 50, backgroundColor: "transparent" }}>
+        <div className="sf-head-inner" style={{ padding: "24px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
-            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
+            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: "#fff", fontWeight: 700 }}>{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: "#fff", fontWeight: 300 }}>{titleCase(brand.second)}</span>}
           </button>
           <div className="sf-head-actions" style={{ flexShrink: 0 }}>
-            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart" style={{ padding: 10 }}>
+            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart" style={{ padding: 10, color: "#fff" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
               {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
             </button>
@@ -233,9 +218,9 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Adjusted to 85vh to prevent cutoffs and look premium */}
+      {/* HERO BANNER CAROUSEL - Absolute positioned behind the header */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "85vh", minHeight: "500px", backgroundColor: "#fff", overflow: "hidden", position: "relative" }}>
+        <section className="sf-banner" style={{ height: "85vh", minHeight: "500px", backgroundColor: "#fff", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
           <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
             {displayBanners.map((url, idx) => (
               <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff", position: "relative" }}>
@@ -269,6 +254,10 @@ export default function Storefront() {
 
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "140px", maxWidth: "1200px", margin: "0 auto", paddingLeft: 24, paddingRight: 24 }}>
+        
+        {/* If there is no banner, add padding to top so header doesn't overlap */}
+        {!hasCustomBanner && <div style={{ height: "80px" }} />}
+
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button onClick={() => setCategoryOpen(!categoryOpen)} style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
