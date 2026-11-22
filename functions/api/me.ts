@@ -1,5 +1,3 @@
-// functions/api/me.ts
-
 export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
   try {
     const cookie = request.headers.get("Cookie") || "";
@@ -81,7 +79,7 @@ export const onRequestGet: PagesFunction<{ DB: D1Database }> = async ({ env, req
   }
 };
 
-// 🟢 ADDED: This handles the PUT request to save settings and banners
+// 🟢 THIS HANDLES THE PUT REQUEST FOR STORE SETTINGS & BANNERS
 export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, request }) => {
   try {
     const cookie = request.headers.get("Cookie") || "";
@@ -96,6 +94,16 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
     if (!session) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await request.json() as any;
+
+    // Ensure extra_banners is stringified for the TEXT column
+    let extraBannersString = null;
+    if (body.extra_banners) {
+      if (typeof body.extra_banners === 'string') {
+        extraBannersString = body.extra_banners;
+      } else {
+        extraBannersString = JSON.stringify(body.extra_banners);
+      }
+    }
 
     // Update the store details
     await env.DB.prepare(
@@ -114,12 +122,13 @@ export const onRequestPut: PagesFunction<{ DB: D1Database }> = async ({ env, req
       body.instagram || null,
       body.tiktok || null,
       body.cover_url || null,
-      body.extra_banners || null, // <--- THIS IS WHAT WAS MISSING
+      extraBannersString, // <--- THIS SAVES THE BANNER ARRAY
       session.user_id
     ).run();
 
     return Response.json({ ok: true });
   } catch (e: any) {
+    console.error("PUT ERROR:", e);
     return Response.json({ error: e.message }, { status: 500 });
   }
 };
