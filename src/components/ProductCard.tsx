@@ -37,7 +37,7 @@ export const ProductCard = memo(function ProductCard({
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
 
   const handleQuickAction = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent opening the modal when clicking "Add to bag"
+    e.stopPropagation();
     onAddToCart();
   };
 
@@ -168,25 +168,26 @@ export const ProductCard = memo(function ProductCard({
         )}
       </button>
 
+      {/* 🟢 UPDATED META DATA (Matched to Frequently Bought Together) */}
       <button onClick={onClick} className="pc-meta mt-3 flex flex-col gap-1 text-left w-full">
         <p 
-          className="pc-name text-[12px] md:text-[13px] font-semibold truncate leading-[1.3] tracking-[0.01em]"
-          style={{ fontFamily: 'var(--font-inter), sans-serif', textTransform: 'capitalize' }}
+          className="pc-name text-[15px] md:text-[16px] truncate leading-[1.2]"
+          style={{ fontFamily: 'var(--font-dm-serif), serif', color: '#1A1A1A' }}
         >
           {product.name}
         </p>
         
         <div className="pc-price-row flex items-baseline gap-1 mt-0">
           <span 
-            className="pc-price text-[14px] font-extrabold tracking-tight"
-            style={{ fontFamily: 'var(--font-inter), sans-serif' }}
+            className="pc-price text-[13px] font-medium tracking-tight opacity-70"
+            style={{ fontFamily: 'var(--font-inter), sans-serif', color: '#6B6B6B' }}
           >
             {naira(product.price)}
           </span>
           
           {hasDiscount && (
             <span 
-              className="pc-price-old text-[11px] font-medium opacity-50 line-through"
+              className="pc-price-old text-[11px] font-medium opacity-40 line-through"
               style={{ fontFamily: 'var(--font-inter), sans-serif' }}
             >
               {naira(product.compare_at_price!)}
