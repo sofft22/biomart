@@ -37,7 +37,7 @@ export const ProductCard = memo(function ProductCard({
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
 
   const handleQuickAction = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Prevent opening the modal when clicking "Add to bag"
     onAddToCart();
   };
 
@@ -55,7 +55,7 @@ export const ProductCard = memo(function ProductCard({
       <button onClick={onClick} className="pc-media relative aspect-[4/5] w-full overflow-hidden rounded-lg" aria-label={`View ${product.name}`}>
         {!imgLoaded && images.length > 0 && <div className="pc-skeleton absolute inset-0 animate-pulse" />}
 
-        <div className="pc-desktop h-full w-full">
+        <div className="pc-desktop h-full w-full hidden md:block">
           {images[0] && (
             <img
               src={images[0]}
@@ -86,7 +86,7 @@ export const ProductCard = memo(function ProductCard({
           )}
         </div>
 
-        <div className="pc-mobile h-full w-full">
+        <div className="pc-mobile h-full w-full block md:hidden">
           {images.length > 0 ? (
             <div onScroll={handleScroll} className="pc-carousel no-scrollbar h-full w-full flex overflow-x-auto snap-x snap-mandatory">
               {images.map((url, i) => (
@@ -155,8 +155,9 @@ export const ProductCard = memo(function ProductCard({
           </div>
         )}
 
+        {/* HOVER CTA (Desktop Only) */}
         {inStock && (
-          <div className="pc-hover-cta absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="pc-hover-cta absolute bottom-4 left-0 right-0 hidden md:flex justify-center opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               onClick={handleQuickAction} 
               className="bg-black text-white px-6 py-3 text-[11px] font-bold uppercase tracking-[0.15em] rounded-md shadow-lg transition-all duration-300 hover:bg-white hover:text-black"
