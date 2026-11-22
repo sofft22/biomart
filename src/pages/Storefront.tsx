@@ -218,12 +218,12 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Absolute positioned behind the header */}
+      {/* HERO BANNER CAROUSEL - Reduced height, centered image (contain) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "85vh", minHeight: "500px", backgroundColor: "#fff", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
+        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#111", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
           <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
             {displayBanners.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff", position: "relative" }}>
+              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#111", position: "relative" }}>
                 <img 
                   src={url} 
                   alt={`Banner ${(idx % bannersList.length) + 1}`} 
@@ -232,13 +232,14 @@ export default function Storefront() {
                     e.currentTarget.src = "https://placehold.co/1200x800/ebd9c8/1a1a1a?text=Banner+Unavailable";
                     e.currentTarget.onerror = null;
                   }}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} 
+                  // 🟢 CHANGED: objectFit is now "contain" to prevent cropping
+                  style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center" }} 
                 />
               </div>
             ))}
           </div>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 2, pointerEvents: "none" }} />
-          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 2, pointerEvents: "none" }} />
+          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(40px, 8vw, 60px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
             {heroTitle && (
               <h1 className="sf-banner-tagline" style={{ fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px" }}>
                 {renderHeroTitle(heroTitle)}
