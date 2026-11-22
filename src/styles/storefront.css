@@ -314,3 +314,80 @@
 .sf-floating-wa:hover { transform: translateY(-3px); box-shadow: 0 16px 40px -10px rgba(10, 93, 56, 0.8); }
 .sf-floating-wa svg { width: 20px; height: 20px; fill: currentColor; }
 @media (max-width: 640px) { .sf-floating-wa { bottom: 16px; right: 16px; padding: 12px 20px; font-size: 12px; } .sf-floating-wa svg { width: 18px; height: 18px; } }
+/* ─── PRODUCT MODAL PREMIUM LAYOUT FIX ─── */
+
+.pm-layout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .pm-layout-grid {
+    grid-template-columns: 1.2fr 1fr;
+    align-items: center; /* This kills the massive desktop empty space */
+  }
+}
+
+.pm-details-col {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  padding-bottom: 48px; /* Forces space above Frequently Bought Together */
+  background: var(--bg);
+}
+
+@media (min-width: 768px) {
+  .pm-details-col {
+    padding: 48px;
+    padding-bottom: 48px;
+  }
+}
+
+.pm-fbt-section {
+  padding: 32px 24px;
+  border-top: 1px solid var(--line);
+}
+
+@media (min-width: 768px) {
+  .pm-fbt-section {
+    padding: 64px 48px;
+  }
+}
+
+/* Force the title fonts */
+.pm-title {
+  font-family: var(--serif) !important;
+  font-size: 28px;
+  font-weight: 400 !important;
+  line-height: 1.1;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+
+@media (min-width: 768px) {
+  .pm-title { font-size: 38px; }
+}
+
+.pm-fbt-title {
+  font-family: var(--serif) !important;
+  font-size: 22px;
+  font-weight: 400 !important;
+  margin-bottom: 32px;
+  color: var(--ink);
+}
+
+@media (min-width: 768px) {
+  .pm-fbt-title { font-size: 26px; }
+}
+
+/* Ensure the share section never overlaps */
+.pm-share-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px;
+  justify-content: center;
+  width: 100%;
+  margin-top: 16px;
+}
