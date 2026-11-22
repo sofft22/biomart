@@ -115,7 +115,6 @@ export default function Storefront() {
     return () => clearInterval(interval);
   }, [bannersList.length, currentBannerIndex]);
 
-  // Update active dot when user swipes manually
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
@@ -213,7 +212,7 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      {/* HEADER - Simple, non-sticky, scrolls with the page */}
+      {/* HEADER */}
       <header className="sf-head" style={{ position: "relative", zIndex: 50, backgroundColor: "transparent" }}>
         <div className="sf-head-inner" style={{ padding: "24px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
@@ -229,9 +228,9 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Native CSS Scroll Snap (Zero glitches on mobile) */}
+      {/* HERO BANNER CAROUSEL */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "70vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
+        <section className="sf-banner" style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
           
           <div 
             ref={scrollContainerRef}
@@ -283,7 +282,6 @@ export default function Storefront() {
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "140px", maxWidth: "1200px", margin: "0 auto", paddingLeft: 24, paddingRight: 24 }}>
         
-        {/* If there is no banner, add padding to top so header doesn't overlap */}
         {!hasCustomBanner && <div style={{ height: "80px" }} />}
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
@@ -372,27 +370,40 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* FOOTER */}
+      {/* FOOTER - 3 SIDE BY SIDE ON DESKTOP, STACKED ON MOBILE */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "48px", paddingBottom: "48px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+          
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(1, 1fr)", 
+            gap: "48px", 
+            paddingBottom: "48px", 
+            borderBottom: "1px solid rgba(255,255,255,0.1)" 
+          }}>
             <style>{`
               @media (min-width: 768px) {
-                .sf-footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr !important; gap: 32px !important; }
-                .sf-footer-mobile-stack { display: contents !important; }
+                .sf-footer-dynamic-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 32px !important; }
               }
               .hide-scrollbar::-webkit-scrollbar { display: none; }
             `}</style>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
-              <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
-                {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
-                {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
+
+            {/* Column 1: Brand */}
+            <div className="sf-footer-dynamic-grid" style={{ display: "contents" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
+                <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
+                  {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
+                  {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
+                </div>
+                <p style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
+                  {tagline || "Curated essentials for the modern wardrobe."}
+                </p>
               </div>
-              <p style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
-                {tagline || "Curated essentials for the modern wardrobe."}
-              </p>
             </div>
-            <div className="sf-footer-mobile-stack" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px", gridColumn: "1 / -1" }}>
+
+            {/* Wrapper for grid items 2 & 3 */}
+            <div style={{ display: "contents" }}>
+              {/* Column 2: Contact */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -401,6 +412,8 @@ export default function Storefront() {
                   {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
                 </div>
               </div>
+
+              {/* Column 3: Location */}
               <div>
                 <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
                 {address ? (
@@ -409,9 +422,10 @@ export default function Storefront() {
                   <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
                 )}
               </div>
-              <div className="hidden md:block"></div>
             </div>
+
           </div>
+
           <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
             <span>© 2026 {titleCase(store.name)}</span>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
