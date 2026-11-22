@@ -171,7 +171,7 @@ export const ProductCard = memo(function ProductCard({
       {/* 🟢 UPDATED META DATA (Matched to Frequently Bought Together) */}
       <button onClick={onClick} className="pc-meta mt-3 flex flex-col gap-1 text-left w-full">
         <p 
-          className="pc-name text-[15px] md:text-[16px] truncate leading-[1.2]"
+          className="pc-name text-[13px] md:text-[14px] truncate leading-[1.2]"
           style={{ fontFamily: 'var(--font-dm-serif), serif', color: '#1A1A1A' }}
         >
           {product.name}
