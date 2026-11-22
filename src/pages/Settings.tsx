@@ -22,10 +22,8 @@ export default function Settings() {
   const [tiktok, setTiktok] = useState(store?.tiktok ?? "");
   const [saving, setSaving] = useState(false);
 
-  // 🟢 LIVE SLUG CHECKER STATE
   const [slugStatus, setSlugStatus] = useState<"idle" | "checking" | "available" | "taken">("idle");
 
-  // 🟢 Banner State (Array of up to 4 URLs)
   const [banners, setBanners] = useState<string[]>([]);
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   
@@ -36,7 +34,6 @@ export default function Settings() {
     useRef<HTMLInputElement>(null),
   ];
 
-  // 🟢 SMART ONBOARDING REFS
   const detailsRef = useRef<HTMLElement>(null);
   const whatsappRef = useRef<HTMLDivElement>(null);
   const bannersRef = useRef<HTMLElement>(null);
@@ -61,6 +58,7 @@ export default function Settings() {
     }
   }, [location.search]);
 
+  // 🟢 FIXED: BULLETPROOF BANNER LOADING
   useEffect(() => {
     if (!store) return;
     setName(store.name ?? "");
@@ -73,16 +71,33 @@ export default function Settings() {
     setInstagram(store.instagram ?? "");
     setTiktok(store.tiktok ?? "");
     
-    let loadedBanners = [];
+    let loadedBanners: string[] = [];
+    
+    // 1. Add the main cover image
     if ((store as any).cover_url) {
       loadedBanners.push((store as any).cover_url);
     }
-    try {
-      const extras = JSON.parse((store as any).extra_banners || "[]");
+    
+    // 2. Safely parse extra banners
+    let extras = (store as any).extra_banners;
+    if (extras) {
+      if (typeof extras === 'string') {
+        try {
+          const parsed = JSON.parse(extras);
+          if (Array.isArray(parsed)) {
+            extras = parsed;
+          } else {
+            extras = [];
+          }
+        } catch (e) {
+          extras = []; // If JSON parse fails, ignore
+        }
+      }
+      
       if (Array.isArray(extras)) {
         loadedBanners = [...loadedBanners, ...extras];
       }
-    } catch (e) {}
+    }
     
     setBanners(loadedBanners.slice(0, 4));
   }, [store]);
@@ -157,7 +172,7 @@ export default function Settings() {
     setSaving(false);
   };
 
-  // 🟢 FIXED UPLOAD LOGIC
+  // 🟢 BULLETPROOF UPLOAD LOGIC
   const handleUploadBanner = async (file: File, index: number) => {
     setUploadingIndex(index);
     try {
@@ -177,8 +192,8 @@ export default function Settings() {
       await refresh(true);
       toast.show(`Banner ${index + 1} updated`);
     } catch (err: any) {
-      console.error("Banner upload error:", err);
-      toast.show(err?.message || "Could not save banner");
+      console.error("UPLOAD ERROR DETAILS:", err);
+      toast.show(err?.message || "Could not save banner to database");
     } finally {
       setUploadingIndex(null);
     }
