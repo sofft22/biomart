@@ -56,7 +56,7 @@ export default function Storefront() {
   const [itemsPerPage] = useState(10);
 
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // --- HOOKS START ---
   
@@ -95,24 +95,37 @@ export default function Storefront() {
     });
   }, [bannersList]);
 
+  // 🟢 NEW: Auto-play logic that works perfectly with scroll-snap
   useEffect(() => {
     if (bannersList.length <= 1) return;
+    
     const interval = setInterval(() => {
-      setCurrentBannerIndex((prev) => prev + 1);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [bannersList.length]);
+      if (!scrollContainerRef.current) return;
+      const container = scrollContainerRef.current;
+      const nextIndex = (currentBannerIndex + 1) % bannersList.length;
+      
+      container.scrollTo({
+        left: container.clientWidth * nextIndex,
+        behavior: "smooth"
+      });
+      
+      setCurrentBannerIndex(nextIndex);
+    }, 4000);
 
-  useEffect(() => {
-    if (currentBannerIndex === bannersList.length) {
-      const timer = setTimeout(() => {
-        setIsTransitioning(false);
-        setCurrentBannerIndex(0);
-        setTimeout(() => setIsTransitioning(true), 50); 
-      }, 600);
-      return () => clearTimeout(timer);
+    return () => clearInterval(interval);
+  }, [bannersList.length, currentBannerIndex]);
+
+  // 🟢 NEW: Update active dot when user swipes manually
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const scrollLeft = container.scrollLeft;
+    const width = container.clientWidth;
+    const newIndex = Math.round(scrollLeft / width);
+    if (newIndex !== currentBannerIndex) {
+      setCurrentBannerIndex(newIndex);
     }
-  }, [currentBannerIndex, bannersList.length]);
+  };
 
   const categoriesList = useMemo(() => {
     const raw = (store as any)?.categories;
@@ -198,8 +211,6 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = bannersList.length > 0;
 
-  const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
-
   return (
     <div className="sf-shell">
       {/* HEADER - Simple, non-sticky, scrolls with the page */}
@@ -218,28 +229,44 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Full width, centered, cover (no black bars) */}
+      {/* HERO BANNER CAROUSEL - Native CSS Scroll Snap (Zero glitches on mobile) */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#000", overflow: "hidden", position: "relative", marginTop: "-82px" }}>
-          <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
-            {displayBanners.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#000", position: "relative" }}>
+        <section className="sf-banner" style={{ height: "60vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
+          
+          <div 
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            style={{ 
+              display: "flex", 
+              height: "100%", 
+              width: "100%", 
+              overflowX: "auto", 
+              scrollSnapType: "x mandatory", 
+              scrollBehavior: "smooth",
+              msOverflowStyle: "none",
+              scrollbarWidth: "none"
+            }}
+            className="hide-scrollbar"
+          >
+            {bannersList.map((url, idx) => (
+              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, scrollSnapAlign: "center", position: "relative" }}>
                 <img 
                   src={url} 
-                  alt={`Banner ${(idx % bannersList.length) + 1}`} 
-                  loading="eager" 
+                  alt={`Banner ${idx + 1}`} 
+                  loading={idx === 0 ? "eager" : "lazy"} 
                   onError={(e) => {
                     e.currentTarget.src = "https://placehold.co/1200x800/1a1a1a/ffffff?text=Banner+Unavailable";
                     e.currentTarget.onerror = null;
                   }}
-                  // 🟢 FIXED: objectFit is "cover" to fill the screen, objectPosition is "center" to keep the focus in the middle
                   style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} 
                 />
               </div>
             ))}
           </div>
+
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.3)", zIndex: 2, pointerEvents: "none" }} />
-          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(40px, 8vw, 60px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
+          
+          <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(40px, 8vw, 60px)", paddingLeft: 24, paddingRight: 24, gap: 24, pointerEvents: "none" }}>
             {heroTitle && (
               <h1 className="sf-banner-tagline" style={{ fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px" }}>
                 {renderHeroTitle(heroTitle)}
@@ -249,6 +276,23 @@ export default function Storefront() {
               SHOP NOW 
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 8, width: 16, height: 16 }}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
             </button>
+
+            {/* Dot Indicators */}
+            {bannersList.length > 1 && (
+              <div style={{ display: "flex", gap: 8, marginTop: 24, pointerEvents: "auto" }}>
+                {bannersList.map((_, i) => (
+                  <button 
+                    key={i} 
+                    onClick={() => {
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ left: scrollContainerRef.current.clientWidth * i, behavior: "smooth" });
+                      }
+                    }}
+                    style={{ width: 8, height: 8, borderRadius: "50%", background: currentBannerIndex === i ? "#fff" : "rgba(255,255,255,0.4)", border: "none", cursor: "pointer", transition: "all 0.3s ease" }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}
@@ -354,6 +398,7 @@ export default function Storefront() {
                 .sf-footer-grid { grid-template-columns: 2fr 1fr 1fr 1fr !important; gap: 32px !important; }
                 .sf-footer-mobile-stack { display: contents !important; }
               }
+              .hide-scrollbar::-webkit-scrollbar { display: none; }
             `}</style>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
