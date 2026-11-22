@@ -262,10 +262,10 @@ How do I proceed with the payment and delivery process?`;
             {/* CONTENT COLUMN */}
             <div className="flex flex-col p-5 sm:p-10" style={{ backgroundColor: 'var(--bg)' }}>
               
-              {/* 🟢 UPDATED: Using the elegant serif font for the product name */}
+              {/* 🟢 UPDATED: Matched to global serif font */}
               <h2
                 className="text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px] pr-12 sm:pr-0"
-                style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}
+                style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}
               >
                 {product.name}
               </h2>
@@ -339,34 +339,41 @@ How do I proceed with the payment and delivery process?`;
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 sm:gap-3 mb-6">
+                  {/* 🟢 UPDATED: Side-by-side flex layout for mobile, with clamped text to prevent clipping */}
+                  <div className="flex flex-row gap-2 mb-6 w-full">
                     <button
                       onClick={handleAdd}
                       disabled={!canAdd}
-                      className="w-full rounded-[10px] py-3.5 sm:py-4 text-[11px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] transition-all duration-300"
+                      className="flex-1 min-w-0 rounded-[10px] py-3.5 sm:py-4 text-[clamp(9px,2.8vw,11px)] font-bold uppercase transition-all duration-300"
                       style={{
                         backgroundColor: canAdd ? (addedFlash ? BRAND_GREEN : CHARCOAL) : 'rgba(26,26,26,0.1)',
                         color: canAdd ? '#fff' : MUTED,
                         cursor: canAdd ? 'pointer' : 'not-allowed',
+                        letterSpacing: '0.05em'
                       }}
                     >
-                      {addedFlash ? 'Added ✓' : `Add to Bag — ${naira(totalPrice)}`}
+                      <span className="truncate block px-1">
+                        {addedFlash ? 'Added ✓' : `Add to Bag — ${naira(totalPrice)}`}
+                      </span>
                     </button>
 
                     <button
                       onClick={handleOrder}
                       disabled={!canAdd}
-                      className="flex w-full items-center justify-center gap-2 rounded-[10px] py-3.5 sm:py-4 text-[11px] font-bold uppercase tracking-[0.1em] sm:tracking-[0.15em] transition-all duration-300 shadow-md"
+                      className="flex-1 min-w-0 flex items-center justify-center gap-1.5 rounded-[10px] py-3.5 sm:py-4 text-[clamp(9px,2.8vw,11px)] font-bold uppercase transition-all duration-300 shadow-md"
                       style={{
                         backgroundColor: canAdd ? BRAND_GREEN : 'rgba(15,122,74,0.3)',
                         color: '#fff',
                         cursor: canAdd ? 'pointer' : 'not-allowed',
+                        letterSpacing: '0.05em'
                       }}
                     >
-                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5 shrink-0">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.693.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.48 3.106" />
                       </svg>
-                      <span className="truncate">Order Now — {naira(totalPrice)}</span>
+                      <span className="truncate pr-1">
+                        Order Now — {naira(totalPrice)}
+                      </span>
                     </button>
                   </div>
 
@@ -396,7 +403,11 @@ How do I proceed with the payment and delivery process?`;
           {/* FREQUENTLY BOUGHT TOGETHER */}
           {pairs.length > 0 && (
             <div className="px-5 py-10 sm:px-10 sm:py-16 border-t" style={{ borderColor: 'var(--line)' }}>
-              <h3 className="text-[20px] sm:text-[24px]" style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}>
+              {/* 🟢 UPDATED: Matched to global serif font */}
+              <h3 
+                className="text-[20px] sm:text-[24px]" 
+                style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}
+              >
                 Frequently Bought Together
               </h3>
               <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
@@ -427,8 +438,7 @@ How do I proceed with the payment and delivery process?`;
                       )}
                     </div>
                     <div className="mt-3 flex flex-col gap-1 w-full">
-                      {/* 🟢 UPDATED: Using the elegant serif font here too */}
-                      <p className="text-[15px] md:text-[16px] truncate leading-[1.2]" style={{ color: CHARCOAL, fontFamily: "var(--font-dm-serif), serif" }}>
+                      <p className="text-[15px] md:text-[16px] truncate leading-[1.2]" style={{ color: CHARCOAL, fontFamily: "var(--serif)", fontWeight: 400 }}>
                         {p.name}
                       </p>
                       <div className="flex items-baseline gap-1 mt-0">
