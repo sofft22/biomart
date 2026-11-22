@@ -95,7 +95,7 @@ export default function Storefront() {
     });
   }, [bannersList]);
 
-  // 🟢 NEW: Auto-play logic that works perfectly with scroll-snap
+  // Auto-play logic using native scroll
   useEffect(() => {
     if (bannersList.length <= 1) return;
     
@@ -115,7 +115,7 @@ export default function Storefront() {
     return () => clearInterval(interval);
   }, [bannersList.length, currentBannerIndex]);
 
-  // 🟢 NEW: Update active dot when user swipes manually
+  // Update active dot when user swipes manually
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
