@@ -52,9 +52,7 @@ export default function Storefront() {
   const categoryRef = useRef<HTMLDivElement>(null);
   const sortRef = useRef<HTMLDivElement>(null);
 
-  const [headerHidden, setHeaderHidden] = useState(false);
   const [headerSolid, setHeaderSolid] = useState(false);
-  const lastYRef = useRef(0);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
@@ -81,31 +79,15 @@ export default function Storefront() {
     track.storeVisit(slug).catch(() => {});
   }, [slug]);
 
+  // Header Sticky Fix
   useEffect(() => {
-    let ticking = false;
-    const update = () => {
-      const y = window.scrollY;
-      const last = lastYRef.current;
-      const diff = y - last;
-      const atTop = y < 40;
-
-      setHeaderSolid(y > 120);
-      if (atTop) setHeaderHidden(false);
-      else if (diff > 6 && y > 200) setHeaderHidden(true);
-      else if (diff < -6) setHeaderHidden(false);
-
-      lastYRef.current = y;
-      ticking = false;
+    const handleScroll = () => {
+      // Add a solid background when scrolling down
+      setHeaderSolid(window.scrollY > 50);
     };
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(update);
-        ticking = true;
-      }
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    update();
-    return () => window.removeEventListener("scroll", onScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll(); // Check initial state
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const bannersList = useMemo(() => {
@@ -162,7 +144,6 @@ export default function Storefront() {
     return [];
   }, [store]);
 
-  // 🟢 THE CRITICAL FIX: We added .filter(Boolean) to safely ignore empty/corrupted products
   const filtered = useMemo(() => {
     let list = (products || []).filter(Boolean); 
     
@@ -230,33 +211,34 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = bannersList.length > 0;
 
-  const headerClasses = ["sf-head", headerSolid ? "sf-head-solid" : "", !hasCustomBanner ? "sf-head-solid" : "", headerHidden ? "sf-head-hidden" : ""].filter(Boolean).join(" ");
+  // Changed header classes to use simple solid background logic
+  const headerClasses = `sf-head ${headerSolid || !hasCustomBanner ? "sf-head-solid" : ""}`;
   const displayBanners = bannersList.length > 1 ? [...bannersList, bannersList[0]] : bannersList;
 
   return (
     <div className="sf-shell">
-      {/* HEADER */}
-      <header className={headerClasses} style={{ transition: "all 0.3s ease", zIndex: 50 }}>
-        <div className="sf-head-inner" style={{ padding: "0 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      {/* HEADER - Made bigger with increased padding, and sticky via CSS classes */}
+      <header className={headerClasses} style={{ position: "sticky", top: 0, zIndex: 50, transition: "background-color 0.3s ease" }}>
+        <div className="sf-head-inner" style={{ padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
-            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(14px, 3.5vw, 18px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
+            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap" }}>{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap" }}>{titleCase(brand.second)}</span>}
           </button>
           <div className="sf-head-actions" style={{ flexShrink: 0 }}>
-            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
+            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart" style={{ padding: 10 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
               {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
             </button>
           </div>
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL */}
+      {/* HERO BANNER CAROUSEL - Adjusted to 85vh to prevent cutoffs and look premium */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ minHeight: "70vh", backgroundColor: "#fff", overflow: "hidden" }}>
-          <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
+        <section className="sf-banner" style={{ height: "85vh", minHeight: "500px", backgroundColor: "#fff", overflow: "hidden", position: "relative" }}>
+          <div style={{ display: "flex", height: "100%", width: "100%", transition: isTransitioning ? "transform 0.8s cubic-bezier(0.22, 1, 0.36, 1)" : "none", transform: `translateX(-${currentBannerIndex * 100}%)` }}>
             {displayBanners.map((url, idx) => (
-              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff" }}>
+              <div key={idx} style={{ minWidth: "100%", height: "100%", flexShrink: 0, backgroundColor: "#fff", position: "relative" }}>
                 <img 
                   src={url} 
                   alt={`Banner ${(idx % bannersList.length) + 1}`} 
@@ -265,12 +247,12 @@ export default function Storefront() {
                     e.currentTarget.src = "https://placehold.co/1200x800/ebd9c8/1a1a1a?text=Banner+Unavailable";
                     e.currentTarget.onerror = null;
                   }}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }} 
+                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center" }} 
                 />
               </div>
             ))}
           </div>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 2, pointerEvents: "none" }} />
+          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 2, pointerEvents: "none" }} />
           <div className="sf-banner-text" style={{ position: "absolute", inset: 0, zIndex: 3, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", paddingBottom: "clamp(60px, 12vw, 100px)", paddingLeft: 24, paddingRight: 24, gap: 24 }}>
             {heroTitle && (
               <h1 className="sf-banner-tagline" style={{ fontFamily: "'Playfair Display', 'Georgia', serif", color: "#fff", fontSize: "clamp(2.5rem, 8vw, 5rem)", fontWeight: 600, textAlign: "center", lineHeight: 1.1, letterSpacing: "-0.02em", margin: 0, textShadow: "0 4px 20px rgba(0,0,0,0.5)", maxWidth: "900px" }}>
@@ -286,7 +268,7 @@ export default function Storefront() {
       )}
 
       {/* SHOP ALL SECTION */}
-      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "120px" }}>
+      <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "140px", maxWidth: "1200px", margin: "0 auto", paddingLeft: 24, paddingRight: 24 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
           <div ref={categoryRef} style={{ position: "relative", flex: "1 1 auto", minWidth: 0 }}>
             <button onClick={() => setCategoryOpen(!categoryOpen)} style={{ background: "transparent", border: "none", padding: 0, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
