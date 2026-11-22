@@ -58,8 +58,6 @@ export default function Storefront() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // --- HOOKS START ---
-  
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -95,23 +93,18 @@ export default function Storefront() {
     });
   }, [bannersList]);
 
-  // Auto-play logic using native scroll
   useEffect(() => {
     if (bannersList.length <= 1) return;
-    
     const interval = setInterval(() => {
       if (!scrollContainerRef.current) return;
       const container = scrollContainerRef.current;
       const nextIndex = (currentBannerIndex + 1) % bannersList.length;
-      
       container.scrollTo({
         left: container.clientWidth * nextIndex,
         behavior: "smooth"
       });
-      
       setCurrentBannerIndex(nextIndex);
     }, 4000);
-
     return () => clearInterval(interval);
   }, [bannersList.length, currentBannerIndex]);
 
@@ -166,8 +159,6 @@ export default function Storefront() {
     return sorted;
   }, [products, query, sort, activeCategory]);
 
-  // --- HOOKS END ---
-
   if (loading) {
     return <div className="sf-loading"><div className="sf-spinner" /></div>;
   }
@@ -212,6 +203,22 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
+      {/* 
+        CRITICAL OVERRIDES FOR HERO AND FOOTER 
+        We use explicit media queries here to force the 85vh and 3-column layout.
+      */}
+      <style>{`
+        @media (min-width: 768px) {
+          .sf-banner-desktop-override {
+            height: 85vh !important; 
+          }
+          .sf-footer-3-col {
+            grid-template-columns: 2fr 1fr 1fr !important;
+            gap: 48px !important;
+          }
+        }
+      `}</style>
+
       {/* HEADER */}
       <header className="sf-head" style={{ position: "relative", zIndex: 50, backgroundColor: "transparent" }}>
         <div className="sf-head-inner" style={{ padding: "24px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
@@ -228,10 +235,12 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL */}
+      {/* HERO BANNER CAROUSEL - Increased by 15vh */}
       {hasCustomBanner && (
-        <section className="sf-banner" style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}>
-          
+        <section 
+          className="sf-banner sf-banner-desktop-override" 
+          style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}
+        >
           <div 
             ref={scrollContainerRef}
             onScroll={handleScroll}
@@ -281,7 +290,6 @@ export default function Storefront() {
 
       {/* SHOP ALL SECTION */}
       <section className="sf-section" id="shop-all" style={{ paddingTop: hasCustomBanner ? "100px" : "140px", maxWidth: "1200px", margin: "0 auto", paddingLeft: 24, paddingRight: 24 }}>
-        
         {!hasCustomBanner && <div style={{ height: "80px" }} />}
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "nowrap", gap: 12, marginBottom: 32 }}>
@@ -370,60 +378,50 @@ export default function Storefront() {
         )}
       </section>
 
-      {/* FOOTER - 3 SIDE BY SIDE ON DESKTOP, STACKED ON MOBILE */}
+      {/* FOOTER - DESKTOP 3-COLUMNS SIDE BY SIDE */}
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
-          <div style={{ 
-            display: "grid", 
-            gridTemplateColumns: "repeat(1, 1fr)", 
-            gap: "48px", 
-            paddingBottom: "48px", 
-            borderBottom: "1px solid rgba(255,255,255,0.1)" 
-          }}>
-            <style>{`
-              @media (min-width: 768px) {
-                .sf-footer-dynamic-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 32px !important; }
-              }
-              .hide-scrollbar::-webkit-scrollbar { display: none; }
-            `}</style>
-
+          <div 
+            className="sf-footer-3-col" 
+            style={{ 
+              display: "grid", 
+              gridTemplateColumns: "1fr", 
+              gap: "48px", 
+              paddingBottom: "48px", 
+              borderBottom: "1px solid rgba(255,255,255,0.1)" 
+            }}
+          >
             {/* Column 1: Brand */}
-            <div className="sf-footer-dynamic-grid" style={{ display: "contents" }}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
-                <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
-                  {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
-                  {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
-                </div>
-                <p style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
-                  {tagline || "Curated essentials for the modern wardrobe."}
-                </p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
+              <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
+                {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
+                {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
+              </div>
+              <p style={{ maxWidth: 300, margin: 0, color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
+                {tagline || "Curated essentials for the modern wardrobe."}
+              </p>
+            </div>
+
+            {/* Column 2: Contact */}
+            <div>
+              <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
+                {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
+                {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
               </div>
             </div>
 
-            {/* Wrapper for grid items 2 & 3 */}
-            <div style={{ display: "contents" }}>
-              {/* Column 2: Contact */}
-              <div>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Contact</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                  {store.whatsapp && <a href={`https://wa.me/${store.whatsapp.replace(/\D/g, "")}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>WhatsApp</a>}
-                  {store.instagram && <a href={`https://instagram.com/${store.instagram}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>Instagram</a>}
-                  {store.tiktok && <a href={`https://tiktok.com/@${store.tiktok}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14 }}>TikTok</a>}
-                </div>
-              </div>
-
-              {/* Column 3: Location */}
-              <div>
-                <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
-                {address ? (
-                  <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>{address}</a>
-                ) : (
-                  <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
-                )}
-              </div>
+            {/* Column 3: Location */}
+            <div>
+              <h4 style={{ color: "rgba(255,255,255,0.4)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 20, fontWeight: 700 }}>Location</h4>
+              {address ? (
+                <a href={`https://maps.google.com/?q=${encodeURIComponent(address)}`} target="_blank" rel="noopener" style={{ color: "rgba(255,255,255,0.8)", textDecoration: "none", fontSize: 14, lineHeight: 1.6, display: "block", maxWidth: 200 }}>{address}</a>
+              ) : (
+                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 14 }}>—</span>
+              )}
             </div>
-
           </div>
 
           <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 16, paddingTop: 32, fontSize: 13, color: "rgba(255,255,255,0.4)", width: "100%" }}>
