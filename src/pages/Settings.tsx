@@ -157,10 +157,12 @@ export default function Settings() {
     setSaving(false);
   };
 
+  // 🟢 FIXED UPLOAD LOGIC
   const handleUploadBanner = async (file: File, index: number) => {
     setUploadingIndex(index);
     try {
       const url = await uploadImage(file);
+      if (!url) throw new Error("Image upload failed to return a URL");
       
       const newBanners = [...banners];
       newBanners[index] = url;
@@ -174,10 +176,12 @@ export default function Settings() {
       await storeApi.update({ cover_url, extra_banners } as any);
       await refresh(true);
       toast.show(`Banner ${index + 1} updated`);
-    } catch (err) {
-      toast.show(err instanceof Error ? err.message : "Upload failed");
+    } catch (err: any) {
+      console.error("Banner upload error:", err);
+      toast.show(err?.message || "Could not save banner");
+    } finally {
+      setUploadingIndex(null);
     }
-    setUploadingIndex(null);
   };
 
   const removeBanner = async (index: number) => {
