@@ -15,7 +15,6 @@ function formatPrice(n: number): string {
 
 export default function Dashboard() {
   const nav = useNavigate();
-  // 🟢 Just pull products directly from auth, no local state needed.
   const { store: currentStore, products, refresh } = useAuth();
   const toast = useToast();
 
