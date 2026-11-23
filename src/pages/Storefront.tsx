@@ -58,7 +58,7 @@ export default function Storefront() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 🟢 NEW: Track scroll state for the sticky header
+  // 🟢 Track scroll state for the sticky header
   const [scrolled, setScrolled] = useState(0);
 
   useEffect(() => {
@@ -70,7 +70,6 @@ export default function Storefront() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 🟢 NEW: Scroll listener for sticky header logic
   useEffect(() => {
     const handleScrollWindow = () => setScrolled(window.scrollY);
     window.addEventListener("scroll", handleScrollWindow, { passive: true });
@@ -211,8 +210,6 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = bannersList.length > 0;
 
-  // 🟢 NEW: Determine if header is over the hero
-  // Adjust the '100' if your hero is a different height
   const overHero = hasCustomBanner && scrolled < 100; 
   const headerText = overHero ? "#fff" : "var(--ink)";
   const headerBg = overHero ? "transparent" : "rgba(251, 249, 245, 0.94)";
@@ -220,18 +217,6 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
-      <style>{`
-        @media (min-width: 768px) {
-          .sf-banner-desktop-override {
-            height: 85vh !important; 
-          }
-          .sf-footer-3-col {
-            grid-template-columns: 2fr 1fr 1fr !important;
-            gap: 48px !important;
-          }
-        }
-      `}</style>
-
       {/* 🟢 STICKY HEADER */}
       <header 
         className="sf-head" 
@@ -266,11 +251,17 @@ export default function Storefront() {
         </div>
       </header>
 
-      {/* HERO BANNER CAROUSEL - Increased by 15vh */}
+      {/* 🟢 HERO BANNER CAROUSEL - SHORTER ON MOBILE, TALLER ON DESKTOP */}
       {hasCustomBanner && (
         <section 
-          className="sf-banner sf-banner-desktop-override" 
-          style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: 0 }}
+          className="sf-banner" 
+          style={{ 
+            height: "clamp(450px, 70vh, 850px)", 
+            minHeight: "450px", 
+            backgroundColor: "#000", 
+            position: "relative", 
+            marginTop: 0 
+          }}
         >
           <div 
             ref={scrollContainerRef}
