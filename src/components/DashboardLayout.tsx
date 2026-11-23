@@ -55,7 +55,6 @@ const NAV = [
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { store, refresh } = useAuth();
   const nav = useNavigate();
-  const [hidden, setHidden] = useState(false);
 
   async function onLogout() {
     try {
@@ -67,118 +66,120 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     nav("/login");
   }
 
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let ticking = false;
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const y = window.scrollY;
-        const delta = y - lastY;
-
-        if (Math.abs(delta) > 6) {
-          if (delta > 0 && y > 80) {
-            setHidden(true);
-          } else if (delta < 0) {
-            setHidden(false);
-          }
-          lastY = y;
-        }
-        ticking = false;
-      });
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
     <div className="dash-shell">
       <style>{`
-        /* Hide-on-scroll topbar */
+        /* 🟢 Sticky Topbar */
         .dash-topbar {
-          transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
-          will-change: transform;
-        }
-        .dash-topbar.is-hidden {
-          transform: translateY(-110%);
+          position: sticky;
+          top: 0;
+          z-index: 40;
+          background: rgba(251, 249, 245, 0.85);
+          backdrop-filter: blur(18px) saturate(1.4);
+          -webkit-backdrop-filter: blur(18px) saturate(1.4);
+          border-bottom: 1px solid var(--line);
         }
 
-        /* Mobile tab bar */
+        /* 🟢 Sticky Sidebar */
+        @media (min-width: 900px) {
+          .dash-aside {
+            position: sticky;
+            top: 100px; /* Adjust based on topbar height */
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+          }
+        }
+
+        /* 🟢 Glassmorphism Mobile Tab Bar */
         @media (max-width: 899px) {
           .dash-tabbar {
-            display: grid !important;
-            grid-template-columns: repeat(4, 1fr) !important;
+            display: flex !important;
             align-items: center !important;
-            justify-items: stretch !important;
+            justify-content: space-around !important;
+            
             position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            left: 16px;
+            right: 16px;
+            bottom: 20px;
             z-index: 50;
-            background: rgba(251, 249, 245, 0.96);
-            backdrop-filter: blur(18px) saturate(1.4);
-            -webkit-backdrop-filter: blur(18px) saturate(1.4);
-            border-top: 1px solid var(--line);
-            padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
-            gap: 4px;
-            height: auto;
+            
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 99px;
+            
+            padding: 8px 12px;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15);
           }
+          
           .dash-tab {
             display: flex !important;
             flex-direction: column !important;
             align-items: center !important;
             justify-content: center !important;
-            gap: 3px;
-            padding: 8px 4px !important;
+            gap: 4px;
+            padding: 8px 16px !important;
             margin: 0 !important;
-            height: 52px;
+            height: auto;
             line-height: 1 !important;
             font: 700 10px/1 var(--font) !important;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.02em;
             color: var(--muted);
             text-decoration: none;
-            border-radius: 12px;
-            transition: color 0.15s ease, background 0.15s ease;
+            border-radius: 99px;
+            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
             box-sizing: border-box;
           }
+          
           .dash-tab .ic {
             width: 22px !important;
             height: 22px !important;
             flex: none;
             margin: 0 !important;
             display: block;
+            transition: transform 0.3s ease;
           }
+          
           .dash-tab > span {
             display: block;
             margin: 0 !important;
             line-height: 1 !important;
             transform: translateY(0);
+            opacity: 0; /* Hide label by default for clean pill */
+            max-height: 0;
+            transition: all 0.3s ease;
           }
+          
           .dash-tab.active {
-            color: var(--ink);
-            background: rgba(15, 122, 74, 0.07);
+            color: var(--green);
+            background: rgba(15, 122, 74, 0.1);
+            padding: 8px 20px !important;
           }
-          .dash-tab.active .ic { color: var(--green); }
-          .dash-body { padding-bottom: 92px !important; }
+          .dash-tab.active .ic {
+            transform: scale(1.1);
+          }
+          .dash-tab.active > span {
+            opacity: 1;
+            max-height: 20px;
+            margin-top: 2px !important;
+          }
+          
+          .dash-body { padding-bottom: 110px !important; }
           .dash-aside { display: none !important; }
           
-          /* 🟢 Mobile Top Bar tweaks */
           .dash-store-slug { display: none !important; }
           .dash-store-link { padding: 8px !important; }
+
+          /* Push HelpWidget up */
+          .dash-shell > div:last-child {
+            bottom: 95px !important;
+            right: 20px !important;
+          }
         }
+        
         @media (min-width: 900px) {
           .dash-tabbar { display: none !important; }
-        }
-
-        /* 🟢 Push the help widget up on mobile so it doesn't cover the tab bar */
-        @media (max-width: 899px) {
-          .dash-shell > div:last-child {
-            bottom: 90px !important;
-            right: 16px !important;
-          }
         }
       `}</style>
 
@@ -186,7 +187,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="dash-blob g" />
       </div>
 
-      <header className={`dash-topbar ${hidden ? "is-hidden" : ""}`}>
+      {/* STICKY HEADER */}
+      <header className="dash-topbar">
         <div className="dash-wrap dash-topbar-inner">
           <Link to="/dashboard" className="auth-brand">
             <span className="auth-brand-mark">
@@ -218,7 +220,6 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 title="Visit Store"
               >
                 <span className="dash-store-dot" />
-                {/* 🟢 Only show text on desktop, hide on mobile */}
                 <span className="dash-store-slug" style={{ fontSize: 13, fontWeight: 500, color: "var(--muted)" }}>
                   /{store.slug}
                 </span>
@@ -243,6 +244,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="dash-body">
         <div className="dash-wrap">
           <div className="dash-grid">
+            
+            {/* STICKY SIDEBAR */}
             <aside className="dash-aside">
               <nav className="dash-nav" aria-label="Dashboard">
                 {NAV.map((item) => (
@@ -266,6 +269,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+      {/* FLOATING GLASSMORPHISM MOBILE TAB BAR */}
       <nav className="dash-tabbar" aria-label="Mobile navigation">
         {NAV.map((item) => (
           <NavLink
@@ -281,6 +285,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </NavLink>
         ))}
       </nav>
+
       <HelpWidget />
     </div>
   );
