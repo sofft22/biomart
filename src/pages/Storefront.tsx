@@ -58,7 +58,6 @@ export default function Storefront() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // 🟢 Track scroll state for the sticky header
   const [scrolled, setScrolled] = useState(0);
 
   useEffect(() => {
@@ -217,6 +216,28 @@ export default function Storefront() {
 
   return (
     <div className="sf-shell">
+      
+      {/* 🟢 CSS GRID OVERRIDE FOR FOOTER */}
+      <style>{`
+        .footer-grid-layout {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 40px 24px;
+        }
+        .footer-brand {
+          grid-column: 1 / -1; /* Takes full width on mobile */
+        }
+        @media (min-width: 768px) {
+          .footer-grid-layout {
+            grid-template-columns: 2fr 1fr 1fr; /* 3 columns side-by-side on desktop */
+            gap: 48px;
+          }
+          .footer-brand {
+            grid-column: auto; /* Resets to normal column on desktop */
+          }
+        }
+      `}</style>
+
       {/* 🟢 STICKY HEADER */}
       <header 
         className="sf-head" 
@@ -404,18 +425,16 @@ export default function Storefront() {
       <footer className="sf-footer" id="contact" style={{ paddingTop: "64px", paddingBottom: "32px" }}>
         <div className="sf-footer-inner" style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 24px" }}>
           
+          {/* 🟢 APPLYING THE FOOTER GRID LAYOUT */}
           <div 
-            className="sf-footer-3-col" 
+            className="footer-grid-layout" 
             style={{ 
-              display: "grid", 
-              gridTemplateColumns: "1fr", 
-              gap: "48px", 
               paddingBottom: "48px", 
               borderBottom: "1px solid rgba(255,255,255,0.1)" 
             }}
           >
             {/* Column 1: Brand */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
+            <div className="footer-brand" style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", textAlign: "left" }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "flex-start", gap: 6 }}>
                 {brand.first && <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", color: "#fff" }}>{titleCase(brand.first)}</span>}
                 {brand.second && <span style={{ fontSize: 24, fontWeight: 300, letterSpacing: "0.05em", textTransform: "uppercase", color: "rgba(255,255,255,0.7)" }}>{titleCase(brand.second)}</span>}
