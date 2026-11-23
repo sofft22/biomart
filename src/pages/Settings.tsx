@@ -13,6 +13,7 @@ export default function Settings() {
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(store?.name ?? "");
   const [slug, setSlug] = useState((store as any)?.slug ?? "");
+  const [tagline, setTagline] = useState((store as any)?.tagline ?? "");
   const [heroTitle, setHeroTitle] = useState((store as any)?.hero_title ?? "");
   const [categories, setCategories] = useState((store as any)?.categories ?? "");
   const [address, setAddress] = useState((store as any)?.address ?? "");
@@ -57,11 +58,11 @@ export default function Settings() {
     }
   }, [location.search]);
 
-  // 🟢 FIXED: BULLETPROOF BANNER LOADING
   useEffect(() => {
     if (!store) return;
     setName(store.name ?? "");
     setSlug((store as any).slug ?? "");
+    setTagline((store as any).tagline ?? "");
     setHeroTitle((store as any).hero_title ?? "");
     setCategories((store as any).categories ?? "");
     setAddress((store as any).address ?? "");
@@ -71,12 +72,10 @@ export default function Settings() {
     
     let loadedBanners: string[] = [];
     
-    // 1. Add the main cover image
     if ((store as any).cover_url) {
       loadedBanners.push((store as any).cover_url);
     }
     
-    // 2. Safely parse extra banners
     let extras = (store as any).extra_banners;
     if (extras) {
       if (typeof extras === 'string') {
@@ -88,7 +87,7 @@ export default function Settings() {
             extras = [];
           }
         } catch (e) {
-          extras = []; // If JSON parse fails, ignore
+          extras = []; 
         }
       }
       
@@ -152,6 +151,7 @@ export default function Settings() {
       await storeApi.update({
         name: name.trim(),
         slug: finalSlug.trim(),
+        tagline: tagline.trim() || null, // 👈 RESTORED
         hero_title: heroTitle.trim() || null,
         categories: categories.trim() || null,
         address: address.trim() || null,
@@ -169,7 +169,6 @@ export default function Settings() {
     setSaving(false);
   };
 
-  // 🟢 BULLETPROOF UPLOAD LOGIC
   const handleUploadBanner = async (file: File, index: number) => {
     setUploadingIndex(index);
     try {
@@ -238,6 +237,7 @@ export default function Settings() {
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Name</span><p style={{ fontSize: 16, fontWeight: 600, margin: "4px 0 0" }}>{name || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Store Link</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>biomart.pages.dev/{slug || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Hero Title</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{heroTitle || "—"}</p></div>
+              <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Tagline</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{tagline || "—"}</p></div> {/* 👈 RESTORED */}
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Categories</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{categories || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>WhatsApp</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{whatsapp || "—"}</p></div>
               <div><span style={{ fontSize: 12, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase" }}>Instagram</span><p style={{ fontSize: 15, margin: "4px 0 0" }}>{instagram ? `@${instagram}` : "—"}</p></div>
@@ -276,6 +276,10 @@ export default function Settings() {
                 <div>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Hero Title (Max 20 chars)</label>
                   <input className="pe-input" value={heroTitle} maxLength={20} placeholder="e.g. Sips & Treats." onChange={(e) => setHeroTitle(e.target.value)} />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Tagline (Max 50 chars)</label> {/* 👈 RESTORED */}
+                  <input className="pe-input" value={tagline} maxLength={50} onChange={(e) => setTagline(e.target.value)} /> {/* 👈 RESTORED */}
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={{ display: "block", fontSize: 13, fontWeight: 600, marginBottom: 8 }}>Categories (Comma separated)</label>
