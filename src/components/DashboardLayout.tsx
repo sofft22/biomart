@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { auth } from "../lib/api";
@@ -69,19 +69,19 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dash-shell">
       <style>{`
-        /* 🟢 Normal scrolling header */
+        /* 🟢 Normal scrolling header (NO POSITION: STICKY, NO FIXED) */
         .dash-topbar {
           background: rgba(251, 249, 245, 0.85);
-          backdrop-filter: blur(18px) saturate(1.4);
-          -webkit-backdrop-filter: blur(18px) saturate(1.4);
           border-bottom: 1px solid var(--line);
+          /* Explicitly ensuring it is static */
+          position: static !important; 
         }
 
         /* 🟢 Sticky Sidebar */
         @media (min-width: 900px) {
           .dash-aside {
             position: sticky;
-            top: 40px; /* Adjust based on how far from the top you want it */
+            top: 40px;
             height: calc(100vh - 80px);
             overflow-y: auto;
           }
@@ -143,7 +143,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             margin: 0 !important;
             line-height: 1 !important;
             transform: translateY(0);
-            opacity: 0; /* Hide label by default for clean pill */
+            opacity: 0;
             max-height: 0;
             transition: all 0.3s ease;
           }
