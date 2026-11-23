@@ -204,7 +204,7 @@ export default function Plan() {
               Get a full online store built from scratch, tailored exactly to your brand's needs.
             </p>
             <div className="p" style={{ fontSize: 20, marginBottom: 16 }}>
-              <span>From ₦70,000</span>
+              <span>From ₦100,000</span>
             </div>
             
             <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px 24px", margin: 0, paddingLeft: 20, fontSize: 13, color: "var(--muted)", lineHeight: 1.5 }}>
