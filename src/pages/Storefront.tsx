@@ -58,6 +58,9 @@ export default function Storefront() {
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // 🟢 NEW: Track scroll state for the sticky header
+  const [scrolled, setScrolled] = useState(0);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (categoryRef.current && !categoryRef.current.contains(event.target as Node)) setCategoryOpen(false);
@@ -65,6 +68,13 @@ export default function Storefront() {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // 🟢 NEW: Scroll listener for sticky header logic
+  useEffect(() => {
+    const handleScrollWindow = () => setScrolled(window.scrollY);
+    window.addEventListener("scroll", handleScrollWindow, { passive: true });
+    return () => window.removeEventListener("scroll", handleScrollWindow);
   }, []);
 
   useEffect(() => {
@@ -201,12 +211,15 @@ export default function Storefront() {
   const address = (store as any).address || "";
   const hasCustomBanner = bannersList.length > 0;
 
+  // 🟢 NEW: Determine if header is over the hero
+  // Adjust the '100' if your hero is a different height
+  const overHero = hasCustomBanner && scrolled < 100; 
+  const headerText = overHero ? "#fff" : "var(--ink)";
+  const headerBg = overHero ? "transparent" : "rgba(251, 249, 245, 0.94)";
+  const headerBorder = overHero ? "transparent" : "var(--line)";
+
   return (
     <div className="sf-shell">
-      {/* 
-        CRITICAL OVERRIDES FOR HERO AND FOOTER 
-        We use explicit media queries here to force the 85vh and 3-column layout.
-      */}
       <style>{`
         @media (min-width: 768px) {
           .sf-banner-desktop-override {
@@ -219,17 +232,35 @@ export default function Storefront() {
         }
       `}</style>
 
-      {/* HEADER */}
-      <header className="sf-head" style={{ position: "relative", zIndex: 50, backgroundColor: "transparent" }}>
+      {/* 🟢 STICKY HEADER */}
+      <header 
+        className="sf-head" 
+        style={{ 
+          position: "fixed", 
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50, 
+          backgroundColor: headerBg,
+          borderBottom: `1px solid ${headerBorder}`,
+          backdropFilter: overHero ? "none" : "blur(18px) saturate(1.4)",
+          WebkitBackdropFilter: overHero ? "none" : "blur(18px) saturate(1.4)",
+          transition: "background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease"
+        }}
+      >
         <div className="sf-head-inner" style={{ padding: "24px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", maxWidth: "1400px", margin: "0 auto" }}>
           <button onClick={scrollToTop} className="sf-wordmark" aria-label={store.name} style={{ display: "flex", gap: 6, alignItems: "center", flex: 1, minWidth: 0, paddingRight: "16px" }}>
-            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: "#fff", fontWeight: 700 }}>{titleCase(brand.first)}</span>}
-            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: "#fff", fontWeight: 300 }}>{titleCase(brand.second)}</span>}
+            {brand.first && <span className="sf-wordmark-1" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: headerText, fontWeight: 700 }}>{titleCase(brand.first)}</span>}
+            {brand.second && <span className="sf-wordmark-2" style={{ fontSize: "clamp(18px, 4vw, 22px)", whiteSpace: "nowrap", color: headerText, opacity: overHero ? 0.78 : 0.6, fontWeight: 300 }}>{titleCase(brand.second)}</span>}
           </button>
           <div className="sf-head-actions" style={{ flexShrink: 0 }}>
-            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart" style={{ padding: 10, color: "#fff" }}>
+            <button onClick={() => setCartOpen(true)} className="sf-icon-btn" aria-label="Cart" style={{ padding: 10, color: headerText }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" style={{ width: 24, height: 24 }}><path d="M5 8h14l-1 12H6L5 8z" /><path d="M9 8V6a3 3 0 0 1 6 0v2" /></svg>
-              {cart.count > 0 && <span className="sf-icon-badge">{cart.count > 99 ? "99+" : cart.count}</span>}
+              {cart.count > 0 && (
+                <span className="sf-icon-badge" style={{ borderColor: overHero ? "rgba(255,255,255,0.85)" : "var(--bg)" }}>
+                  {cart.count > 99 ? "99+" : cart.count}
+                </span>
+              )}
             </button>
           </div>
         </div>
@@ -239,7 +270,7 @@ export default function Storefront() {
       {hasCustomBanner && (
         <section 
           className="sf-banner sf-banner-desktop-override" 
-          style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: "-82px" }}
+          style={{ height: "85vh", minHeight: "400px", backgroundColor: "#000", position: "relative", marginTop: 0 }}
         >
           <div 
             ref={scrollContainerRef}
