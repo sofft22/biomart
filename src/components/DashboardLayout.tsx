@@ -69,11 +69,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="dash-shell">
       <style>{`
-        /* 🟢 Sticky Topbar */
+        /* 🟢 Normal scrolling header */
         .dash-topbar {
-          position: sticky;
-          top: 0;
-          z-index: 40;
           background: rgba(251, 249, 245, 0.85);
           backdrop-filter: blur(18px) saturate(1.4);
           -webkit-backdrop-filter: blur(18px) saturate(1.4);
@@ -84,8 +81,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         @media (min-width: 900px) {
           .dash-aside {
             position: sticky;
-            top: 100px; /* Adjust based on topbar height */
-            height: calc(100vh - 120px);
+            top: 40px; /* Adjust based on how far from the top you want it */
+            height: calc(100vh - 80px);
             overflow-y: auto;
           }
         }
@@ -187,7 +184,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="dash-blob g" />
       </div>
 
-      {/* STICKY HEADER */}
+      {/* NORMAL SCROLLING HEADER */}
       <header className="dash-topbar">
         <div className="dash-wrap dash-topbar-inner">
           <Link to="/dashboard" className="auth-brand">
