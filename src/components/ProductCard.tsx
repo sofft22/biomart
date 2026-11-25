@@ -1,4 +1,4 @@
-import { useState, memo } from 'react';
+import { useState, memo, useEffect } from 'react';
 import type { Product } from '../types';
 import { naira } from '../lib/format';
 
@@ -11,11 +11,14 @@ interface Props {
   index?: number;
 }
 
+const FALLBACK_IMAGE = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image+Unavailable";
+const IMGBB_ERROR_IMAGE = "https://i.ibb.co/6P4X8z3/service-unavailable.png"; // Just in case they return a specific URL
+
 export const ProductCard = memo(function ProductCard({
   product,
   onClick,
   onAddToCart,
-  priority,
+  priority = false,
   showNew = false,
   index = 0,
 }: Props) {
@@ -23,6 +26,7 @@ export const ProductCard = memo(function ProductCard({
 
   const [imgLoaded, setImgLoaded] = useState(false);
   const [activeIdx, setActiveIdx] = useState(0);
+  const [imgError, setImgError] = useState(false);
 
   const images = [product?.image_url, ...(product?.image_urls ?? [])].filter(
     (u): u is string => !!u
@@ -31,7 +35,6 @@ export const ProductCard = memo(function ProductCard({
   const hasSecondImage = images.length > 1;
   const altText = `${product.name} — biomart`;
   const inStock = (product as any).inStock ?? (product as any).in_stock ?? true;
-
   const hasDiscount = product.compare_at_price != null && product.compare_at_price > product.price;
 
   const handleQuickAction = (e: React.MouseEvent) => {
@@ -45,31 +48,42 @@ export const ProductCard = memo(function ProductCard({
     setActiveIdx(Math.round(el.scrollLeft / el.clientWidth));
   };
 
+  // Preload the image in the background to make it snap into place instantly
+  useEffect(() => {
+    if (!images[0]) return;
+    const img = new Image();
+    img.src = images[0];
+    img.onload = () => setImgLoaded(true);
+    img.onerror = () => {
+      setImgError(true);
+      setImgLoaded(true); // Stop the skeleton loader even if it fails
+    };
+  }, [images]);
+
   const delay = Math.min(index * 0.06, 0.6);
+  const displayImage = imgError ? FALLBACK_IMAGE : (images[0] || FALLBACK_IMAGE);
 
   return (
     <article className="pc group flex flex-col cursor-pointer w-full" style={{ animationDelay: `${delay}s` }}>
       
-      {/* IMAGE CONTAINER - Minimalist */}
+      {/* IMAGE CONTAINER */}
       <button onClick={onClick} className="pc-media relative aspect-[4/5] w-full overflow-hidden bg-black/5" aria-label={`View ${product.name}`}>
-        {!imgLoaded && images.length > 0 && <div className="absolute inset-0 animate-pulse bg-black/5" />}
+        
+        {/* Skeleton Loader - Only shows if it's actually loading */}
+        {!imgLoaded && <div className="absolute inset-0 animate-pulse bg-black/5 z-0" />}
 
         <div className="pc-desktop h-full w-full hidden md:block">
-          {images[0] && (
-            <img
-              src={images[0]}
-              alt={altText}
-              loading={priority ? 'eager' : 'lazy'}
-              fetchPriority={priority ? 'high' : 'auto'}
-              decoding="async"
-              onLoad={() => setImgLoaded(true)}
-              onError={(e) => {
-                e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
-                e.currentTarget.onerror = null;
-              }}
-              className={`pc-img object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${hasSecondImage ? 'has-second' : ''}`}
-            />
-          )}
+          <img
+            src={displayImage}
+            alt={altText}
+            loading={priority ? 'eager' : 'lazy'}
+            fetchPriority={priority ? 'high' : 'auto'}
+            decoding="async"
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)} // 🔥 Instantly swap to grey box on error
+            className={`pc-img object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'} ${hasSecondImage ? 'has-second' : ''}`}
+          />
+          
           {hasSecondImage && (
             <img
               src={images[1]}
@@ -77,7 +91,7 @@ export const ProductCard = memo(function ProductCard({
               loading="lazy"
               decoding="async"
               onError={(e) => {
-                e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
+                e.currentTarget.src = FALLBACK_IMAGE;
                 e.currentTarget.onerror = null;
               }}
               className="pc-img pc-img-alt object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-105"
@@ -91,13 +105,13 @@ export const ProductCard = memo(function ProductCard({
               {images.map((url, i) => (
                 <div key={i} className="pc-slide min-w-full h-full snap-center">
                   <img
-                    src={url}
+                    src={imgError && i === 0 ? FALLBACK_IMAGE : url}
                     alt={i === 0 ? altText : `${product.name} — view ${i + 1}`}
                     loading={i === 0 && priority ? 'eager' : 'lazy'}
                     decoding="async"
-                    onLoad={i === 0 ? () => setImgLoaded(true) : undefined}
                     onError={(e) => {
-                      e.currentTarget.src = "https://placehold.co/600x800/F5F5F5/1A1A1A?text=Image";
+                      // 🔥 Second line of defense for mobile
+                      e.currentTarget.src = FALLBACK_IMAGE;
                       e.currentTarget.onerror = null;
                     }}
                     className="pc-img object-cover w-full h-full"
@@ -113,25 +127,16 @@ export const ProductCard = memo(function ProductCard({
           {hasSecondImage && (
             <div 
               style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "flex-end",
-                gap: 3,
-                zIndex: 10,
-                pointerEvents: "none",
-                paddingBottom: 6
+                position: "absolute", bottom: 0, left: 0, right: 0, display: "flex",
+                justifyContent: "center", alignItems: "flex-end", gap: 3, zIndex: 10,
+                pointerEvents: "none", paddingBottom: 6
               }}
             >
               {images.map((_, i) => (
                 <span 
                   key={i} 
                   style={{
-                    height: 2,
-                    width: i === activeIdx ? 12 : 6,
+                    height: 2, width: i === activeIdx ? 12 : 6,
                     background: i === activeIdx ? "#1A1A1A" : "rgba(26,26,26,0.3)",
                     transition: "all 0.3s ease",
                   }}
@@ -155,7 +160,6 @@ export const ProductCard = memo(function ProductCard({
           </div>
         )}
 
-        {/* HOVER CTA (Desktop Only) */}
         {inStock && (
           <div className="pc-hover-cta absolute bottom-4 left-0 right-0 hidden md:flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <button 
@@ -168,7 +172,7 @@ export const ProductCard = memo(function ProductCard({
         )}
       </button>
 
-      {/* META DATA - Matched to Frequently Bought Together */}
+      {/* META DATA */}
       <button onClick={onClick} className="pc-meta mt-4 flex flex-col gap-1 text-left w-full">
         <p 
           className="pc-name text-[14px] md:text-[15px] truncate leading-[1.3]"
